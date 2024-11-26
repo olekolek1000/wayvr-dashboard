@@ -1,0 +1,35 @@
+{
+	"$schema": "https://schema.tauri.app/config/2",
+	"productName": "wayvr_dashboard",
+	"version": "0.1.0",
+	"identifier": "dev.oo8.wayvr-dashboard",
+	"build": {
+		"beforeDevCommand": "npm run dev",
+		"devUrl": "http://localhost:1420",
+		"beforeBuildCommand": "npm run build",
+		"frontendDist": "../dist"
+	},
+	"app": {
+		"windows": [
+			{
+				"title": "WayVR Dashboard",
+				"width": 1280,
+				"height": 720,
+				"transparent": true,
+				"decorations": false
+			}
+		],
+		"security": {
+			"csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
+			"assetProtocol": {
+				"enable": true,
+				"scope": ["**", "$HOME/.local/share/**/*"]
+			}
+		}
+	},
+	"bundle": {
+		"active": true,
+		"targets": "all",
+		"icon": ["icons/icon.png"]
+	}
+}

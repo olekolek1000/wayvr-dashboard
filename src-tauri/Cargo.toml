@@ -1,0 +1,39 @@
+[package]
+name = "wayvr_dashboard"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+
+[lib]
+name = "wayvr_dashboard_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[profile.dev]
+incremental = true
+strip = false
+lto = false
+opt-level = 0
+
+[profile.dev.package."*"]
+opt-level = 0
+incremental = true
+
+[profile.dev.build-override]
+opt-level = 0
+incremental = true
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri-plugin-fs = "2"
+walkdir = "2.5.0"
+xdg = "2.5.2"
+anyhow = "1.0.93"
+rust-ini = "0.21.1"

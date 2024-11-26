@@ -1,0 +1,364 @@
+$color-menu: rgba(10, 10, 10, 0.8);
+$color-border: rgba(255, 255, 255, 0.25);
+$color-tooltip: rgba(25, 25, 25, 1);
+
+$color-panel1: rgb(20, 30, 40);
+$color-panel2: rgb(10, 10, 10);
+
+$color-background1: rgba(34, 44, 62, 0.75);
+$color-background2: rgba(15, 14, 26, 0.75);
+
+$color-background-shine1: rgba(0, 0, 0, 0.6);
+$color-background-shine2: rgba(66, 126, 255, 0.6);
+
+$menu-width: 48px;
+
+@font-face {
+	font-family: font;
+	src: url("assets/Quicksand-VariableFont_wght.ttf");
+}
+
+body {
+	margin: 0;
+	color: #fff;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-user-drag: none;
+
+	font-family: font;
+	height: 100vh;
+
+	overflow: hidden;
+}
+
+.icon {
+	color: #fff;
+	width: 24px;
+	height: 24px;
+}
+
+.shine {
+	border-top: 2px solid rgba(255, 255, 255, 0.2);
+	border-bottom: 2px solid rgba(0, 0, 0, 0.5);
+}
+
+.menu_separator {
+	width: 50%;
+	margin-bottom: 8px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.menu_button {
+	width: 100%;
+	height: auto;
+	aspect-ratio: 1/1;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 64px;
+	box-sizing: border-box;
+	transform: translateX(0px);
+	transition: transform 0.1s;
+}
+
+.menu_button:hover {
+	background-color: $color-tooltip;
+	border: 2px solid $color-border;
+	border-right: unset;
+	border-radius: 64px 0px 0px 64px;
+	transform: translateX(4px);
+}
+
+.menu_button:not(:hover) {
+	transition:
+		background-color 0.15s linear,
+		transform 0.1s;
+}
+
+.menu {
+	width: $menu-width;
+	min-width: $menu-width;
+	max-width: $menu-width;
+	background-color: $color-menu;
+
+	height: fit-content;
+
+	align-self: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	border-radius: 64px;
+	gap: 4px;
+
+	@extend .shine;
+}
+
+.separator_menu_rest {
+	display: flex;
+	flex-direction: row;
+	width: 100vw;
+	height: 100vh;
+	gap: 8px;
+}
+
+.separator_content_panel {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex-grow: 1;
+}
+
+.content {
+	width: 100%;
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
+	background: radial-gradient(
+			circle,
+			$color-background1 50%,
+			$color-background2 150%
+		),
+		linear-gradient(
+			0deg,
+			$color-background-shine1 0%,
+			$color-background-shine2 100%
+		);
+	border-radius: 8px;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+
+	padding-left: 16px;
+	padding-right: 16px;
+	align-items: center;
+	@extend .shine;
+}
+
+.panel {
+	width: 100%;
+	height: 48px;
+	box-sizing: border-box;
+	border-radius: 8px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+
+	@extend .shine;
+
+	justify-content: space-between;
+	position: relative;
+
+	padding-left: 8px;
+
+	background: radial-gradient(circle, $color-panel1 40%, $color-panel2 100%);
+}
+
+.panel_left {
+	position: relative;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+}
+
+.panel_center {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translateX(-50%) translateY(-50%);
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	height: 44px;
+}
+
+.panel_right {
+	position: absolute;
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	margin-right: 4px;
+}
+
+.clock {
+	font-weight: 100;
+	font-size: 1.2em;
+	margin-right: 12px;
+}
+
+.panel_button {
+	height: 100%;
+	width: auto;
+	aspect-ratio: 1/1;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.panel_button:not(:hover) {
+	transition: background-color 0.15s linear;
+}
+
+.panel_window_list {
+	display: flex;
+	flex-direction: row;
+	height: 100%;
+	gap: 2px;
+}
+
+.panel_window {
+	background-color: rgba(255, 255, 255, 0.05);
+	box-sizing: border-box;
+}
+
+.panel_button:hover {
+	background-color: rgba(255, 255, 255, 0.2);
+	border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.games_list {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+}
+
+.applications_list {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+}
+
+.application_cover {
+	width: 80px;
+	height: 100px;
+	border-radius: 8px;
+	border-top: 2px solid rgba(255, 255, 255, 0.1);
+	border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+	display: flex;
+	flex-direction: column;
+	background-color: rgba(255, 255, 255, 0.05);
+	box-sizing: border-box;
+}
+
+.application_cover:hover {
+	background-color: rgba(100, 150, 255, 0.6);
+	border: 2px solid $color-border;
+}
+
+.application_cover_icon {
+	width: 100%;
+	height: 100%;
+}
+
+.application_cover_title {
+	font-size: 0.7em;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, 0.15);
+	min-height: 2em;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	text-align: center;
+}
+
+.game_cover {
+	width: 180px;
+	height: 240px;
+	border-radius: 8px;
+	border-top: 2px solid rgba(255, 255, 255, 0.75);
+	border-bottom: 2px solid rgba(0, 0, 0, 0.5);
+	position: relative;
+	transition: transform 0.2s cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+
+.game_cover_shine {
+	border-radius: 8px;
+	background: linear-gradient(
+			0deg,
+			rgba(255, 255, 255, 0) 50%,
+			rgba(255, 255, 255, 0.4) 100%
+		),
+		linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 30%);
+
+	width: 100%;
+	height: 100%;
+}
+
+.game_cover:hover {
+	transform: perspective(500px) scale(1.1) rotateX(5deg);
+	z-index: 1;
+}
+
+@keyframes tooltip_showup {
+	0% {
+		transform: perspective(300px) rotateY(90deg);
+		opacity: 0;
+	}
+	50% {
+		transform: perspective(300px) rotateY(20deg);
+		opacity: 1;
+	}
+	100% {
+		transform: perspective(300px) rotateY(0deg);
+		opacity: 1;
+	}
+}
+
+.tooltip {
+	border-radius: 0px 32px 32px 0px;
+	padding-left: 16px;
+	padding-right: 16px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+
+	position: absolute;
+	z-index: 10;
+	background: $color-tooltip;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border: 2px solid rgba(0, 0, 0, 0.2);
+	text-wrap: nowrap;
+	height: 48px;
+
+	box-sizing: border-box;
+
+	animation: tooltip_showup 0.15s linear;
+	transform-origin: 0% 50%;
+
+	border: 2px solid $color-border;
+	border-left: none;
+}
+
+.tooltip:hover {
+	display: none;
+}
+
+.title {
+	font-size: 1.5em;
+	margin-top: 0.25em;
+	margin-bottom: 0.25em;
+}
+
+.box_right {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+}
