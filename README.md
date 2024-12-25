@@ -18,12 +18,12 @@ WayVR Dashboard is an work-in-progress overlay application (WayVR/wlx-overlay-s 
 |      | Applications tab | Spawn application inside wlx-overlay-s (WayVR)    |      IPC |
 |      | Applications tab | Display manager (select WayVR display)            |      IPC |
 |      |            WayVR | WayVR running applications manager                |      IPC |
-|      |        Games tab | List all installed Steam games                    |          |
+|   ✔ |        Games tab | List all installed Steam games                    |          |
 |      |        Games tab | Search box, sort by vr/non-vr games               |          |
-|      |        Games tab | Launch desktop games inside WayVR                 |          |
-|      |        Games tab | Fetch cover image of games                        |          |
-|      |        Games tab | Games viewer                                      |          |
-|      |        Games tab | Launch/stop Steam games                           |          |
+|   ✔ |        Games tab | Launch desktop games inside WayVR                 |          |
+|   ✔ |        Games tab | Fetch cover image of games                        |          |
+|   ✔ |        Games tab | Games viewer                                      |          |
+|    / |        Games tab | Launch/stop Steam games                           |          |
 |      |            Utils | Re-center button                                  |      IPC |
 |      |            Utils | Show device battery levels                        |      IPC |
 |      |            Utils | Microphone/speaker volume control                 |          |
