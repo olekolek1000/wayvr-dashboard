@@ -1,13 +1,20 @@
 {
-  "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "default",
-  "description": "Capability for the main window",
-  "windows": [
-    "main"
-  ],
-  "permissions": [
-    "core:default",
-    "shell:allow-open",
-    "fs:default"
-  ]
+	"$schema": "../gen/schemas/desktop-schema.json",
+	"identifier": "default",
+	"description": "Capability for the main window",
+	"windows": ["main"],
+	"permissions": [
+		"core:default",
+		"shell:allow-open",
+		"fs:default",
+		{
+			"identifier": "http:default",
+			"allow": [
+				{
+					"url": "https://*"
+				}
+			]
+		},
+		"http:default"
+	]
 }

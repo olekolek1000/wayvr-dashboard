@@ -108,6 +108,7 @@ body {
 	flex-direction: column;
 	gap: 8px;
 	flex-grow: 1;
+	position: relative;
 }
 
 .content {
@@ -278,13 +279,42 @@ body {
 }
 
 .game_cover {
-	width: 180px;
-	height: 240px;
+	width: 140px;
+	height: 210px;
 	border-radius: 8px;
 	border-top: 2px solid rgba(255, 255, 255, 0.75);
 	border-bottom: 2px solid rgba(0, 0, 0, 0.5);
 	position: relative;
-	transition: transform 0.2s cubic-bezier(0.39, 0.575, 0.565, 1);
+	transition: transform 0.1s cubic-bezier(0.39, 0.575, 0.565, 1);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	box-sizing: border-box;
+	border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.game_cover_image {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 0;
+	border-radius: 8px;
+}
+
+.game_cover_title {
+	text-align: center;
+	z-index: 1;
+	text-shadow: 1px 1px black;
+	font-weight: 600;
+}
+
+.game_cover_big {
+	@extend .game_cover;
+	height: 100%;
+	width: auto;
+	aspect-ratio: 2/3;
 }
 
 .game_cover_shine {
@@ -295,14 +325,22 @@ body {
 			rgba(255, 255, 255, 0.4) 100%
 		),
 		linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 30%);
-
+	position: absolute;
+	top: 0;
+	left: 0;
 	width: 100%;
 	height: 100%;
+	z-index: 0;
 }
 
 .game_cover:hover {
-	transform: perspective(500px) scale(1.1) rotateX(5deg);
+	transform: perspective(500px) scale(1.05) rotateX(3deg);
 	z-index: 1;
+	border: 2px solid white;
+}
+
+.game_cover_big:hover {
+	transform: unset;
 }
 
 @keyframes tooltip_showup {
@@ -361,4 +399,123 @@ body {
 	flex-direction: row;
 	align-items: center;
 	gap: 8px;
+}
+
+.window_decoration {
+	background-color: black;
+	width: 100%;
+	height: 48px;
+	border-radius: 8px 8px 0 0;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.window_decoration_title {
+	display: flex;
+	margin-left: 16px;
+	font-weight: 600;
+}
+
+.window_decoration_buttons {
+	display: flex;
+	height: 100%;
+}
+
+/* animation timing function doesn't work in Tauri for transform. Not sure why. I need to simulate it. */
+@keyframes previewer_showup {
+	0% {
+		transform: translateY(10%);
+		opacity: 0;
+	}
+	25% {
+		transform: translateY(5%);
+	}
+	50% {
+		transform: translateY(1%);
+	}
+	75% {
+		transform: translateY(0.3%);
+	}
+	100% {
+		transform: translateY(0%);
+		opacity: 1;
+	}
+}
+
+.previewer_parent {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: calc(100% - 56px);
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	animation: previewer_showup 0.25s;
+}
+
+.previewer_content {
+	flex-grow: 1;
+	height: 100%;
+	background-color: rgba(50, 50, 50, 0.7);
+	border-radius: 0 0 8px 8px;
+	gap: 16px;
+	display: flex;
+	justify-content: center;
+	padding: 16px;
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+}
+
+.previewer_info {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.previewer_title {
+	font-weight: 600;
+	font-size: 2em;
+}
+
+.previewer_desc {
+	font-weight: 500;
+}
+
+.previewer_developers {
+	font-weight: 600;
+}
+
+.big_button {
+	width: min-content;
+	min-width: 200px;
+	min-height: 48px;
+	border-radius: 8px;
+	font-weight: 600;
+	font-size: 1.2em;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border: 2px solid transparent;
+	transition:
+		border-top 0.1s,
+		border-left 0.2s,
+		border-bottom 0.3s,
+		border-right 0.4s;
+}
+
+.big_button:hover {
+	border: 2px solid white;
+}
+
+.info_launched {
+	display: flex;
+	align-self: center;
+	justify-self: center;
+	font-weight: 600;
+	gap: 16px;
+	flex-direction: column;
+	text-align: center;
 }

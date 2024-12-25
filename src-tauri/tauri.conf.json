@@ -20,7 +20,7 @@
 			}
 		],
 		"security": {
-			"csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
+			"csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost https://shared.cloudflare.steamstatic.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
 			"assetProtocol": {
 				"enable": true,
 				"scope": ["**", "$HOME/.local/share/**/*"]

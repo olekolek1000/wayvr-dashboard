@@ -21,7 +21,7 @@ pub struct EntrySearchCell {
 }
 
 fn search(path: &str) -> anyhow::Result<Vec<DesktopEntry>> {
-	println!("searching in path {}", path);
+	log::debug!("Searching in path {}", path);
 
 	let mut search_cells = Vec::<EntrySearchCell>::new();
 
@@ -41,13 +41,13 @@ fn search(path: &str) -> anyhow::Result<Vec<DesktopEntry>> {
 		let file_path = format!("{}/{}", path, entry.file_name().to_string_lossy());
 
 		let Ok(ini) = Ini::load_from_file(&file_path) else {
-			println!("failed to read INI for .desktop file {}", file_path);
+			log::error!("Failed to read INI for .desktop file {}", file_path);
 			continue; // failed to read ini, go on
 		};
 
 		let Some(section) = ini.section(Some("Desktop Entry")) else {
-			println!(
-				"failed to get [Desktop Entry] section for file {}",
+			log::error!(
+				"Failed to get [Desktop Entry] section for file {}",
 				file_path
 			);
 			continue;
@@ -60,15 +60,15 @@ fn search(path: &str) -> anyhow::Result<Vec<DesktopEntry>> {
 		}
 
 		let Some(app_name) = section.get("Name") else {
-			println!(
-				"failed to get desktop entry application name for file {}",
+			log::error!(
+				"Failed to get desktop entry application name for file {}",
 				file_path
 			);
 			continue;
 		};
 
 		let Some(exec) = section.get("Exec") else {
-			println!("failed to get desktop entry Exec for file {}", file_path);
+			log::error!("Failed to get desktop entry Exec for file {}", file_path);
 			continue;
 		};
 
@@ -95,7 +95,7 @@ fn search(path: &str) -> anyhow::Result<Vec<DesktopEntry>> {
 		let icon_path: Option<String> = if let Some(icon_name) = &cell.icon_name {
 			found_icons.get(icon_name).cloned()
 		} else {
-			println!("Icon for {} not found", cell.desktop_file_path);
+			log::warn!("Icon for {} not found", cell.desktop_file_path);
 			None
 		};
 

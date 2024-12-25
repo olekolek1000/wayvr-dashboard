@@ -47,7 +47,7 @@ pub fn find_icons(
 
 	let mut scan_dir = |path: &PathBuf| {
 		let Ok(scanner) = std::fs::read_dir(path) else {
-			println!("failed to scan directory {:?}", path);
+			log::error!("Failed to scan directory {:?}", path);
 			return;
 		};
 
@@ -126,16 +126,16 @@ pub fn find_icons(
 		}
 
 		let path_index = theme_dir_path.join("index.theme");
-		println!("Loading ini {:?}", path_index);
+		log::debug!("Loading ini {:?}", path_index);
 
 		if let Ok(ini) = Ini::load_from_file(path_index) {
 			let Some(section_icon_theme) = ini.section(Some("Icon Theme")) else {
-				println!("[Icon theme] section not found");
+				log::warn!("[Icon theme] section not found");
 				continue;
 			};
 
 			let Some(directories_str) = section_icon_theme.get("Directories") else {
-				println!("\"Directories\" missing");
+				log::warn!("\"Directories\" missing");
 				continue;
 			};
 
@@ -146,7 +146,8 @@ pub fn find_icons(
 				scan_dir(&full_dir);
 			}
 		} else {
-			println!("index.theme invalid or not found, using predefined paths");
+			// somewhat common, just go on
+			log::info!("index.theme invalid or not found, using predefined paths");
 			// for steam
 			scan_dir(&theme_dir_path.join("128x128/apps"));
 			scan_dir(&theme_dir_path.join("64x64/apps"));

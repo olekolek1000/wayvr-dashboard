@@ -2,5 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
+	env_logger::init();
+
 	wayvr_dashboard_lib::run()
 }

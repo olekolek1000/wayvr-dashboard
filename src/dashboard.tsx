@@ -1,7 +1,7 @@
 
 import { Clock } from "./clock";
 import style from "./app.module.scss"
-import { Icon, Tooltip } from "./gui";
+import { Icon, Tooltip, PanelButton } from "./gui";
 import { useState } from "preact/hooks";
 import { PanelHome } from "./panel/home";
 import { PanelGames } from "./panel/games";
@@ -13,17 +13,13 @@ function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) 
 	</div>
 }
 
-function PanelButton({ icon, on_click }: { icon: string, on_click: () => void }) {
-	return <div onClick={on_click} className={style.panel_button}>
-		<Icon path={icon} />
-	</div>
-}
 
+/*
 function PanelWindow({ icon }: { icon: string }) {
 	return <div className={`${style.panel_button} ${style.panel_window}`}>
 		<Icon path={icon} />
 	</div>
-}
+}*/
 
 
 export function Dashboard() {

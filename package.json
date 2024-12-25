@@ -12,6 +12,7 @@
   "dependencies": {
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-fs": "^2.0.2",
+    "@tauri-apps/plugin-http": "^2.2.0",
     "@tauri-apps/plugin-shell": "^2",
     "@types/node": "^22.9.0",
     "preact": "^10.16.0",

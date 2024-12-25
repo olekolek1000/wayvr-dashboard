@@ -28,7 +28,7 @@ incremental = true
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["protocol-asset"] }
+tauri = { version = "2", features = ["protocol-asset", "devtools"] }
 tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -37,3 +37,8 @@ walkdir = "2.5.0"
 xdg = "2.5.2"
 anyhow = "1.0.93"
 rust-ini = "0.21.1"
+#steamworks = "0.11.0"
+log = "0.4.22"
+env_logger = "0.11.6"
+keyvalues-parser = { git = "https://github.com/CosmicHorrorDev/vdf-rs.git" }
+tauri-plugin-http = "2"
