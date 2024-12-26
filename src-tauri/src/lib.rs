@@ -2,8 +2,10 @@ use app::AppState;
 use tauri::Manager;
 
 pub mod app;
-pub mod ipc;
+pub mod client_ipc;
+pub mod frontend_ipc;
 pub mod util;
+pub mod wlx_client_ipc;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -14,9 +16,9 @@ pub fn run() {
 			Ok(())
 		})
 		.invoke_handler(tauri::generate_handler![
-			ipc::get_desktop_files,
-			ipc::get_games,
-			ipc::launch_game,
+			frontend_ipc::get_desktop_files,
+			frontend_ipc::get_games,
+			frontend_ipc::launch_game,
 		])
 		.plugin(tauri_plugin_fs::init())
 		.plugin(tauri_plugin_shell::init())
