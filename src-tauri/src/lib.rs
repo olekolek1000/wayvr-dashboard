@@ -23,6 +23,8 @@ pub async fn run() {
 			frontend_ipc::launch_game,
 			frontend_ipc::list_displays,
 			frontend_ipc::get_display,
+			frontend_ipc::list_processes,
+			frontend_ipc::terminate_process,
 		])
 		.plugin(tauri_plugin_fs::init())
 		.plugin(tauri_plugin_shell::init())

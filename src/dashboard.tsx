@@ -71,22 +71,22 @@ export function Dashboard() {
 				<div className={style.panel}>
 					<div className={style.panel_left}>
 						<Tooltip title={"Menu (TODO)"}>
-							<PanelButton icon="icons/burger.svg" on_click={() => {
+							<PanelButton square icon="icons/burger.svg" on_click={() => {
 
 							}} />
 						</Tooltip>
 						<Tooltip title={"Recenter (TODO)"}>
-							<PanelButton icon="icons/recenter.svg" on_click={() => {
+							<PanelButton square icon="icons/recenter.svg" on_click={() => {
 
 							}} />
 						</Tooltip>
 						<Tooltip title={"Volume (TODO)"}>
-							<PanelButton icon="icons/volume.svg" on_click={() => {
+							<PanelButton square icon="icons/volume.svg" on_click={() => {
 
 							}} />
 						</Tooltip>
 						<Tooltip title={"Camera passthrough (TODO)"}>
-							<PanelButton icon="icons/eye.svg" on_click={() => {
+							<PanelButton square icon="icons/eye.svg" on_click={() => {
 
 							}} />
 						</Tooltip>

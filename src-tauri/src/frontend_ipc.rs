@@ -105,3 +105,33 @@ pub async fn get_display(
 
 	Ok(display)
 }
+
+#[tauri::command]
+pub async fn list_processes(
+	state: tauri::State<'_, AppState>,
+) -> Result<Vec<packet_server::Process>, String> {
+	let processes = match WayVRClient::list_processes(
+		state.wavyr_client.clone(),
+		state.serial_generator.increment_get(),
+	)
+	.await
+	{
+		Ok(d) => d,
+		Err(e) => return Err(format!("failed to fetch processes: {}", e)),
+	};
+
+	Ok(processes)
+}
+
+#[tauri::command]
+pub async fn terminate_process(
+	state: tauri::State<'_, AppState>,
+	handle: packet_server::ProcessHandle,
+) -> Result<(), String> {
+	match WayVRClient::terminate_process(state.wavyr_client.clone(), handle).await {
+		Ok(d) => d,
+		Err(e) => return Err(format!("failed to terminate process: {}", e)),
+	};
+
+	Ok(())
+}

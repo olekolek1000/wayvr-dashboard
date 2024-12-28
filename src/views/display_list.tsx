@@ -25,7 +25,9 @@ export function DisplayList({ displays }: { displays: Array<ipc.Display> }) {
 		max_height = Math.max(max_height, display.height);
 	}
 
-	return <div className={style.wayvr_displays}>{displays.map((display) => {
-		return <Display scale={0.2} display={display} />
-	})}</div>;
+	return <div className={style.wayvr_displays}>
+		{displays.length == 0 ? "No displays found" : displays.map((display) => {
+			return <Display scale={0.2} display={display} />
+		})}
+	</div>
 }

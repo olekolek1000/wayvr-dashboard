@@ -22,13 +22,7 @@ export namespace ipc {
 		manifests!: Array<AppManifest>;
 	}
 
-	export async function get_games(): Promise<Games> {
-		return await invoke("get_games");
-	}
 
-	export async function launch_game(app_id: number): Promise<void> {
-		return await invoke("launch_game", { appId: app_id })
-	}
 
 	export class DisplayHandle {
 		idx!: number;
@@ -43,11 +37,38 @@ export namespace ipc {
 		handle!: DisplayHandle;
 	}
 
+	export class ProcessHandle {
+		idx!: number;
+		generation!: number;
+	}
+
+	export class Process {
+		name!: string;
+		display_handle!: DisplayHandle;
+		handle!: ProcessHandle;
+	}
+
+	export async function get_games(): Promise<Games> {
+		return await invoke("get_games");
+	}
+
+	export async function launch_game(app_id: number): Promise<void> {
+		return await invoke("launch_game", { appId: app_id })
+	}
+
 	export async function list_displays(): Promise<Array<Display>> {
 		return await invoke("list_displays");
 	}
 
-	export async function get_display(): Promise<Display> {
-		return await invoke("get_display");
+	export async function get_display(handle: DisplayHandle): Promise<Display> {
+		return await invoke("get_display", { handle: handle });
+	}
+
+	export async function list_processes(): Promise<Array<Process>> {
+		return await invoke("list_processes");
+	}
+
+	export async function terminate_process(handle: ProcessHandle): Promise<undefined> {
+		return await invoke("terminate_process", { handle: handle });
 	}
 }

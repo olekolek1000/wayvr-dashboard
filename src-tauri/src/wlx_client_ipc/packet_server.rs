@@ -10,6 +10,12 @@ pub struct DisplayHandle {
 	pub generation: u64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProcessHandle {
+	pub idx: u32,
+	pub generation: u64,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Display {
 	pub width: u32,
@@ -25,9 +31,22 @@ pub struct DisplayList {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct Process {
+	pub name: String,
+	pub display_handle: DisplayHandle,
+	pub handle: ProcessHandle,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProcessList {
+	pub list: Vec<Process>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub enum PacketServer {
 	ListDisplaysResponse(Serial, DisplayList),
 	GetDisplayResponse(Serial, Option<Display>),
+	ListProcessesResponse(Serial, ProcessList),
 }
 
 impl PacketServer {
@@ -35,6 +54,7 @@ impl PacketServer {
 		match self {
 			PacketServer::ListDisplaysResponse(serial, _) => Some(serial),
 			PacketServer::GetDisplayResponse(serial, _) => Some(serial),
+			PacketServer::ListProcessesResponse(serial, _) => Some(serial),
 		}
 	}
 }

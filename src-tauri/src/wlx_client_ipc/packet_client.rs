@@ -8,4 +8,6 @@ use super::{ipc::Serial, packet_server};
 pub enum PacketClient {
 	ListDisplays(Serial),
 	GetDisplay(Serial, packet_server::DisplayHandle),
+	ListProcesses(Serial),
+	TerminateProcess(packet_server::ProcessHandle),
 }

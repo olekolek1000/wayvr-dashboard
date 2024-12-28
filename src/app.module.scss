@@ -193,14 +193,30 @@ body {
 }
 
 .panel_button {
-	height: 100%;
-	width: auto;
-	aspect-ratio: 1/1;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	border-radius: 4px;
 	box-sizing: border-box;
+	gap: 4px;
+	padding-left: 4px;
+	padding-right: 4px;
+	border: 2px solid rgba(255, 255, 255, 0.1);
+	background-color: rgba(255, 255, 255, 0.05);
+	cursor: pointer;
+}
+
+.panel_button:active {
+	background-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.panel_button_square {
+	@extend .panel_button;
+	height: 100%;
+	width: auto;
+	aspect-ratio: 1/1;
+	border: unset;
+	background-color: unset;
 }
 
 .panel_button:not(:hover) {
@@ -221,7 +237,7 @@ body {
 
 .panel_button:hover {
 	background-color: rgba(255, 255, 255, 0.2);
-	border: 2px solid rgba(255, 255, 255, 0.25);
+	border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 .games_list {
@@ -341,6 +357,44 @@ body {
 
 .game_cover_big:hover {
 	transform: unset;
+}
+
+@keyframes tooltip_simple_showup {
+	0% {
+		transform: perspective(300px) rotateX(90deg);
+		opacity: 0;
+	}
+	50% {
+		transform: perspective(300px) rotateX(20deg);
+		opacity: 1;
+	}
+	100% {
+		transform: perspective(300px) rotateX(0deg);
+		opacity: 1;
+	}
+}
+
+.tooltip_simple {
+	border-radius: 8px;
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	background: $color-tooltip;
+	z-index: 100;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-wrap: nowrap;
+	padding-left: 16px;
+	padding-right: 16px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	position: absolute;
+
+	animation: tooltip_simple_showup 0.15s linear;
+	transform-origin: 50% 0%;
+}
+
+.tooltip_simple:hover {
+	display: none;
 }
 
 @keyframes tooltip_showup {
@@ -524,15 +578,20 @@ body {
 	padding: 8px;
 	border-radius: 10px;
 	border: 2px solid rgba(255, 255, 255, 0.15);
-	background-color: rgba(0, 0, 0, 0.2);
-
+	background-color: rgba(0, 0, 0, 0.5);
 	display: flex;
 	gap: 8px;
 }
 
 .wayvr_display {
 	box-sizing: border-box;
-	background-color: rgba(150, 150, 150, 0.4);
+
+	background: linear-gradient(
+		0deg,
+		rgba(100, 110, 150, 0.4) 0%,
+		rgba(100, 110, 150, 0.8) 100%
+	);
+
 	border-radius: 4px;
 
 	display: flex;
@@ -540,4 +599,42 @@ body {
 	align-items: center;
 	flex-direction: column;
 	gap: 2px;
+}
+
+.wayvr_processes {
+	padding: 8px;
+	border-radius: 10px;
+	border: 2px solid rgba(255, 255, 255, 0.15);
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	gap: 8px;
+	flex-direction: column;
+}
+
+.wayvr_process {
+	box-sizing: border-box;
+	border-radius: 4px;
+	background-color: rgba(150, 150, 150, 0.1);
+	padding: 3px;
+	display: flex;
+	gap: 8px;
+	width: min-content;
+}
+
+.wayvr_process_name {
+	background-color: rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding-left: 4px;
+	padding-right: 4px;
+	min-height: 20px;
+	border: 2px solid transparent;
+}
+
+.wayvr_process_name:hover {
+	background-color: rgba(255, 255, 255, 0.2);
+	border: 2px solid rgba(255, 255, 255, 0.3);
 }

@@ -180,6 +180,15 @@ impl WayVRClient {
 		Ok(())
 	}
 
+	// Send packet without feedback
+	pub async fn send_payload(client_mtx: WayVRClientMutex, payload: &[u8]) -> anyhow::Result<()> {
+		let client = client_mtx.lock().await;
+		let sender = client.sender.clone();
+		drop(client);
+		send_packet(&sender, payload).await?;
+		Ok(())
+	}
+
 	pub async fn queue_wait_packet(
 		client_mtx: WayVRClientMutex,
 		serial: Serial,
@@ -263,6 +272,36 @@ impl WayVRClient {
 		};
 
 		Ok(display)
+	}
+
+	pub async fn list_processes(
+		client_mtx: WayVRClientMutex,
+		serial: Serial,
+	) -> anyhow::Result<Vec<packet_server::Process>> {
+		let response = WayVRClient::queue_wait_packet(
+			client_mtx,
+			serial,
+			&binary_encode(&PacketClient::ListProcesses(serial)),
+		)
+		.await?;
+
+		let PacketServer::ListProcessesResponse(_, process_list) = response else {
+			anyhow::bail!("unexpected response");
+		};
+
+		Ok(process_list.list)
+	}
+
+	pub async fn terminate_process(
+		client_mtx: WayVRClientMutex,
+		handle: packet_server::ProcessHandle,
+	) -> anyhow::Result<()> {
+		WayVRClient::send_payload(
+			client_mtx,
+			&binary_encode(&PacketClient::TerminateProcess(handle)),
+		)
+		.await?;
+		Ok(())
 	}
 }
 

@@ -12,20 +12,24 @@ export function Icon({ path, width, height }: { path: string, width?: number, he
 	</img>
 }
 
-export function PanelButton({ icon, on_click }: { icon: string, on_click: () => void }) {
-	return <div onClick={on_click} className={style.panel_button}>
+export function PanelButton({ icon, height, on_click, square, children }: { icon: string, height?: number, on_click: () => void, square?: boolean, children?: any }) {
+	return <div onClick={on_click} className={square ? style.panel_button_square : style.panel_button} style={{
+		height: height ? (height + "px") : "undefined",
+
+	}}>
 		<Icon path={icon} />
+		{children}
 	</div>
 }
 
-export function Tooltip({ children, title }: { children: any, title: any }) {
+export function Tooltip({ children, title, simple }: { children: any, title: any, simple?: boolean }) {
 	const [hovered, setHovered] = useState(false);
 	const ref_tooltip = useRef<HTMLDivElement | null>(null);
 
 	let content = undefined;
 
 	if (hovered) {
-		content = <div ref={ref_tooltip} className={style.tooltip}>
+		content = <div ref={ref_tooltip} className={simple ? style.tooltip_simple : style.tooltip}>
 			{title}
 		</div>
 	};
@@ -42,8 +46,9 @@ export function Tooltip({ children, title }: { children: any, title: any }) {
 		<>
 			{hovered ? <div style={{
 				position: "absolute",
-				right: "0",
-				top: "0",
+				right: simple ? undefined : "0",
+				top: simple ? undefined : "0",
+				bottom: simple ? "0" : undefined,
 			}}>
 				{content}
 			</div> : undefined}
