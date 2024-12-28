@@ -519,3 +519,25 @@ body {
 	flex-direction: column;
 	text-align: center;
 }
+
+.wayvr_displays {
+	padding: 8px;
+	border-radius: 10px;
+	border: 2px solid rgba(255, 255, 255, 0.15);
+	background-color: rgba(0, 0, 0, 0.2);
+
+	display: flex;
+	gap: 8px;
+}
+
+.wayvr_display {
+	box-sizing: border-box;
+	background-color: rgba(150, 150, 150, 0.4);
+	border-radius: 4px;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	gap: 2px;
+}

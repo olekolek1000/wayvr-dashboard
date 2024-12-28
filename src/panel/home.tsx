@@ -1,3 +1,4 @@
+
 import { BoxRight, Icon, Title } from "../gui";
 
 export function PanelHome({ }: {}) {

@@ -39,5 +39,7 @@ declare const classNames: {
   readonly previewer_developers: "previewer_developers";
   readonly big_button: "big_button";
   readonly info_launched: "info_launched";
+  readonly wayvr_displays: "wayvr_displays";
+  readonly wayvr_display: "wayvr_display";
 };
 export default classNames;

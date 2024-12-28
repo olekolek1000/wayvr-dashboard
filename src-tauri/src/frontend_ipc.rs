@@ -2,7 +2,9 @@ use serde::Serialize;
 
 use crate::{
 	app::AppState,
+	client_ipc::WayVRClient,
 	util::{self, steam_bridge},
+	wlx_client_ipc::packet_server,
 };
 
 #[derive(Debug, Serialize)]
@@ -65,4 +67,41 @@ pub fn launch_game(app_id: i32) -> Result<(), String> {
 	}
 
 	Ok(())
+}
+
+#[tauri::command]
+pub async fn list_displays(
+	state: tauri::State<'_, AppState>,
+) -> Result<Vec<packet_server::Display>, String> {
+	let displays = match WayVRClient::list_displays(
+		state.wavyr_client.clone(),
+		state.serial_generator.increment_get(),
+	)
+	.await
+	{
+		Ok(d) => d,
+		Err(e) => return Err(format!("failed to fetch displays: {}", e)),
+	};
+
+	Ok(displays)
+}
+
+#[tauri::command]
+pub async fn get_display(
+	state: tauri::State<'_, AppState>,
+	handle: packet_server::DisplayHandle,
+) -> Result<packet_server::Display, String> {
+	let display = match WayVRClient::get_display(
+		state.wavyr_client.clone(),
+		state.serial_generator.increment_get(),
+		handle,
+	)
+	.await
+	{
+		Ok(d) => d,
+		Err(e) => return Err(format!("failed to fetch display: {}", e)),
+	}
+	.ok_or("Display not found")?;
+
+	Ok(display)
 }

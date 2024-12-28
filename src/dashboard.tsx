@@ -6,6 +6,7 @@ import { useState } from "preact/hooks";
 import { PanelHome } from "./panel/home";
 import { PanelGames } from "./panel/games";
 import { PanelApplications } from "./panel/applications";
+import { PanelRunningApps } from "./panel/running_apps";
 
 function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) {
 	return <div onClick={on_click} className={style.menu_button}>
@@ -46,7 +47,7 @@ export function Dashboard() {
 
 				<Tooltip title={"Running apps"}>
 					<MenuButton icon="icons/window.svg" on_click={() => {
-
+						setCurrentPanel(<PanelRunningApps />);
 					}} />
 				</Tooltip>
 
