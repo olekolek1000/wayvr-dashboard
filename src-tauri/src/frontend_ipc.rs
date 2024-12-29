@@ -1,10 +1,9 @@
 use serde::Serialize;
+use wayvr_ipc::{client::WayVRClient, packet_server};
 
 use crate::{
 	app::AppState,
-	client_ipc::WayVRClient,
 	util::{self, steam_bridge},
-	wlx_client_ipc::packet_server,
 };
 
 #[derive(Debug, Serialize)]

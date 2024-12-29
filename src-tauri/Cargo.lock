@@ -4585,7 +4585,24 @@ dependencies = [
  "tokio",
  "tokio-util",
  "walkdir",
+ "wayvr_ipc",
  "xdg",
+]
+
+[[package]]
+name = "wayvr_ipc"
+version = "0.1.0"
+source = "git+https://github.com/olekolek1000/wayvr-ipc.git#7d6f266c9200a7e2b05da72cd54ab9a0a98ba287"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "interprocess",
+ "log",
+ "postcard",
+ "serde",
+ "smallvec",
+ "tokio",
+ "tokio-util",
 ]
 
 [[package]]

@@ -2,10 +2,8 @@ use app::AppState;
 use tauri::Manager;
 
 pub mod app;
-pub mod client_ipc;
 pub mod frontend_ipc;
 pub mod util;
-pub mod wlx_client_ipc;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() {

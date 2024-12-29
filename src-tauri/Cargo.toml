@@ -48,3 +48,6 @@ bytes = "1.9.0"
 tokio = "1.42.0"
 tokio-util = "0.7.13"
 smallvec = "1.13.2"
+wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", features = [
+	"client",
+] }

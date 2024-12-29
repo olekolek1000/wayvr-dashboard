@@ -1,8 +1,9 @@
-use crate::{
-	client_ipc::{WayVRClient, WayVRClientMutex},
-	util::steam_bridge::SteamBridge,
-	wlx_client_ipc::ipc,
+use wayvr_ipc::{
+	client::{WayVRClient, WayVRClientMutex},
+	ipc,
 };
+
+use crate::util::steam_bridge::SteamBridge;
 
 pub struct AppState {
 	pub steam_bridge: SteamBridge,
