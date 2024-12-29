@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { BoxRight, Icon, PanelButton, Title } from "../gui";
+import { PanelButton, Title } from "../gui";
 import { ipc } from "../ipc";
 import { DisplayList } from "../views/display_list";
 import { ProcessList } from "../views/process_list";
