@@ -15,8 +15,8 @@ export function PanelRunningApps({ }: {}) {
 
 	useEffect(() => {
 		const run = async () => {
-			setDisplays(await ipc.list_displays());
-			setProcesses(await ipc.list_processes());
+			setDisplays(await ipc.display_list());
+			setProcesses(await ipc.process_list());
 		}
 
 		run().catch((e) => {

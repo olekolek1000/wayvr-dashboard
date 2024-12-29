@@ -14,124 +14,113 @@ pub struct DesktopFile {
 	exec: String,
 }
 
-#[tauri::command]
-pub fn get_desktop_files() -> Result<Vec<DesktopFile>, String> {
-	let entries = match util::desktop_finder::find_entries() {
-		Ok(res) => res,
-		Err(err) => {
-			return Err(format!("Couldn't find desktop file entries: {}", err));
-		}
-	};
-
-	let mut res: Vec<DesktopFile> = Vec::new();
-
-	for entry in entries {
-		res.push(DesktopFile {
-			exec: entry.exec_path,
-			icon: entry.icon_path,
-			name: entry.app_name,
-		});
-	}
-
-	Ok(res)
-}
-
 #[derive(Serialize)]
 pub struct Games {
 	manifests: Vec<steam_bridge::AppManifest>,
 }
 
-#[tauri::command]
-pub async fn get_games(state: tauri::State<'_, AppState>) -> Result<Games, String> {
-	let manifests = match state
-		.steam_bridge
-		.list_installed_games(steam_bridge::GameSortMethod::PlayDateDesc)
-	{
-		Ok(res) => res,
-		Err(err) => return Err(format!("Couldn't list game entries: {}", err)),
-	};
-
-	Ok(Games { manifests })
+fn handle_result<T, E>(msg: &str, result: Result<T, E>) -> Result<T, String>
+where
+	E: std::fmt::Display,
+{
+	result.map_err(|e| format!("failed to {}: {}", msg, e))
 }
 
 #[tauri::command]
-pub fn launch_game(app_id: i32) -> Result<(), String> {
-	println!("Launching game {}", app_id);
+pub fn desktop_file_list() -> Result<Vec<DesktopFile>, String> {
+	Ok(
+		handle_result(
+			"find desktop file entries",
+			util::desktop_finder::find_entries(),
+		)?
+		.iter()
+		.map(|entry| DesktopFile {
+			exec: entry.exec_path.clone(),
+			icon: entry.icon_path.clone(),
+			name: entry.app_name.clone(),
+		})
+		.collect::<Vec<DesktopFile>>(),
+	)
+}
 
-	let child = std::process::Command::new("xdg-open")
-		.arg(format!("steam://run/{}", app_id))
-		.spawn();
+#[tauri::command]
+pub async fn game_list(state: tauri::State<'_, AppState>) -> Result<Games, String> {
+	Ok(Games {
+		manifests: handle_result(
+			"list game entries",
+			state
+				.steam_bridge
+				.list_installed_games(steam_bridge::GameSortMethod::PlayDateDesc),
+		)?,
+	})
+}
 
-	if let Err(e) = child {
-		return Err(format!("failed to execute xdg-open: {}", e));
-	}
-
+#[tauri::command]
+pub fn game_launch(app_id: i32) -> Result<(), String> {
+	handle_result(
+		"execute xdg-open",
+		std::process::Command::new("xdg-open")
+			.arg(format!("steam://run/{}", app_id))
+			.spawn(),
+	)?;
 	Ok(())
 }
 
 #[tauri::command]
-pub async fn list_displays(
+pub async fn display_list(
 	state: tauri::State<'_, AppState>,
 ) -> Result<Vec<packet_server::Display>, String> {
-	let displays = match WayVRClient::list_displays(
-		state.wavyr_client.clone(),
-		state.serial_generator.increment_get(),
+	handle_result(
+		"fetch displays",
+		WayVRClient::fn_display_list(
+			state.wavyr_client.clone(),
+			state.serial_generator.increment_get(),
+		)
+		.await,
 	)
-	.await
-	{
-		Ok(d) => d,
-		Err(e) => return Err(format!("failed to fetch displays: {}", e)),
-	};
-
-	Ok(displays)
 }
 
 #[tauri::command]
-pub async fn get_display(
+pub async fn display_get(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::DisplayHandle,
 ) -> Result<packet_server::Display, String> {
-	let display = match WayVRClient::get_display(
-		state.wavyr_client.clone(),
-		state.serial_generator.increment_get(),
-		handle,
-	)
-	.await
-	{
-		Ok(d) => d,
-		Err(e) => return Err(format!("failed to fetch display: {}", e)),
-	}
-	.ok_or("Display not found")?;
+	let display = handle_result(
+		"fetch display",
+		WayVRClient::fn_display_get(
+			state.wavyr_client.clone(),
+			state.serial_generator.increment_get(),
+			handle,
+		)
+		.await,
+	)?;
+
+	let display = handle_result("fetch display", display.ok_or("Display doesn't exist"))?;
 
 	Ok(display)
 }
 
 #[tauri::command]
-pub async fn list_processes(
+pub async fn process_list(
 	state: tauri::State<'_, AppState>,
 ) -> Result<Vec<packet_server::Process>, String> {
-	let processes = match WayVRClient::list_processes(
-		state.wavyr_client.clone(),
-		state.serial_generator.increment_get(),
+	handle_result(
+		"fetch processes",
+		WayVRClient::fn_process_list(
+			state.wavyr_client.clone(),
+			state.serial_generator.increment_get(),
+		)
+		.await,
 	)
-	.await
-	{
-		Ok(d) => d,
-		Err(e) => return Err(format!("failed to fetch processes: {}", e)),
-	};
-
-	Ok(processes)
 }
 
 #[tauri::command]
-pub async fn terminate_process(
+pub async fn process_terminate(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::ProcessHandle,
 ) -> Result<(), String> {
-	match WayVRClient::terminate_process(state.wavyr_client.clone(), handle).await {
-		Ok(d) => d,
-		Err(e) => return Err(format!("failed to terminate process: {}", e)),
-	};
-
-	Ok(())
+	handle_result(
+		"terminate process",
+		WayVRClient::fn_process_terminate(state.wavyr_client.clone(), handle).await,
+	)
 }

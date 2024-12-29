@@ -8,7 +8,7 @@ export function PanelGames({ }: {}) {
 	const previewer = initPreviewer();
 
 	useMemo(async () => {
-		const games = await ipc.get_games();
+		const games = await ipc.game_list();
 
 		const arr = games.manifests.map((manifest) => {
 			return <GameCover on_click={() => {

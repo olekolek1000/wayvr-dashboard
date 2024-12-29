@@ -8,7 +8,7 @@ export function PanelApplications({ }: {}) {
 	const [list, setList] = useState(<></>);
 
 	useMemo(async () => {
-		const desktop_files = await ipc.get_desktop_files();
+		const desktop_files = await ipc.desktop_file_list();
 
 		const arr = desktop_files.map((dfile) => {
 			return <ApplicationCover icon={dfile.icon ? get_external_url(dfile.icon) : undefined} name={dfile.name} key={dfile.exec + "." + dfile.name} />

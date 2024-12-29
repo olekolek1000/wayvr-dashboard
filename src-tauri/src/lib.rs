@@ -18,13 +18,13 @@ pub async fn run() {
 			Ok(())
 		})
 		.invoke_handler(tauri::generate_handler![
-			frontend_ipc::get_desktop_files,
-			frontend_ipc::get_games,
-			frontend_ipc::launch_game,
-			frontend_ipc::list_displays,
-			frontend_ipc::get_display,
-			frontend_ipc::list_processes,
-			frontend_ipc::terminate_process,
+			frontend_ipc::desktop_file_list,
+			frontend_ipc::game_list,
+			frontend_ipc::game_launch,
+			frontend_ipc::display_list,
+			frontend_ipc::display_get,
+			frontend_ipc::process_list,
+			frontend_ipc::process_terminate,
 		])
 		.plugin(tauri_plugin_fs::init())
 		.plugin(tauri_plugin_shell::init())

@@ -7,10 +7,6 @@ export namespace ipc {
 		exec!: string;
 	}
 
-	export async function get_desktop_files(): Promise<Array<DesktopFile>> {
-		return await invoke("get_desktop_files");
-	}
-
 	export class AppManifest {
 		app_id!: number;
 		name!: string;
@@ -48,27 +44,31 @@ export namespace ipc {
 		handle!: ProcessHandle;
 	}
 
-	export async function get_games(): Promise<Games> {
-		return await invoke("get_games");
+	export async function desktop_file_list(): Promise<Array<DesktopFile>> {
+		return await invoke("desktop_file_list");
 	}
 
-	export async function launch_game(app_id: number): Promise<void> {
-		return await invoke("launch_game", { appId: app_id })
+	export async function game_list(): Promise<Games> {
+		return await invoke("game_list");
 	}
 
-	export async function list_displays(): Promise<Array<Display>> {
-		return await invoke("list_displays");
+	export async function game_launch(app_id: number): Promise<void> {
+		return await invoke("game_launch", { appId: app_id })
 	}
 
-	export async function get_display(handle: DisplayHandle): Promise<Display> {
-		return await invoke("get_display", { handle: handle });
+	export async function display_list(): Promise<Array<Display>> {
+		return await invoke("display_list");
 	}
 
-	export async function list_processes(): Promise<Array<Process>> {
-		return await invoke("list_processes");
+	export async function display_get(handle: DisplayHandle): Promise<Display> {
+		return await invoke("display_get", { handle: handle });
 	}
 
-	export async function terminate_process(handle: ProcessHandle): Promise<undefined> {
-		return await invoke("terminate_process", { handle: handle });
+	export async function process_list(): Promise<Array<Process>> {
+		return await invoke("process_list");
+	}
+
+	export async function process_terminate(handle: ProcessHandle): Promise<undefined> {
+		return await invoke("process_terminate", { handle: handle });
 	}
 }

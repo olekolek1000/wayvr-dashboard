@@ -182,7 +182,7 @@ function PreviewManifest({ manifest, setPreview, on_close }: { manifest: ipc.App
 				<div className={style.previewer_title}>{manifest.name}</div>
 				{details}
 				<BigButton type={BigButtonType.launch} on_click={() => {
-					ipc.launch_game(manifest.app_id);
+					ipc.game_launch(manifest.app_id);
 					setPreview(<PreviewLaunched on_close={on_close} />);
 				}} />
 			</div>

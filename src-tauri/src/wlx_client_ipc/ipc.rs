@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 pub type Serial = u64;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct SerialGenerator {
 	serial: Arc<SyncMutex<u64>>,
 }

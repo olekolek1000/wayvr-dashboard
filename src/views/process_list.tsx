@@ -15,7 +15,7 @@ function ProcessEntry({ process, display, on_refresh }: { process: ipc.Process, 
 	return <div className={style.wayvr_process}>
 		<Tooltip simple title={"Terminate process \"" + process.name + "\""}>
 			<div className={style.wayvr_process_name} onClick={async () => {
-				await ipc.terminate_process(process.handle);
+				await ipc.process_terminate(process.handle);
 				setTimeout(() => {
 					on_refresh();
 				}, 100);

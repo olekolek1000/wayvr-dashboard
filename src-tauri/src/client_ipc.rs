@@ -89,9 +89,15 @@ async fn read_payload(
 	Ok(payload)
 }
 
+macro_rules! bail_unexpected_response {
+	() => {
+		anyhow::bail!("unexpected response");
+	};
+}
+
 impl WayVRClient {
 	pub async fn new() -> anyhow::Result<WayVRClientMutex> {
-		let printname = "wlx_dashboard_ipc.sock";
+		let printname = "/tmp/wlx_dashboard_ipc.sock";
 		let name = printname.to_ns_name::<GenericNamespaced>()?;
 
 		let stream = Stream::connect(name).await?;
@@ -237,68 +243,63 @@ impl WayVRClient {
 		}
 	}
 
-	pub async fn list_displays(
+	pub async fn fn_display_list(
 		client_mtx: WayVRClientMutex,
 		serial: Serial,
 	) -> anyhow::Result<Vec<packet_server::Display>> {
-		let response = WayVRClient::queue_wait_packet(
+		let PacketServer::DisplayListResponse(_, display_list) = WayVRClient::queue_wait_packet(
 			client_mtx,
 			serial,
-			&binary_encode(&PacketClient::ListDisplays(serial)),
+			&binary_encode(&PacketClient::DisplayList(serial)),
 		)
-		.await?;
-
-		let PacketServer::ListDisplaysResponse(_, display_list) = response else {
-			anyhow::bail!("unexpected response");
+		.await?
+		else {
+			bail_unexpected_response!();
 		};
-
 		Ok(display_list.list)
 	}
 
-	pub async fn get_display(
+	pub async fn fn_display_get(
 		client_mtx: WayVRClientMutex,
 		serial: Serial,
 		handle: packet_server::DisplayHandle,
 	) -> anyhow::Result<Option<packet_server::Display>> {
-		let response = WayVRClient::queue_wait_packet(
+		let PacketServer::DisplayGetResponse(_, display) = WayVRClient::queue_wait_packet(
 			client_mtx,
 			serial,
-			&binary_encode(&PacketClient::GetDisplay(serial, handle)),
+			&binary_encode(&PacketClient::DisplayGet(serial, handle)),
 		)
-		.await?;
-
-		let PacketServer::GetDisplayResponse(_, display) = response else {
-			anyhow::bail!("unexpected response");
+		.await?
+		else {
+			bail_unexpected_response!();
 		};
-
 		Ok(display)
 	}
 
-	pub async fn list_processes(
+	pub async fn fn_process_list(
 		client_mtx: WayVRClientMutex,
 		serial: Serial,
 	) -> anyhow::Result<Vec<packet_server::Process>> {
-		let response = WayVRClient::queue_wait_packet(
+		let PacketServer::ProcessListResponse(_, process_list) = WayVRClient::queue_wait_packet(
 			client_mtx,
 			serial,
-			&binary_encode(&PacketClient::ListProcesses(serial)),
+			&binary_encode(&PacketClient::ProcessList(serial)),
 		)
-		.await?;
-
-		let PacketServer::ListProcessesResponse(_, process_list) = response else {
-			anyhow::bail!("unexpected response");
+		.await?
+		else {
+			bail_unexpected_response!();
 		};
 
 		Ok(process_list.list)
 	}
 
-	pub async fn terminate_process(
+	pub async fn fn_process_terminate(
 		client_mtx: WayVRClientMutex,
 		handle: packet_server::ProcessHandle,
 	) -> anyhow::Result<()> {
 		WayVRClient::send_payload(
 			client_mtx,
-			&binary_encode(&PacketClient::TerminateProcess(handle)),
+			&binary_encode(&PacketClient::ProcessTerminate(handle)),
 		)
 		.await?;
 		Ok(())
