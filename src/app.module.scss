@@ -11,6 +11,9 @@ $color-background2: rgba(15, 14, 26, 0.75);
 $color-background-shine1: rgba(0, 0, 0, 0.6);
 $color-background-shine2: rgba(66, 126, 255, 0.6);
 
+$color-accent: rgb(64, 138, 203);
+$color-highlight: rgb(115, 176, 229);
+
 $menu-width: 48px;
 
 @font-face {
@@ -268,6 +271,12 @@ body {
 	flex-direction: column;
 	background-color: rgba(255, 255, 255, 0.05);
 	box-sizing: border-box;
+}
+
+.application_cover_big {
+	@extend .application_cover;
+	height: 100%;
+	width: 25%;
 }
 
 .application_cover:hover {
@@ -564,7 +573,7 @@ body {
 	border: 2px solid white;
 }
 
-.info_launched {
+.preview_message {
 	display: flex;
 	align-self: center;
 	justify-self: center;
@@ -637,4 +646,34 @@ body {
 .wayvr_process_name:hover {
 	background-color: rgba(255, 255, 255, 0.2);
 	border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.checkbox_body {
+	display: flex;
+	flex-direction: row;
+	gap: 0.5em;
+	align-items: center;
+}
+
+.checkbox_checkmark {
+	width: 1.5em;
+	height: 1.5em;
+	box-sizing: border-box;
+	border: 2px solid white;
+	border-radius: 0.25em;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.checkbox_checkmark:hover {
+	background-color: rgba(255, 255, 255, 0.5);
+}
+
+.checkbox_checkmark_checked {
+	background-color: $color-accent;
+}
+
+.checkbox_checkmark_checked:hover {
+	background-color: $color-highlight;
 }

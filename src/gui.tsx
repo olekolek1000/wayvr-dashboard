@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import style from "./app.module.scss"
 import { ipc } from "./ipc";
 import { JSX } from "preact/jsx-runtime";
-import { get_app_details_json } from "./utils";
+import { get_app_details_json, get_external_url } from "./utils";
 
 export function Icon({ path, width, height }: { path: string, width?: number, height?: number }) {
 	return <img className={style.icon} src={path} style={{
-		width: width ? (width + "px") : undefined,
-		height: height ? (height + "px") : undefined,
+		width: width && (width + "px"),
+		height: height && (height + "px"),
 	}}>
 	</img>
 }
@@ -111,19 +111,19 @@ export function GameCover({ manifest, big, on_click }: { manifest: ipc.AppManife
 	</div>
 }
 
-export function ApplicationCover({ icon, name }: { icon?: string, name: string }) {
-	return <div className={style.application_cover}>
+export function ApplicationCover({ big, application, on_click }: { big?: boolean, application: ipc.DesktopFile, on_click?: () => void }) {
+	return <div className={big ? style.application_cover_big : style.application_cover} onClick={on_click}>
 		<div className={style.application_cover_icon} style={{
-			background: "url('" + (icon ? icon : "icons/unknown.svg") + "')",
+			background: "url('" + (application.icon ? get_external_url(application.icon) : "icons/unknown.svg") + "')",
 			backgroundSize: "contain",
 			backgroundPosition: "center",
 			backgroundRepeat: "no-repeat"
 		}}>
 
 		</div>
-		<div className={style.application_cover_title}>
-			{name}
-		</div>
+		{big ? undefined : <div className={style.application_cover_title}>
+			{application.name}
+		</div>}
 	</div>
 }
 
@@ -146,6 +146,67 @@ function WindowDecoration({ title, on_close }: { title: string, on_close: () => 
 		</div>
 		<div className={style.window_decoration_buttons}>
 			<PanelButton icon="icons/close.svg" on_click={on_close} />
+		</div>
+	</div>
+}
+
+function Checkbox({ checked, setChecked, title }: { checked: boolean, setChecked: any, title: string }) {
+	checked;
+	setChecked;
+	return <div className={style.checkbox_body} onClick={() => {
+		setChecked(!checked);
+	}}>
+		<div className={`${style.checkbox_checkmark} ${checked ? style.checkbox_checkmark_checked : ""}`} >
+			{checked && "✔️"}
+		</div>
+		<div>
+			{title}
+		</div>
+	</div>
+}
+
+function PreviewApplication({ application, setPreview, on_close }: { application: ipc.DesktopFile, setPreview: any, on_close: () => void }) {
+	const [details, _setDetails] = useState(<></>);
+	const [xwayland_mode, setXWaylandMode] = useState(false);
+
+	useEffect(() => {
+		// TODO, fill in some details
+	}, []);
+
+	return <div className={style.previewer_parent}>
+		<WindowDecoration title={application.name} on_close={on_close} />
+		<div className={style.previewer_content}>
+			<ApplicationCover big application={application} />
+			<div className={style.previewer_info}>
+				<div className={style.previewer_title}>{application.name}</div>
+				{details}
+				<Checkbox title="Run in XWayland mode (cage)" checked={xwayland_mode} setChecked={setXWaylandMode} />
+				<BigButton type={BigButtonType.launch} on_click={async () => {
+					const displays = await ipc.display_list();
+
+					const target_disp = displays[0].handle;
+
+					let params = xwayland_mode ? {
+						env: [],
+						exec: "cage",
+						name: application.name,
+						targetDisplay: target_disp,
+						args: "-- " + application.exec
+					} : {
+						env: [],
+						exec: application.exec,
+						name: application.name,
+						targetDisplay: target_disp,
+						args: ""
+					};
+
+					ipc.process_launch(params).then(() => {
+						setPreview(<PreviewMessage on_close={on_close} msg="Application launched" />);
+					}).catch((e) => {
+						setPreview(<PreviewMessage on_close={on_close} msg={"Error: " + e} />);
+					})
+				}} />
+			</div>
 		</div>
 	</div>
 }
@@ -183,19 +244,19 @@ function PreviewManifest({ manifest, setPreview, on_close }: { manifest: ipc.App
 				{details}
 				<BigButton type={BigButtonType.launch} on_click={() => {
 					ipc.game_launch(manifest.app_id);
-					setPreview(<PreviewLaunched on_close={on_close} />);
+					setPreview(<PreviewMessage on_close={on_close} msg="Game launched." />);
 				}} />
 			</div>
 		</div>
 	</div>
 }
 
-function PreviewLaunched({ on_close }: { on_close: () => void }) {
+function PreviewMessage({ on_close, msg }: { on_close: () => void, msg: string }) {
 	return <div className={style.previewer_parent}>
 		<WindowDecoration title={"Info"} on_close={on_close} />
 		<div className={style.previewer_content}>
-			<div className={style.info_launched}>
-				Application launched.
+			<div className={style.preview_message}>
+				{msg}
 				<BigButton type={BigButtonType.hide} on_click={on_close} />
 			</div>
 		</div>
@@ -205,6 +266,7 @@ function PreviewLaunched({ on_close }: { on_close: () => void }) {
 
 class Previewer {
 	setManifest!: (manifest: ipc.AppManifest) => void;
+	setApplication!: (application: ipc.DesktopFile) => void;
 	element!: JSX.Element;
 };
 
@@ -218,6 +280,9 @@ export function initPreviewer() {
 	const previewer: Previewer = {
 		setManifest: (manifest) => {
 			setPreview(<PreviewManifest manifest={manifest} on_close={close_callback} setPreview={setPreview} />)
+		},
+		setApplication: (application) => {
+			setPreview(<PreviewApplication application={application} on_close={close_callback} setPreview={setPreview} />)
 		},
 		element: preview,
 	};

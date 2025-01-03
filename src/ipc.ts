@@ -18,8 +18,6 @@ export namespace ipc {
 		manifests!: Array<AppManifest>;
 	}
 
-
-
 	export class DisplayHandle {
 		idx!: number;
 		generation!: number;
@@ -44,6 +42,14 @@ export namespace ipc {
 		handle!: ProcessHandle;
 	}
 
+	export enum AttachTo {
+		None,
+		HandLeft,
+		HandRight,
+		Head,
+		Stage
+	}
+
 	export async function desktop_file_list(): Promise<Array<DesktopFile>> {
 		return await invoke("desktop_file_list");
 	}
@@ -64,11 +70,31 @@ export namespace ipc {
 		return await invoke("display_get", { handle: handle });
 	}
 
+	export async function display_create(params: {
+		width: number,
+		height: number,
+		name: string,
+		scale?: number,
+		attachTo: AttachTo
+	}): Promise<DisplayHandle> {
+		return await invoke("display_create", params)
+	}
+
 	export async function process_list(): Promise<Array<Process>> {
 		return await invoke("process_list");
 	}
 
 	export async function process_terminate(handle: ProcessHandle): Promise<undefined> {
 		return await invoke("process_terminate", { handle: handle });
+	}
+
+	export async function process_launch(params: {
+		exec: string,
+		name: string,
+		env: Array<string>,
+		targetDisplay: DisplayHandle,
+		args: string,
+	}): Promise<ProcessHandle> {
+		return await invoke("process_launch", params);
 	}
 }

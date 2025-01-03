@@ -17,7 +17,11 @@ impl AppState {
 		let serial_generator = ipc::SerialGenerator::new();
 
 		let steam_bridge = SteamBridge::new()?;
-		let ipc_client = WayVRClient::new().await?;
+
+		let ipc_client = match WayVRClient::new().await {
+			Ok(c) => c,
+			Err(e) => anyhow::bail!("WayVR Client failed: {}", e),
+		};
 
 		Ok(Self {
 			steam_bridge,

@@ -72,11 +72,16 @@ fn search(path: &str) -> anyhow::Result<Vec<DesktopEntry>> {
 			continue;
 		};
 
+		let exec_path = match exec.split_once(" ") {
+			Some((left, _right)) => left,
+			None => exec,
+		};
+
 		let icon_name = section.get("Icon").map(String::from);
 
 		search_cells.push(EntrySearchCell {
 			app_name: String::from(app_name),
-			exec_path: String::from(exec),
+			exec_path: String::from(exec_path),
 			desktop_file_path: file_path,
 			icon_name,
 		});

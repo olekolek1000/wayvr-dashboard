@@ -19,6 +19,7 @@ declare const classNames: {
   readonly games_list: "games_list";
   readonly applications_list: "applications_list";
   readonly application_cover: "application_cover";
+  readonly application_cover_big: "application_cover_big";
   readonly application_cover_icon: "application_cover_icon";
   readonly application_cover_title: "application_cover_title";
   readonly game_cover: "game_cover";
@@ -40,11 +41,14 @@ declare const classNames: {
   readonly previewer_desc: "previewer_desc";
   readonly previewer_developers: "previewer_developers";
   readonly big_button: "big_button";
-  readonly info_launched: "info_launched";
+  readonly preview_message: "preview_message";
   readonly wayvr_displays: "wayvr_displays";
   readonly wayvr_display: "wayvr_display";
   readonly wayvr_processes: "wayvr_processes";
   readonly wayvr_process: "wayvr_process";
   readonly wayvr_process_name: "wayvr_process_name";
+  readonly checkbox_body: "checkbox_body";
+  readonly checkbox_checkmark: "checkbox_checkmark";
+  readonly checkbox_checkmark_checked: "checkbox_checkmark_checked";
 };
 export default classNames;

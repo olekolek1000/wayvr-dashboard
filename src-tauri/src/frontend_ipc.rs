@@ -1,5 +1,5 @@
 use serde::Serialize;
-use wayvr_ipc::{client::WayVRClient, packet_server};
+use wayvr_ipc::{client::WayVRClient, packet_client, packet_server};
 
 use crate::{
 	app::AppState,
@@ -66,12 +66,40 @@ pub fn game_launch(app_id: i32) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub async fn display_create(
+	state: tauri::State<'_, AppState>,
+	width: u16,
+	height: u16,
+	name: String,
+	scale: Option<f32>,
+	attach_to: packet_client::AttachTo,
+) -> Result<packet_server::WvrDisplayHandle, String> {
+	let display = handle_result(
+		"create display",
+		WayVRClient::fn_wvr_display_create(
+			state.wavyr_client.clone(),
+			state.serial_generator.increment_get(),
+			packet_client::WvrDisplayCreateParams {
+				width,
+				height,
+				name,
+				scale,
+				attach_to,
+			},
+		)
+		.await,
+	)?;
+
+	Ok(display)
+}
+
+#[tauri::command]
 pub async fn display_list(
 	state: tauri::State<'_, AppState>,
-) -> Result<Vec<packet_server::Display>, String> {
+) -> Result<Vec<packet_server::WvrDisplay>, String> {
 	handle_result(
 		"fetch displays",
-		WayVRClient::fn_display_list(
+		WayVRClient::fn_wvr_display_list(
 			state.wavyr_client.clone(),
 			state.serial_generator.increment_get(),
 		)
@@ -82,11 +110,11 @@ pub async fn display_list(
 #[tauri::command]
 pub async fn display_get(
 	state: tauri::State<'_, AppState>,
-	handle: packet_server::DisplayHandle,
-) -> Result<packet_server::Display, String> {
+	handle: packet_server::WvrDisplayHandle,
+) -> Result<packet_server::WvrDisplay, String> {
 	let display = handle_result(
 		"fetch display",
-		WayVRClient::fn_display_get(
+		WayVRClient::fn_wvr_display_get(
 			state.wavyr_client.clone(),
 			state.serial_generator.increment_get(),
 			handle,
@@ -102,10 +130,10 @@ pub async fn display_get(
 #[tauri::command]
 pub async fn process_list(
 	state: tauri::State<'_, AppState>,
-) -> Result<Vec<packet_server::Process>, String> {
+) -> Result<Vec<packet_server::WvrProcess>, String> {
 	handle_result(
 		"fetch processes",
-		WayVRClient::fn_process_list(
+		WayVRClient::fn_wvr_process_list(
 			state.wavyr_client.clone(),
 			state.serial_generator.increment_get(),
 		)
@@ -116,10 +144,36 @@ pub async fn process_list(
 #[tauri::command]
 pub async fn process_terminate(
 	state: tauri::State<'_, AppState>,
-	handle: packet_server::ProcessHandle,
+	handle: packet_server::WvrProcessHandle,
 ) -> Result<(), String> {
 	handle_result(
 		"terminate process",
-		WayVRClient::fn_process_terminate(state.wavyr_client.clone(), handle).await,
+		WayVRClient::fn_wvr_process_terminate(state.wavyr_client.clone(), handle).await,
+	)
+}
+
+#[tauri::command]
+pub async fn process_launch(
+	state: tauri::State<'_, AppState>,
+	exec: String,
+	name: String,
+	env: Vec<String>,
+	target_display: packet_server::WvrDisplayHandle,
+	args: String,
+) -> Result<packet_server::WvrProcessHandle, String> {
+	handle_result(
+		"launch process",
+		WayVRClient::fn_wvr_process_launch(
+			state.wavyr_client.clone(),
+			state.serial_generator.increment_get(),
+			packet_client::WvrProcessLaunchParams {
+				env,
+				exec,
+				name,
+				target_display,
+				args,
+			},
+		)
+		.await,
 	)
 }
