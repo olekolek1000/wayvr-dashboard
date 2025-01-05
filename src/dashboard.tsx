@@ -1,12 +1,13 @@
 
 import { Clock } from "./clock";
 import style from "./app.module.scss"
-import { Icon, Tooltip, PanelButton } from "./gui";
-import { useState } from "preact/hooks";
+import { Icon, Tooltip, PanelButton, Popup, Slider, BoxDown, BoxRight } from "./gui";
+import { useEffect, useState } from "preact/hooks";
 import { PanelHome } from "./panel/home";
 import { PanelGames } from "./panel/games";
 import { PanelApplications } from "./panel/applications";
 import { PanelRunningApps } from "./panel/running_apps";
+import { ipc } from "./ipc";
 
 function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) {
 	return <div onClick={on_click} className={style.menu_button}>
@@ -22,9 +23,58 @@ function PanelWindow({ icon }: { icon: string }) {
 	</div>
 }*/
 
+function VolumeDevice({ device }: { device: ipc.AudioDevice }) {
+	const [volume, setVolume] = useState<number | undefined>(undefined);
+
+	useEffect(() => {
+		ipc.audio_get_device_volume({
+			deviceIndex: device.index
+		}).then((vol) => {
+			setVolume(vol);
+		});
+	}, []);
+
+	if (volume === undefined) {
+		return <></>;
+	}
+
+	return <div>
+		{device.index}: {device.name}
+		<BoxRight>
+			<Slider value={volume} setValue={setVolume} on_change={(volume) => {
+				setVolume(volume);
+				ipc.audio_set_device_volume({
+					deviceIndex: device.index,
+					volume: volume,
+				})
+			}} />
+		</BoxRight>
+	</div>
+}
+
+function PopupVolume({ }: {}) {
+	const [sliders, setSliders] = useState(<></>);
+
+	useEffect(() => {
+		ipc.audio_list_devices().then((devices) => {
+			const res = devices.map((device) => {
+				return <VolumeDevice key={device.index} device={device} />
+			});
+			setSliders(<BoxDown>
+				{res}
+			</BoxDown>);
+		})
+	}, []);
+
+	return <>
+		{sliders}
+	</>
+}
 
 export function Dashboard() {
 	const [current_panel, setCurrentPanel] = useState(<PanelHome />);
+
+	const [popup_volume, setPopupVolume] = useState(false);
 
 	return (
 		<div className={style.separator_menu_rest}>
@@ -80,9 +130,12 @@ export function Dashboard() {
 
 							}} />
 						</Tooltip>
-						<Tooltip title={"Volume (TODO)"}>
+						<Tooltip title={"Volume"}>
+							<Popup pair={[popup_volume, setPopupVolume]}>
+								<PopupVolume />
+							</Popup>
 							<PanelButton square icon="icons/volume.svg" on_click={() => {
-
+								setPopupVolume(!popup_volume);
 							}} />
 						</Tooltip>
 						<Tooltip title={"Camera passthrough (TODO)"}>

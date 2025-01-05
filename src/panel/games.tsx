@@ -11,7 +11,7 @@ export function PanelGames({ }: {}) {
 		const games = await ipc.game_list();
 
 		const arr = games.manifests.map((manifest) => {
-			return <GameCover on_click={() => {
+			return <GameCover key={manifest.app_id} on_click={() => {
 				previewer.setManifest(manifest);
 			}} manifest={manifest} />
 		});

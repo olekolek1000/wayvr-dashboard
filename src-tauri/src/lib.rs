@@ -19,6 +19,10 @@ pub async fn run() {
 			frontend_ipc::desktop_file_list,
 			frontend_ipc::game_list,
 			frontend_ipc::game_launch,
+			frontend_ipc::audio_list_devices,
+			frontend_ipc::audio_set_device_volume,
+			frontend_ipc::audio_get_device_volume,
+			// # wlx IPC below
 			frontend_ipc::display_list,
 			frontend_ipc::display_create,
 			frontend_ipc::display_get,

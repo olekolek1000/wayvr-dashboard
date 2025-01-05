@@ -18,6 +18,12 @@ export namespace ipc {
 		manifests!: Array<AppManifest>;
 	}
 
+	export class AudioDevice {
+		name!: string;
+		long_name!: string;
+		index!: number;
+	}
+
 	export class DisplayHandle {
 		idx!: number;
 		generation!: number;
@@ -61,6 +67,25 @@ export namespace ipc {
 	export async function game_launch(app_id: number): Promise<void> {
 		return await invoke("game_launch", { appId: app_id })
 	}
+
+	export async function audio_list_devices(): Promise<Array<AudioDevice>> {
+		return await invoke("audio_list_devices");
+	}
+
+	export async function audio_set_device_volume(params: {
+		deviceIndex: number,
+		volume: number
+	}): Promise<void> {
+		return await invoke("audio_set_device_volume", params);
+	}
+
+	export async function audio_get_device_volume(params: {
+		deviceIndex: number,
+	}): Promise<number> {
+		return await invoke("audio_get_device_volume", params);
+	}
+
+	/// ############################
 
 	export async function display_list(): Promise<Array<Display>> {
 		return await invoke("display_list");

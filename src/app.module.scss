@@ -464,6 +464,12 @@ body {
 	gap: 8px;
 }
 
+.box_down {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
 .window_decoration {
 	background-color: black;
 	width: 100%;
@@ -676,4 +682,64 @@ body {
 
 .checkbox_checkmark_checked:hover {
 	background-color: $color-highlight;
+}
+
+.slider {
+	width: 160px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+}
+
+.slider:hover .slider_filling {
+	background-color: white;
+}
+
+.slider_bar {
+	width: 100%;
+	height: 10px;
+	border-radius: 16px;
+	border: 2px solid white;
+	position: relative;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+.slider_filling {
+	position: absolute;
+	height: 10px;
+	width: 50px;
+	background-color: $color-highlight;
+	border-radius: 16px 0px 0px 16px;
+	border: 2px solid white;
+	top: -2px;
+	left: -2px;
+}
+
+.slider_handle {
+	position: absolute;
+	width: 24px;
+	height: 24px;
+	border-radius: 24px;
+	top: 5px;
+	left: -2px;
+	box-sizing: border-box;
+	background-color: white;
+}
+
+.popup {
+	padding: 8px;
+	padding-left: 16px;
+	padding-right: 16px;
+	background-color: $color-tooltip;
+	border: 2px solid $color-border;
+	box-sizing: border-box;
+	border-radius: 8px;
+	position: absolute;
+	bottom: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 10;
 }

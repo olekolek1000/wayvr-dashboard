@@ -1,3 +1,4 @@
+pub mod audio;
 pub mod desktop_finder;
 pub mod handle;
 pub mod icon_finder;

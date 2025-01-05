@@ -31,6 +31,7 @@ declare const classNames: {
   readonly tooltip: "tooltip";
   readonly title: "title";
   readonly box_right: "box_right";
+  readonly box_down: "box_down";
   readonly window_decoration: "window_decoration";
   readonly window_decoration_title: "window_decoration_title";
   readonly window_decoration_buttons: "window_decoration_buttons";
@@ -50,5 +51,10 @@ declare const classNames: {
   readonly checkbox_body: "checkbox_body";
   readonly checkbox_checkmark: "checkbox_checkmark";
   readonly checkbox_checkmark_checked: "checkbox_checkmark_checked";
+  readonly slider: "slider";
+  readonly slider_filling: "slider_filling";
+  readonly slider_bar: "slider_bar";
+  readonly slider_handle: "slider_handle";
+  readonly popup: "popup";
 };
 export default classNames;

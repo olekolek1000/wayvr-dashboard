@@ -22,6 +22,97 @@ export function PanelButton({ icon, height, on_click, square, children }: { icon
 	</div>
 }
 
+function mix(x: number, y: number, a: number) {
+	return x * (1.0 - a) + y * a;
+}
+
+function getSliderParams(el: HTMLDivElement, value: number) {
+	value = Math.max(value, 0.0);
+	value = Math.min(value, 1.0);
+	const rect = el.getBoundingClientRect();
+
+	const margin = 12.0;
+	const width = rect.width - margin * 2.0;
+	const left = rect.x + margin;
+	const right = left + width;
+
+	return {
+		handle_shift: mix(margin, rect.width - margin, value),
+		filling_width: mix(margin, rect.width - margin, value),
+		left: left,
+		right: right,
+		margin: margin,
+	};
+}
+
+export function Slider({ value, setValue, on_change }: { value: number, setValue: any, on_change: (value: number) => void }) {
+	const ref_bar = useRef<HTMLDivElement | null>(null);
+
+	const [handle_shift, setHandleShift] = useState(0.0);
+	const [filling_width, setFillingWidth] = useState(0.0);
+	const [down, setDown] = useState(false);
+
+	useEffect(() => {
+		const el = ref_bar.current;
+		if (!el) {
+			return;
+		}
+
+		const par = getSliderParams(el, value);
+		setHandleShift(par.handle_shift);
+		setFillingWidth(par.filling_width);
+	}, [ref_bar]);
+
+	const updatePos = (mouse_x: number) => {
+		const el = ref_bar.current!;
+		const par = getSliderParams(el, value);
+		const rel_x = mouse_x - par.left;
+		const norm_x = rel_x / (par.right - par.left);
+
+		value = norm_x;
+		setValue(value);
+		on_change(Math.max(0.0, Math.min(1.0, value)));
+
+		const par2 = getSliderParams(el, value);
+		setHandleShift(par2.handle_shift);
+		setFillingWidth(par2.filling_width);
+	}
+
+	return <div className={style.slider}
+		onMouseDown={(e) => {
+			setDown(true);
+			updatePos(e.clientX);
+		}}
+		onMouseMove={(e) => {
+			if (!down) {
+				return;
+			}
+			updatePos(e.clientX);
+		}}
+		onMouseUp={() => {
+			setDown(false);
+		}}
+		onMouseLeave={() => {
+			setDown(false);
+		}}
+	>
+		<div ref={ref_bar} className={style.slider_bar}>
+			<div className={style.slider_filling}
+				style={{
+					width: filling_width + "px"
+				}}
+			/>
+			<div className={style.slider_handle}
+				style={{
+					visibility: (ref_bar && ref_bar.current) ? "visible" : "hidden",
+					transform: "translateX(-12px) translateY(-12px) translateX(" + handle_shift + "px)",
+				}}>
+
+			</div>
+		</div>
+	</div>
+}
+
 export function Tooltip({ children, title, simple }: { children: any, title: any, simple?: boolean }) {
 	const [hovered, setHovered] = useState(false);
 	const ref_tooltip = useRef<HTMLDivElement | null>(null);
@@ -137,6 +228,12 @@ export function BoxRight({ children }: { children: any }) {
 	return <div className={style.box_right}>
 		{children}
 	</div>
+}
+
+export function BoxDown({ children }: { children: any }) {
+	return <div className={style.box_down}>
+		{children}
+	</div >
 }
 
 function WindowDecoration({ title, on_close }: { title: string, on_close: () => void }) {
@@ -313,5 +410,18 @@ export function BigButton({ type, on_click }: { type: BigButtonType, on_click: (
 
 	return <div onClick={on_click} className={style.big_button} style={{ background: bg }}>
 		{title}
+	</div>
+}
+
+export function Popup({ children, pair }: { children: any, pair: [shown: boolean, setShown: any] }) {
+	const shown = pair[0];
+	const setShown = pair[1];
+
+	if (!shown) {
+		return <></>;
+	}
+
+	return <div className={style.popup}>
+		{children}
 	</div>
 }

@@ -51,3 +51,4 @@ smallvec = "1.13.2"
 wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "c2a6438ffdcc78ff9c0637d914df1bc673723824", features = [
 	"client",
 ] }
+alsa = "0.9.1"

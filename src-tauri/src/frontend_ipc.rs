@@ -3,7 +3,7 @@ use wayvr_ipc::{client::WayVRClient, packet_client, packet_server};
 
 use crate::{
 	app::AppState,
-	util::{self, steam_bridge},
+	util::{self, audio, steam_bridge},
 };
 
 #[derive(Debug, Serialize)]
@@ -64,6 +64,26 @@ pub fn game_launch(app_id: i32) -> Result<(), String> {
 	)?;
 	Ok(())
 }
+
+#[tauri::command]
+pub async fn audio_list_devices() -> Result<Vec<audio::Device>, String> {
+	handle_result("list audio devices", audio::list_devices())
+}
+
+// Volume: from 0.0 to 1.0
+#[tauri::command]
+pub async fn audio_set_device_volume(device_index: i32, volume: f32) -> Result<(), String> {
+	handle_result("set audio volume", audio::set_volume(device_index, volume))?;
+	Ok(())
+}
+
+// Volume: from 0.0 to 1.0
+#[tauri::command]
+pub async fn audio_get_device_volume(device_index: i32) -> Result<f32, String> {
+	handle_result("get audio volume", audio::get_volume(device_index))
+}
+
+// ############################
 
 #[tauri::command]
 pub async fn display_create(
