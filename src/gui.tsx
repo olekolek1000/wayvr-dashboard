@@ -415,7 +415,7 @@ export function BigButton({ type, on_click }: { type: BigButtonType, on_click: (
 
 export function Popup({ children, pair }: { children: any, pair: [shown: boolean, setShown: any] }) {
 	const shown = pair[0];
-	const setShown = pair[1];
+	//const setShown = pair[1];
 
 	if (!shown) {
 		return <></>;

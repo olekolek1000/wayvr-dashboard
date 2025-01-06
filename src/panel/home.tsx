@@ -1,6 +1,4 @@
-
-import { useState } from "preact/hooks";
-import { BoxRight, Icon, Slider, Title } from "../gui";
+import { BoxRight, Icon, Title } from "../gui";
 
 export function PanelHome({ }: {}) {
 	return <>
