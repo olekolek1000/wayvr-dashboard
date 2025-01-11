@@ -1,13 +1,14 @@
 
 import { Clock } from "./clock";
 import style from "./app.module.scss"
-import { Icon, Tooltip, PanelButton, Popup, Slider, BoxDown, BoxRight } from "./gui";
+import { Icon, Tooltip, PanelButton, Popup, Slider, BoxDown, BoxRight } from "./gui/gui";
 import { useEffect, useState } from "preact/hooks";
 import { PanelHome } from "./panel/home";
 import { PanelGames } from "./panel/games";
 import { PanelApplications } from "./panel/applications";
 import { PanelRunningApps } from "./panel/running_apps";
 import { ipc } from "./ipc";
+import { Globals } from "./globals";
 
 function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) {
 	return <div onClick={on_click} className={style.menu_button}>
@@ -71,27 +72,30 @@ function PopupVolume({ }: {}) {
 	</>
 }
 
-export function Dashboard() {
-	const [current_panel, setCurrentPanel] = useState(<PanelHome />);
-
+export function Dashboard({ globals }: { globals: Globals }) {
+	const [current_panel, setCurrentPanel] = useState(<PanelHome globals={globals} />);
 	const [popup_volume, setPopupVolume] = useState(false);
+
+	const [wm_key, setWmKey] = useState(0);
+	globals.wm.key = wm_key;
+	globals.wm.setKey = setWmKey;
 
 	return (
 		<div className={style.separator_menu_rest}>
 			<div className={style.menu} >
 				<Tooltip title={"Home screen"}>
 					<MenuButton icon="icons/home.svg" on_click={() => {
-						setCurrentPanel(<PanelHome />);
+						setCurrentPanel(<PanelHome globals={globals} />);
 					}} />
 				</Tooltip>
 				<Tooltip title={"Applications"}>
 					<MenuButton icon="icons/apps.svg" on_click={() => {
-						setCurrentPanel(<PanelApplications />);
+						setCurrentPanel(<PanelApplications globals={globals} />);
 					}} />
 				</Tooltip>
 				<Tooltip title={"Games"}>
 					<MenuButton icon="icons/games.svg" on_click={() => {
-						setCurrentPanel(<PanelGames />);
+						setCurrentPanel(<PanelGames globals={globals} />);
 					}} />
 				</Tooltip>
 
@@ -116,7 +120,10 @@ export function Dashboard() {
 			</div>
 			<div className={style.separator_content_panel}>
 				<div className={style.content}>
-					{current_panel}
+					{globals.wm.render()}
+					<div className={style.current_panel}>
+						{current_panel}
+					</div>
 				</div>
 				<div className={style.panel}>
 					<div className={style.panel_left}>

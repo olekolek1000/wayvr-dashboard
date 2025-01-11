@@ -20,6 +20,9 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
+		"noImplicitThis": true,
+		"noImplicitAny": true,
+		"allowJs": false,
 
 		"baseUrl": "./",
 		"paths": {

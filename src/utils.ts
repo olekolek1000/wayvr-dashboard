@@ -24,6 +24,7 @@ export async function get_app_details_json(app_id: number) {
 
 	if (storage_item_str == null) {
 		// Fetch from Steam API
+		console.log("Fetching app detail ID " + app_id);
 		const response_json = await (await tauri_fetch("https://store.steampowered.com/api/appdetails?appids=" + app_id, {
 			method: "GET"
 		})).json();

@@ -13,10 +13,11 @@
 		"windows": [
 			{
 				"title": "WayVR Dashboard",
-				"width": 1280,
-				"height": 720,
+				"width": 960,
+				"height": 540,
 				"transparent": true,
-				"decorations": false
+				"decorations": false,
+				"dragDropEnabled": false
 			}
 		],
 		"security": {

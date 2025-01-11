@@ -1,6 +1,6 @@
 import { ipc } from "../ipc";
 import style from "../app.module.scss"
-import { Icon, Tooltip } from "../gui";
+import { Icon, Tooltip } from "../gui/gui";
 
 function ProcessEntry({ process, display, on_refresh }: { process: ipc.Process, display?: ipc.Display, on_refresh: () => any }) {
 	let e_disp = undefined;

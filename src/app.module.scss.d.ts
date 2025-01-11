@@ -8,6 +8,7 @@ declare const classNames: {
   readonly menu_button: "menu_button";
   readonly separator_menu_rest: "separator_menu_rest";
   readonly separator_content_panel: "separator_content_panel";
+  readonly current_panel: "current_panel";
   readonly panel_left: "panel_left";
   readonly panel_center: "panel_center";
   readonly panel_right: "panel_right";
@@ -20,8 +21,8 @@ declare const classNames: {
   readonly applications_list: "applications_list";
   readonly application_cover: "application_cover";
   readonly application_cover_big: "application_cover_big";
-  readonly application_cover_icon: "application_cover_icon";
   readonly application_cover_title: "application_cover_title";
+  readonly application_cover_icon: "application_cover_icon";
   readonly game_cover: "game_cover";
   readonly game_cover_big: "game_cover_big";
   readonly game_cover_image: "game_cover_image";
@@ -32,17 +33,13 @@ declare const classNames: {
   readonly title: "title";
   readonly box_right: "box_right";
   readonly box_down: "box_down";
-  readonly window_decoration: "window_decoration";
-  readonly window_decoration_title: "window_decoration_title";
-  readonly window_decoration_buttons: "window_decoration_buttons";
-  readonly previewer_parent: "previewer_parent";
   readonly previewer_content: "previewer_content";
   readonly previewer_info: "previewer_info";
   readonly previewer_title: "previewer_title";
   readonly previewer_desc: "previewer_desc";
   readonly previewer_developers: "previewer_developers";
+  readonly previewer_message: "previewer_message";
   readonly big_button: "big_button";
-  readonly preview_message: "preview_message";
   readonly wayvr_displays: "wayvr_displays";
   readonly wayvr_display: "wayvr_display";
   readonly wayvr_processes: "wayvr_processes";

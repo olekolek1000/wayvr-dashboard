@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import style from "./app.module.scss"
-import { ipc } from "./ipc";
-import { JSX } from "preact/jsx-runtime";
-import { get_app_details_json, get_external_url } from "./utils";
+import style from "../app.module.scss"
+import { ipc } from "../ipc";
+import { get_app_details_json, get_external_url } from "../utils";
+import { WindowManager, WindowParams } from "./window_manager";
 
 export function Icon({ path, width, height }: { path: string, width?: number, height?: number }) {
 	return <img className={style.icon} src={path} style={{
@@ -236,22 +236,15 @@ export function BoxDown({ children }: { children: any }) {
 	</div >
 }
 
-function WindowDecoration({ title, on_close }: { title: string, on_close: () => void }) {
-	return <div className={style.window_decoration}>
-		<div className={style.window_decoration_title}>
-			{title}
-		</div>
-		<div className={style.window_decoration_buttons}>
-			<PanelButton icon="icons/close.svg" on_click={on_close} />
-		</div>
-	</div>
-}
 
-function Checkbox({ checked, setChecked, title }: { checked: boolean, setChecked: any, title: string }) {
+function Checkbox({ checked, setChecked, title, onChange }: { checked: boolean, setChecked: any, title: string, onChange?: (n: boolean) => void }) {
 	checked;
 	setChecked;
 	return <div className={style.checkbox_body} onClick={() => {
 		setChecked(!checked);
+		if (onChange) {
+			onChange(!checked);
+		}
 	}}>
 		<div className={`${style.checkbox_checkmark} ${checked ? style.checkbox_checkmark_checked : ""}`} >
 			{checked && "✔️"}
@@ -262,53 +255,71 @@ function Checkbox({ checked, setChecked, title }: { checked: boolean, setChecked
 	</div>
 }
 
-function PreviewApplication({ application, setPreview, on_close }: { application: ipc.DesktopFile, setPreview: any, on_close: () => void }) {
-	const [details, _setDetails] = useState(<></>);
+function ApplicationView({ wm, application, }: { wm: WindowManager, application: ipc.DesktopFile }) {
+	const [details, setDetails] = useState(<></>);
 	const [xwayland_mode, setXWaylandMode] = useState(false);
+	const [force_wayland, setForceWayland] = useState(true);
 
 	useEffect(() => {
-		// TODO, fill in some details
+		setDetails(<>Executable: {application.exec}</>);
 	}, []);
 
-	return <div className={style.previewer_parent}>
-		<WindowDecoration title={application.name} on_close={on_close} />
-		<div className={style.previewer_content}>
-			<ApplicationCover big application={application} />
-			<div className={style.previewer_info}>
-				<div className={style.previewer_title}>{application.name}</div>
-				{details}
-				<Checkbox title="Run in XWayland mode (cage)" checked={xwayland_mode} setChecked={setXWaylandMode} />
-				<BigButton type={BigButtonType.launch} on_click={async () => {
-					const displays = await ipc.display_list();
+	return <div className={style.previewer_content}>
+		<ApplicationCover big application={application} />
+		<div className={style.previewer_info}>
+			<div className={style.previewer_title}>{application.name}</div>
+			{details}
+			<Checkbox title="Run in X11 mode via XWayland (cage)" checked={xwayland_mode} setChecked={setXWaylandMode} onChange={(n) => {
+				if (n) {
+					setForceWayland(false);
+				}
+			}} />
+			<Checkbox title="Force-enable Wayland for various backends - Qt/GTK/SDL (...)" checked={force_wayland} setChecked={setForceWayland} onChange={(n) => {
+				if (n) {
+					setXWaylandMode(false);
+				}
+			}} />
+			<BigButton type={BigButtonType.launch} on_click={async () => {
+				const displays = await ipc.display_list();
 
-					const target_disp = displays[0].handle;
+				const target_disp = displays[0].handle;
 
-					let params = xwayland_mode ? {
-						env: [],
-						exec: "cage",
-						name: application.name,
-						targetDisplay: target_disp,
-						args: "-- " + application.exec
-					} : {
-						env: [],
-						exec: application.exec,
-						name: application.name,
-						targetDisplay: target_disp,
-						args: ""
-					};
+				let env: Array<string> = [];
 
-					ipc.process_launch(params).then(() => {
-						setPreview(<PreviewMessage on_close={on_close} msg="Application launched" />);
-					}).catch((e) => {
-						setPreview(<PreviewMessage on_close={on_close} msg={"Error: " + e} />);
-					})
-				}} />
-			</div>
+				if (force_wayland) {
+					// This list could be larger, feel free to expand it
+					env.push("QT_QPA_PLATFORM=wayland");
+					env.push("GDK_BACKEND=wayland");
+					env.push("SDL_VIDEODRIVER=wayland");
+					env.push("XDG_SESSION_TYPE=wayland");
+					env.push("ELECTRON_OZONE_PLATFORM_HINT=wayland");
+				}
+
+				let params = xwayland_mode ? {
+					env: env,
+					exec: "cage",
+					name: application.name,
+					targetDisplay: target_disp,
+					args: "-- " + application.exec
+				} : {
+					env: env,
+					exec: application.exec,
+					name: application.name,
+					targetDisplay: target_disp,
+					args: ""
+				};
+
+				ipc.process_launch(params).then(() => {
+					wm.replace(createWindowMessage(wm, "Application launched"));
+				}).catch((e) => {
+					wm.replace(createWindowMessage(wm, "Error: " + e));
+				})
+			}} />
 		</div>
 	</div>
 }
 
-function PreviewManifest({ manifest, setPreview, on_close }: { manifest: ipc.AppManifest, setPreview: any, on_close: () => void }) {
+function ManifestView({ wm, manifest }: { wm: WindowManager, manifest: ipc.AppManifest }) {
 	const [details, setDetails] = useState(<></>);
 
 	useEffect(() => {
@@ -332,60 +343,47 @@ function PreviewManifest({ manifest, setPreview, on_close }: { manifest: ipc.App
 		});
 	}, []);
 
-	return <div className={style.previewer_parent}>
-		<WindowDecoration title={manifest.name} on_close={on_close} />
-		<div className={style.previewer_content}>
-			<GameCover big manifest={manifest} />
-			<div className={style.previewer_info}>
-				<div className={style.previewer_title}>{manifest.name}</div>
-				{details}
-				<BigButton type={BigButtonType.launch} on_click={() => {
-					ipc.game_launch(manifest.app_id);
-					setPreview(<PreviewMessage on_close={on_close} msg="Game launched." />);
+	return <div className={style.previewer_content}>
+		<GameCover big manifest={manifest} />
+		<div className={style.previewer_info}>
+			<div className={style.previewer_title}>{manifest.name}</div>
+			{details}
+			<BigButton type={BigButtonType.launch} on_click={() => {
+				ipc.game_launch(manifest.app_id);
+				wm.replace(createWindowMessage(wm, "Game launched"));
+			}} />
+		</div>
+	</div>
+}
+
+export function createWindowApplication(wm: WindowManager, application: ipc.DesktopFile): WindowParams {
+	return {
+		title: application.name,
+		content: <ApplicationView wm={wm} application={application} />
+	};
+}
+
+export function createWindowManifest(wm: WindowManager, manifest: ipc.AppManifest): WindowParams {
+	return {
+		title: manifest.name,
+		content: <ManifestView wm={wm} manifest={manifest} />
+	};
+}
+
+export function createWindowMessage(wm: WindowManager, msg: string) {
+	return {
+		title: "Info",
+		content: <div className={style.previewer_content}>
+			<div className={style.previewer_message}>
+				{msg}
+				<BigButton type={BigButtonType.hide} on_click={() => {
+					wm.pop()
 				}} />
 			</div>
 		</div>
-	</div>
-}
-
-function PreviewMessage({ on_close, msg }: { on_close: () => void, msg: string }) {
-	return <div className={style.previewer_parent}>
-		<WindowDecoration title={"Info"} on_close={on_close} />
-		<div className={style.previewer_content}>
-			<div className={style.preview_message}>
-				{msg}
-				<BigButton type={BigButtonType.hide} on_click={on_close} />
-			</div>
-		</div>
-	</div>
-}
-
-
-class Previewer {
-	setManifest!: (manifest: ipc.AppManifest) => void;
-	setApplication!: (application: ipc.DesktopFile) => void;
-	element!: JSX.Element;
-};
-
-export function initPreviewer() {
-	const [preview, setPreview] = useState<JSX.Element>(<></>);
-
-	const close_callback = () => {
-		setPreview(<></>);
-	}
-
-	const previewer: Previewer = {
-		setManifest: (manifest) => {
-			setPreview(<PreviewManifest manifest={manifest} on_close={close_callback} setPreview={setPreview} />)
-		},
-		setApplication: (application) => {
-			setPreview(<PreviewApplication application={application} on_close={close_callback} setPreview={setPreview} />)
-		},
-		element: preview,
 	};
-
-	return previewer;
 }
+
 
 enum BigButtonType {
 	launch,

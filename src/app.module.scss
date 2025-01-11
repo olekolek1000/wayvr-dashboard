@@ -11,8 +11,11 @@ $color-background2: rgba(15, 14, 26, 0.75);
 $color-background-shine1: rgba(0, 0, 0, 0.6);
 $color-background-shine2: rgba(66, 126, 255, 0.6);
 
-$color-accent: rgb(64, 138, 203);
-$color-highlight: rgb(115, 176, 229);
+$color-bg-dark: rgb(29, 46, 81);
+$color-bg-medium: rgb(41, 71, 116);
+
+$color-accent: rgb(0, 140, 255);
+$color-highlight: rgb(80, 220, 255);
 
 $menu-width: 48px;
 
@@ -21,13 +24,42 @@ $menu-width: 48px;
 	src: url("assets/Quicksand-VariableFont_wght.ttf");
 }
 
+// Custom scrollbars
+::-webkit-scrollbar {
+	width: 24px;
+	height: 24px;
+	background-color: rgba(0, 0, 0, 0.1);
+	border-radius: 24px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: $color-accent;
+	border-radius: 24px;
+	border: 2px solid transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: $color-highlight;
+	border: 2px solid white;
+}
+
+img,
+div {
+	-webkit-user-drag: none;
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	cursor: default;
+}
+
 body {
 	margin: 0;
 	color: #fff;
-	-webkit-user-select: none;
-	user-select: none;
-	-webkit-user-drag: none;
-
 	font-family: font;
 	height: 100vh;
 
@@ -117,8 +149,7 @@ body {
 .content {
 	width: 100%;
 	height: 100%;
-	overflow-x: hidden;
-	overflow-y: auto;
+	overflow: hidden;
 	background: radial-gradient(
 			circle,
 			$color-background1 50%,
@@ -131,14 +162,26 @@ body {
 		);
 	border-radius: 8px;
 	box-sizing: border-box;
+	position: relative;
+
+	@extend .shine;
+}
+
+.current_panel {
+	position: absolute;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
-
+	align-items: center;
 	padding-left: 16px;
 	padding-right: 16px;
-	align-items: center;
-	@extend .shine;
+
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+
+	overflow-y: auto;
 }
 
 .panel {
@@ -262,31 +305,38 @@ body {
 }
 
 .application_cover {
-	width: 80px;
+	width: 100px;
 	height: 100px;
-	border-radius: 8px;
-	border-top: 2px solid rgba(255, 255, 255, 0.1);
-	border-bottom: 2px solid rgba(0, 0, 0, 0.2);
 	display: flex;
 	flex-direction: column;
-	background-color: rgba(255, 255, 255, 0.05);
+	position: relative;
+	background-color: $color-bg-dark;
 	box-sizing: border-box;
+	align-items: center;
+	border-radius: 4px 4px 0 0;
 }
 
 .application_cover_big {
 	@extend .application_cover;
 	height: 100%;
 	width: 25%;
+	background-color: unset !important;
 }
 
 .application_cover:hover {
-	background-color: rgba(100, 150, 255, 0.6);
-	border: 2px solid $color-border;
+	background-color: $color-accent;
+	z-index: 1;
+}
+
+.application_cover:hover .application_cover_title {
+	background-color: $color-highlight;
+	color: #000;
 }
 
 .application_cover_icon {
+	margin: 4px;
+	flex-grow: 1;
 	width: 100%;
-	height: 100%;
 }
 
 .application_cover_title {
@@ -294,13 +344,15 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-color: rgba(0, 0, 0, 0.15);
+	background-color: $color-bg-medium;
 	min-height: 2em;
 	padding-top: 2px;
 	padding-bottom: 2px;
 	text-overflow: ellipsis;
 	overflow: hidden;
 	text-align: center;
+	width: 100%;
+	border-radius: 0 0 4px 4px;
 }
 
 .game_cover {
@@ -470,71 +522,11 @@ body {
 	gap: 8px;
 }
 
-.window_decoration {
-	background-color: black;
-	width: 100%;
-	height: 48px;
-	border-radius: 8px 8px 0 0;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.window_decoration_title {
-	display: flex;
-	margin-left: 16px;
-	font-weight: 600;
-}
-
-.window_decoration_buttons {
-	display: flex;
-	height: 100%;
-}
-
-/* animation timing function doesn't work in Tauri for transform. Not sure why. I need to simulate it. */
-@keyframes previewer_showup {
-	0% {
-		transform: translateY(10%);
-		opacity: 0;
-	}
-	25% {
-		transform: translateY(5%);
-	}
-	50% {
-		transform: translateY(1%);
-	}
-	75% {
-		transform: translateY(0.3%);
-	}
-	100% {
-		transform: translateY(0%);
-		opacity: 1;
-	}
-}
-
-.previewer_parent {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: calc(100% - 56px);
-	z-index: 2;
-	display: flex;
-	flex-direction: column;
-	animation: previewer_showup 0.25s;
-}
-
 .previewer_content {
-	flex-grow: 1;
 	height: 100%;
-	background-color: rgba(50, 50, 50, 0.7);
-	border-radius: 0 0 8px 8px;
 	gap: 16px;
 	display: flex;
 	justify-content: center;
-	padding: 16px;
-	backdrop-filter: blur(16px);
-	-webkit-backdrop-filter: blur(16px);
 }
 
 .previewer_info {
@@ -557,6 +549,16 @@ body {
 	font-weight: 600;
 }
 
+.previewer_message {
+	display: flex;
+	align-self: center;
+	justify-self: center;
+	font-weight: 600;
+	gap: 16px;
+	flex-direction: column;
+	text-align: center;
+}
+
 .big_button {
 	width: min-content;
 	min-width: 200px;
@@ -567,26 +569,17 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	border: 2px solid transparent;
+	border: 2px solid black;
 	transition:
 		border-top 0.1s,
-		border-left 0.2s,
-		border-bottom 0.3s,
-		border-right 0.4s;
+		border-left 0.25s,
+		border-bottom 0.5s,
+		border-right 0.75s;
 }
 
 .big_button:hover {
 	border: 2px solid white;
-}
-
-.preview_message {
-	display: flex;
-	align-self: center;
-	justify-self: center;
-	font-weight: 600;
-	gap: 16px;
-	flex-direction: column;
-	text-align: center;
+	padding: 0px;
 }
 
 .wayvr_displays {
@@ -694,7 +687,7 @@ body {
 }
 
 .slider:hover .slider_filling {
-	background-color: white;
+	background-color: $color-highlight;
 }
 
 .slider_bar {
@@ -710,7 +703,7 @@ body {
 	position: absolute;
 	height: 10px;
 	width: 50px;
-	background-color: $color-highlight;
+	background-color: $color-accent;
 	border-radius: 16px 0px 0px 16px;
 	border: 2px solid white;
 	top: -2px;
