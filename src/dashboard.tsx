@@ -84,7 +84,7 @@ export function Dashboard({ globals }: { globals: Globals }) {
 		<div className={style.separator_menu_rest}>
 			<div className={style.menu} >
 				<Tooltip title={"Home screen"}>
-					<MenuButton icon="icons/home.svg" on_click={() => {
+					<MenuButton icon="wayvr_dashboard_transparent.webp" on_click={() => {
 						setCurrentPanel(<PanelHome globals={globals} />);
 					}} />
 				</Tooltip>

@@ -6,7 +6,7 @@ export function PanelHome({ globals }: { globals: Globals }) {
 
 	return <>
 		<BoxRight>
-			<Icon path="wayvr_logo.svg" width={64} height={32} />
+			<Icon path="wayvr_dashboard.webp" width={32} height={32} />
 			<Title title="Home" />
 		</BoxRight>
 	</>

@@ -1,4 +1,5 @@
 import { fetch as tauri_fetch } from '@tauri-apps/plugin-http';
+import { ipc } from './ipc';
 
 export function get_external_url(absolute_path: string): string {
 	let api_path = (window as any).__TAURI_INTERNALS__.convertFileSrc(absolute_path)
@@ -45,4 +46,41 @@ export async function get_app_details_json(app_id: number) {
 		const storage_item = JSON.parse(storage_item_str) as AppDetailItem;
 		return storage_item.data;
 	}
+}
+
+const dashboard_display_name = "_DASHBOARD";
+
+// lists displays except our own dashboard display
+export async function listDisplays(): Promise<Array<ipc.Display>> {
+	const displays = (await ipc.display_list()).filter((disp) => { return disp.name != dashboard_display_name });
+	return displays;
+}
+
+export async function getDefaultDisplay(): Promise<ipc.DisplayHandle> {
+	const displays = await listDisplays();
+	if (displays.length > 0) {
+		// Get first one for now
+		return displays[0].handle;
+	}
+
+	const handle = await ipc.display_create({
+		width: 1280,
+		height: 720,
+		attachTo: ipc.AttachTo.None,
+		name: "wvr_" + displays.length,
+	});
+
+	return handle;
+}
+
+export async function openURL(disp: ipc.DisplayHandle, url: string) {
+	let params = {
+		env: [],
+		exec: "xdg-open",
+		name: "OpenURL",
+		targetDisplay: disp,
+		args: url
+	};
+
+	await ipc.process_launch(params);
 }

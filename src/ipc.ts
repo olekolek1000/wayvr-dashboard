@@ -49,11 +49,11 @@ export namespace ipc {
 	}
 
 	export enum AttachTo {
-		None,
-		HandLeft,
-		HandRight,
-		Head,
-		Stage
+		None = "None",
+		HandLeft = "HandLeft",
+		HandRight = "HandRight",
+		Head = "Head",
+		Stage = "Stage"
 	}
 
 	export async function desktop_file_list(): Promise<Array<DesktopFile>> {
@@ -102,6 +102,7 @@ export namespace ipc {
 		scale?: number,
 		attachTo: AttachTo
 	}): Promise<DisplayHandle> {
+		console.log("Creating display with name " + params.name);
 		return await invoke("display_create", params)
 	}
 

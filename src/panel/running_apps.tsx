@@ -3,6 +3,7 @@ import { PanelButton, Title } from "../gui/gui";
 import { ipc } from "../ipc";
 import { DisplayList } from "../views/display_list";
 import { ProcessList } from "../views/process_list";
+import { listDisplays } from "../utils";
 
 export function PanelRunningApps({ }: {}) {
 	const [displays, setDisplays] = useState<Array<ipc.Display> | undefined>(undefined);
@@ -15,7 +16,7 @@ export function PanelRunningApps({ }: {}) {
 
 	useEffect(() => {
 		const run = async () => {
-			setDisplays(await ipc.display_list());
+			setDisplays(await listDisplays());
 			setProcesses(await ipc.process_list());
 		}
 

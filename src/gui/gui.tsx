@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import style from "../app.module.scss"
 import { ipc } from "../ipc";
-import { get_app_details_json, get_external_url } from "../utils";
+import { get_app_details_json, get_external_url, getDefaultDisplay, openURL } from "../utils";
 import { WindowManager, WindowParams } from "./window_manager";
 
 export function Icon({ path, width, height }: { path: string, width?: number, height?: number }) {
@@ -279,10 +279,8 @@ function ApplicationView({ wm, application, }: { wm: WindowManager, application:
 					setXWaylandMode(false);
 				}
 			}} />
-			<BigButton type={BigButtonType.launch} on_click={async () => {
-				const displays = await ipc.display_list();
-
-				const target_disp = displays[0].handle;
+			<BigButton title="Launch" type={BigButtonColor.green} on_click={async () => {
+				const target_disp = await getDefaultDisplay();
 
 				let env: Array<string> = [];
 
@@ -348,10 +346,28 @@ function ManifestView({ wm, manifest }: { wm: WindowManager, manifest: ipc.AppMa
 		<div className={style.previewer_info}>
 			<div className={style.previewer_title}>{manifest.name}</div>
 			{details}
-			<BigButton type={BigButtonType.launch} on_click={() => {
+			<BigButton title="Launch" type={BigButtonColor.green} on_click={() => {
 				ipc.game_launch(manifest.app_id);
 				wm.replace(createWindowMessage(wm, "Game launched"));
 			}} />
+			<BoxRight>
+				<BigButton title="Product page" type={BigButtonColor.blue} on_click={async () => {
+					const target_disp = await getDefaultDisplay();
+					openURL(target_disp, "https://store.steampowered.com/app/" + manifest.app_id).then(() => {
+						wm.push(createWindowMessage(wm, "Webpage opened."));
+					}).catch((e) => {
+						wm.replace(createWindowMessage(wm, "Failed to open URL: " + e));
+					})
+				}} />
+				<BigButton title="Reviews" type={BigButtonColor.blue} on_click={async () => {
+					const target_disp = await getDefaultDisplay();
+					openURL(target_disp, "https://steamcommunity.com/app/" + manifest.app_id + "/reviews").then(() => {
+						wm.push(createWindowMessage(wm, "Webpage opened."));
+					}).catch((e) => {
+						wm.replace(createWindowMessage(wm, "Failed to open URL: " + e));
+					})
+				}} />
+			</BoxRight>
 		</div>
 	</div>
 }
@@ -376,7 +392,7 @@ export function createWindowMessage(wm: WindowManager, msg: string) {
 		content: <div className={style.previewer_content}>
 			<div className={style.previewer_message}>
 				{msg}
-				<BigButton type={BigButtonType.hide} on_click={() => {
+				<BigButton title="OK" type={BigButtonColor.blue} on_click={() => {
 					wm.pop()
 				}} />
 			</div>
@@ -385,22 +401,19 @@ export function createWindowMessage(wm: WindowManager, msg: string) {
 }
 
 
-enum BigButtonType {
-	launch,
-	hide
+enum BigButtonColor {
+	green,
+	blue
 }
 
-export function BigButton({ type, on_click }: { type: BigButtonType, on_click: () => void }) {
-	let title = "";
+export function BigButton({ type, title, on_click }: { type: BigButtonColor, title: string, on_click: () => void }) {
 	let bg = "";
 	switch (type) {
-		case BigButtonType.hide: {
-			title = "Hide";
+		case BigButtonColor.blue: {
 			bg = "linear-gradient(#506fcb, #003f9b)";
 			break;
 		}
-		case BigButtonType.launch: {
-			title = "Launch";
+		case BigButtonColor.green: {
 			bg = "linear-gradient(#7bcb50, #3fae52)";
 			break;
 		}

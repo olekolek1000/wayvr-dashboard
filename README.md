@@ -1,4 +1,8 @@
-# WayVR Dashboard
+<p align="center">
+	<img src="./contrib/wayvr_dashboard.webp" width="96" height="96"/>
+</p>
+
+<h1 style="text-align:center;">WayVR Dashboard</h1>
 
 <p align="center">
 	<img src="./contrib/screenshot.webp"/>
@@ -35,7 +39,7 @@ WayVR Dashboard is an work-in-progress overlay application (WayVR/wlx-overlay-s 
 
 # DISCLAIMER
 
-### This project is still under heavy development and lacks various features which will be implemented in the future. Install it only if you want to contribute to or help develop this dashboard until it is ready for daily usage.
+### This project is still under heavy development and lacks various features which will be implemented in the future. Install it only if you want to contribute to or help develop this dashboard until it is ready for daily usage. Here is our [Matrix and Discord](https://lvra.gitlab.io/docs/community/).
 
 # Build instructions
 
