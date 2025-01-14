@@ -2,7 +2,7 @@
 	<img alt="WayVR Dashboard logo" src="./contrib/front.jpg" width="auto"/>
 </p>
 
-WayVR Dashboard is an work-in-progress overlay application (WayVR/wlx-overlay-s plugin via IPC) for launching various applications and games directly into a VR desktop environment. It will also offer numerous quality-of-life features to bring Linux VR gaming on par with SteamVR dashboard. Stay tuned!
+WayVR Dashboard is a work-in-progress overlay application (WayVR/wlx-overlay-s plugin via IPC) for launching various applications and games directly into a VR desktop environment. It will also offer numerous quality-of-life features to bring Linux VR gaming on par with SteamVR's dashboard. Stay tuned!
 
 ### Roadmap
 
@@ -33,7 +33,7 @@ WayVR Dashboard is an work-in-progress overlay application (WayVR/wlx-overlay-s 
 
 # DISCLAIMER
 
-### This project is still under heavy development and lacks various features which will be implemented in the future. Install it only if you want to contribute to or help develop this dashboard until it is ready for daily usage. Here is our [Matrix and Discord](https://lvra.gitlab.io/docs/community/).
+### This project is still under heavy development and lacks various features that will be implemented in the future. Install it only if you want to contribute to or help develop this dashboard until it is ready for daily use. Here is our [Matrix and Discord](https://lvra.gitlab.io/docs/community/).
 
 # Build instructions
 

@@ -1,4 +1,4 @@
-import { ApplicationCover, createWindowApplication, Title } from "../gui/gui"
+import { ApplicationCover, BoxRight, createWindowApplication, Icon, Separator, Title } from "../gui/gui"
 import style from "../app.module.scss"
 import { ipc } from "../ipc"
 import { useMemo, useState } from "preact/hooks"
@@ -12,7 +12,7 @@ export function PanelApplications({ globals }: { globals: Globals }) {
 
 		const arr = desktop_files.map((dfile) => {
 			return <ApplicationCover application={dfile} key={dfile.exec + "." + dfile.name} on_click={() => {
-				globals.wm.push(createWindowApplication(globals.wm, dfile));
+				createWindowApplication(globals, dfile);
 			}} />
 		});
 
@@ -22,7 +22,13 @@ export function PanelApplications({ globals }: { globals: Globals }) {
 	}, []);
 
 	return <>
-		<Title title="Applications" />
+		<BoxRight>
+			<Icon path="icons/apps.svg" />
+			<Title title="Applications" />
+		</BoxRight>
+
+		<Separator />
+
 		<div className={style.applications_list}>
 			{list}
 		</div>

@@ -5,6 +5,7 @@ declare const classNames: {
   readonly content: "content";
   readonly menu: "menu";
   readonly menu_separator: "menu_separator";
+  readonly separator: "separator";
   readonly menu_button: "menu_button";
   readonly separator_menu_rest: "separator_menu_rest";
   readonly separator_content_panel: "separator_content_panel";
@@ -31,6 +32,7 @@ declare const classNames: {
   readonly tooltip_simple: "tooltip_simple";
   readonly tooltip: "tooltip";
   readonly title: "title";
+  readonly inline: "inline";
   readonly box_right: "box_right";
   readonly box_down: "box_down";
   readonly previewer_content: "previewer_content";
@@ -39,9 +41,12 @@ declare const classNames: {
   readonly previewer_desc: "previewer_desc";
   readonly previewer_developers: "previewer_developers";
   readonly previewer_message: "previewer_message";
+  readonly button: "button";
   readonly big_button: "big_button";
   readonly wayvr_displays: "wayvr_displays";
   readonly wayvr_display: "wayvr_display";
+  readonly wayvr_display_hover: "wayvr_display_hover";
+  readonly wayvr_display_sel: "wayvr_display_sel";
   readonly wayvr_processes: "wayvr_processes";
   readonly wayvr_process: "wayvr_process";
   readonly wayvr_process_name: "wayvr_process_name";
@@ -53,5 +58,6 @@ declare const classNames: {
   readonly slider_bar: "slider_bar";
   readonly slider_handle: "slider_handle";
   readonly popup: "popup";
+  readonly container: "container";
 };
 export default classNames;

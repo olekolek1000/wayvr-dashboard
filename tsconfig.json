@@ -26,7 +26,7 @@
 
 		"baseUrl": "./",
 		"paths": {
-			"*": ["src/*"]
+			"@/*": ["./src/*"]
 		}
 	},
 	"files": ["src/declarations.d.ts"],

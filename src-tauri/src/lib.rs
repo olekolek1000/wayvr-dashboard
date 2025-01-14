@@ -23,6 +23,7 @@ pub async fn run() {
 			frontend_ipc::audio_set_device_volume,
 			frontend_ipc::audio_get_device_volume,
 			// # wlx IPC below
+			frontend_ipc::auth_info,
 			frontend_ipc::display_list,
 			frontend_ipc::display_create,
 			frontend_ipc::display_get,

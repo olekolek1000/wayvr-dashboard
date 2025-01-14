@@ -1,0 +1,45 @@
+@use "../vars.scss";
+
+.toast_manager {
+	position: absolute;
+	top: 80%;
+	left: 50%;
+	z-index: 3;
+	overscroll-behavior: contain;
+}
+
+@keyframes toast_anim {
+	0% {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	10% {
+		opacity: 1;
+		transform: translateY(0px);
+	}
+	90% {
+		opacity: 1;
+		transform: translateY(0px);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+}
+
+.toast {
+	border: 2px solid vars.$color_border;
+	background-color: vars.$color_tooltip;
+	box-sizing: border-box;
+	border-radius: 60px;
+	padding-left: 16px;
+	padding-right: 16px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	font-weight: 500;
+	font-size: 1.2em;
+	animation: toast_anim 3s;
+	position: relative;
+	left: -50%;
+	top: -50%;
+}

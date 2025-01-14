@@ -1,23 +1,4 @@
-$color-menu: rgba(10, 10, 10, 0.8);
-$color-border: rgba(255, 255, 255, 0.25);
-$color-tooltip: rgba(25, 25, 25, 1);
-
-$color-panel1: rgb(20, 30, 40);
-$color-panel2: rgb(10, 10, 10);
-
-$color-background1: rgba(34, 44, 62, 0.75);
-$color-background2: rgba(15, 14, 26, 0.75);
-
-$color-background-shine1: rgba(0, 0, 0, 0.6);
-$color-background-shine2: rgba(66, 126, 255, 0.6);
-
-$color-bg-dark: rgb(29, 46, 81);
-$color-bg-medium: rgb(41, 71, 116);
-
-$color-accent: rgb(0, 140, 255);
-$color-highlight: rgb(80, 220, 255);
-
-$menu-width: 48px;
+@use "./vars.scss";
 
 @font-face {
 	font-family: font;
@@ -37,13 +18,13 @@ $menu-width: 48px;
 }
 
 ::-webkit-scrollbar-thumb {
-	background: $color-accent;
+	background: vars.$color-accent;
 	border-radius: 24px;
 	border: 2px solid transparent;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: $color-highlight;
+	background: vars.$color-highlight;
 	border: 2px solid white;
 }
 
@@ -84,6 +65,12 @@ body {
 	border-bottom: 1px solid rgba(255, 255, 255, 0.5);
 }
 
+.separator {
+	width: 100%;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+	margin-bottom: 8px;
+}
+
 .menu_button {
 	width: 100%;
 	height: auto;
@@ -98,8 +85,8 @@ body {
 }
 
 .menu_button:hover {
-	background-color: $color-tooltip;
-	border: 2px solid $color-border;
+	background-color: vars.$color-tooltip;
+	border: 2px solid vars.$color-border;
 	border-right: unset;
 	border-radius: 64px 0px 0px 64px;
 	transform: translateX(4px);
@@ -112,10 +99,10 @@ body {
 }
 
 .menu {
-	width: $menu-width;
-	min-width: $menu-width;
-	max-width: $menu-width;
-	background-color: $color-menu;
+	width: vars.$menu-width;
+	min-width: vars.$menu-width;
+	max-width: vars.$menu-width;
+	background-color: vars.$color-menu;
 
 	height: fit-content;
 
@@ -152,13 +139,13 @@ body {
 	overflow: hidden;
 	background: radial-gradient(
 			circle,
-			$color-background1 50%,
-			$color-background2 150%
+			vars.$color-background1 50%,
+			vars.$color-background2 150%
 		),
 		linear-gradient(
 			0deg,
-			$color-background-shine1 0%,
-			$color-background-shine2 100%
+			vars.$color-background-shine1 0%,
+			vars.$color-background-shine2 100%
 		);
 	border-radius: 8px;
 	box-sizing: border-box;
@@ -172,9 +159,11 @@ body {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
-	align-items: center;
+	align-items: baseline;
 	padding-left: 16px;
 	padding-right: 16px;
+	padding-top: 6px;
+	padding-bottom: 6px;
 
 	left: 0;
 	right: 0;
@@ -200,7 +189,11 @@ body {
 
 	padding-left: 8px;
 
-	background: radial-gradient(circle, $color-panel1 40%, $color-panel2 100%);
+	background: radial-gradient(
+		circle,
+		vars.$color-panel1 40%,
+		vars.$color-panel2 100%
+	);
 }
 
 .panel_left {
@@ -249,7 +242,6 @@ body {
 	padding-right: 4px;
 	border: 2px solid rgba(255, 255, 255, 0.1);
 	background-color: rgba(255, 255, 255, 0.05);
-	cursor: pointer;
 }
 
 .panel_button:active {
@@ -263,6 +255,11 @@ body {
 	aspect-ratio: 1/1;
 	border: unset;
 	background-color: unset;
+}
+
+.panel_button:hover {
+	background-color: rgba(255, 255, 255, 0.2);
+	border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 .panel_button:not(:hover) {
@@ -279,11 +276,6 @@ body {
 .panel_window {
 	background-color: rgba(255, 255, 255, 0.05);
 	box-sizing: border-box;
-}
-
-.panel_button:hover {
-	background-color: rgba(255, 255, 255, 0.2);
-	border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 .games_list {
@@ -310,7 +302,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	position: relative;
-	background-color: $color-bg-dark;
+	background-color: vars.$color-bg-dark;
 	box-sizing: border-box;
 	align-items: center;
 	border-radius: 4px 4px 0 0;
@@ -324,12 +316,12 @@ body {
 }
 
 .application_cover:hover {
-	background-color: $color-accent;
+	background-color: vars.$color-accent;
 	z-index: 1;
 }
 
 .application_cover:hover .application_cover_title {
-	background-color: $color-highlight;
+	background-color: vars.$color-highlight;
 	color: #000;
 }
 
@@ -344,7 +336,7 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-color: $color-bg-medium;
+	background-color: vars.$color-bg-medium;
 	min-height: 2em;
 	padding-top: 2px;
 	padding-bottom: 2px;
@@ -438,7 +430,7 @@ body {
 .tooltip_simple {
 	border-radius: 8px;
 	border: 2px solid rgba(255, 255, 255, 0.3);
-	background: $color-tooltip;
+	background: vars.$color-tooltip;
 	z-index: 100;
 	display: flex;
 	justify-content: center;
@@ -482,7 +474,7 @@ body {
 
 	position: absolute;
 	z-index: 10;
-	background: $color-tooltip;
+	background: vars.$color-tooltip;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -495,7 +487,7 @@ body {
 	animation: tooltip_showup 0.15s linear;
 	transform-origin: 0% 50%;
 
-	border: 2px solid $color-border;
+	border: 2px solid vars.$color-border;
 	border-left: none;
 }
 
@@ -504,9 +496,16 @@ body {
 }
 
 .title {
-	font-size: 1.5em;
+	font-size: 1.15em;
 	margin-top: 0.25em;
 	margin-bottom: 0.25em;
+	font-weight: 600;
+}
+
+.inline {
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
 }
 
 .box_right {
@@ -559,6 +558,32 @@ body {
 	text-align: center;
 }
 
+.button {
+	display: flex;
+	border: 2px solid vars.$color-border;
+	background-color: rgba(255, 255, 255, 0.1);
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 12px 4px 12px;
+	border-radius: 4px;
+	box-sizing: border-box;
+	text-align: center;
+}
+
+.button:hover {
+	background-color: rgba(255, 255, 255, 0.2);
+	border: 2px solid white;
+}
+
+.button:not(:hover) {
+	transition: background-color 0.15s linear;
+}
+
+.button:active {
+	background-color: rgba(255, 255, 255, 0.4);
+}
+
 .big_button {
 	width: min-content;
 	min-width: 200px;
@@ -570,6 +595,7 @@ body {
 	justify-content: center;
 	align-items: center;
 	border: 2px solid black;
+	gap: 8px;
 	transition:
 		border-top 0.1s,
 		border-left 0.25s,
@@ -589,6 +615,7 @@ body {
 	background-color: rgba(0, 0, 0, 0.5);
 	display: flex;
 	gap: 8px;
+	align-items: center;
 }
 
 .wayvr_display {
@@ -607,6 +634,25 @@ body {
 	align-items: center;
 	flex-direction: column;
 	gap: 2px;
+
+	// be aware that long display names could not fit if you try to increase this value
+	font-size: 0.8em;
+
+	overflow: hidden;
+}
+
+.wayvr_display_hover {
+	transition: transform 0.15s;
+}
+
+.wayvr_display_sel {
+	background-color: vars.$color-highlight !important;
+}
+
+.wayvr_display_hover:hover {
+	background: unset;
+	background-color: vars.$color-accent;
+	transform: translateY(-4px) rotate(-1deg) /* just for fun */;
 }
 
 .wayvr_processes {
@@ -670,15 +716,14 @@ body {
 }
 
 .checkbox_checkmark_checked {
-	background-color: $color-accent;
+	background-color: vars.$color-accent;
 }
 
 .checkbox_checkmark_checked:hover {
-	background-color: $color-highlight;
+	background-color: vars.$color-highlight;
 }
 
 .slider {
-	width: 160px;
 	height: 28px;
 	display: flex;
 	align-items: center;
@@ -687,7 +732,7 @@ body {
 }
 
 .slider:hover .slider_filling {
-	background-color: $color-highlight;
+	background-color: vars.$color-highlight;
 }
 
 .slider_bar {
@@ -703,7 +748,7 @@ body {
 	position: absolute;
 	height: 10px;
 	width: 50px;
-	background-color: $color-accent;
+	background-color: vars.$color-accent;
 	border-radius: 16px 0px 0px 16px;
 	border: 2px solid white;
 	top: -2px;
@@ -725,8 +770,8 @@ body {
 	padding: 8px;
 	padding-left: 16px;
 	padding-right: 16px;
-	background-color: $color-tooltip;
-	border: 2px solid $color-border;
+	background-color: vars.$color-tooltip;
+	border: 2px solid vars.$color-border;
 	box-sizing: border-box;
 	border-radius: 8px;
 	position: absolute;
@@ -735,4 +780,14 @@ body {
 	align-items: center;
 	justify-content: center;
 	z-index: 10;
+}
+
+.container {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	flex-direction: row;
+	border: 2px solid vars.$color_border;
+	padding: 8px;
+	background-color: vars.$color-background1;
 }

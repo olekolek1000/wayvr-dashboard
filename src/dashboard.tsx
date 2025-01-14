@@ -9,6 +9,7 @@ import { PanelApplications } from "./panel/applications";
 import { PanelRunningApps } from "./panel/running_apps";
 import { ipc } from "./ipc";
 import { Globals } from "./globals";
+import { PanelSettings } from "./panel/settings";
 
 function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) {
 	return <div onClick={on_click} className={style.menu_button}>
@@ -80,6 +81,10 @@ export function Dashboard({ globals }: { globals: Globals }) {
 	globals.wm.key = wm_key;
 	globals.wm.setKey = setWmKey;
 
+	const [tm_key, setTmKey] = useState(0);
+	globals.toast_manager.key = tm_key;
+	globals.toast_manager.setKey = setTmKey;
+
 	return (
 		<div className={style.separator_menu_rest}>
 			<div className={style.menu} >
@@ -101,26 +106,22 @@ export function Dashboard({ globals }: { globals: Globals }) {
 
 				<Tooltip title={"Running apps"}>
 					<MenuButton icon="icons/window.svg" on_click={() => {
-						setCurrentPanel(<PanelRunningApps />);
+						setCurrentPanel(<PanelRunningApps globals={globals} />);
 					}} />
 				</Tooltip>
 
 				<div className={style.menu_separator} />
 
-				<Tooltip title={"Refresh dasbhoard"}>
-					<MenuButton icon="icons/refresh.svg" on_click={() => {
-						window.location.reload();
-					}} />
-				</Tooltip>
 				<Tooltip title={"Settings"}>
 					<MenuButton icon="icons/settings.svg" on_click={() => {
-
+						setCurrentPanel(<PanelSettings globals={globals} />);
 					}} />
 				</Tooltip>
 			</div>
 			<div className={style.separator_content_panel}>
 				<div className={style.content}>
 					{globals.wm.render()}
+					{globals.toast_manager.render()}
 					<div className={style.current_panel}>
 						{current_panel}
 					</div>

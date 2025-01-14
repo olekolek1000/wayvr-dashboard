@@ -31,7 +31,6 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = ["protocol-asset", "devtools"] }
 tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
 tauri-plugin-fs = "2"
 walkdir = "2.5.0"
 xdg = "2.5.2"
@@ -43,12 +42,12 @@ env_logger = "0.11.6"
 keyvalues-parser = { git = "https://github.com/CosmicHorrorDev/vdf-rs.git" }
 tauri-plugin-http = "2"
 interprocess = { version = "2.2.2", features = ["tokio"] }
-postcard = "1.1.1"
 bytes = "1.9.0"
 tokio = "1.42.0"
 tokio-util = "0.7.13"
 smallvec = "1.13.2"
-wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "c2a6438ffdcc78ff9c0637d914df1bc673723824", features = [
+wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "b484d1f0607b3f67e2c9e49797819738344bcb5c", features = [
 	"client",
 ] }
 alsa = "0.9.1"
+serde_json = "1.0.135"

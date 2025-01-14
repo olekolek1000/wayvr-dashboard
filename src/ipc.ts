@@ -24,6 +24,44 @@ export namespace ipc {
 		index!: number;
 	}
 
+	export async function desktop_file_list(): Promise<Array<DesktopFile>> {
+		return await invoke("desktop_file_list");
+	}
+
+	export async function game_list(): Promise<Games> {
+		return await invoke("game_list");
+	}
+
+	export async function game_launch(app_id: number): Promise<void> {
+		return await invoke("game_launch", { appId: app_id })
+	}
+
+	export async function audio_list_devices(): Promise<Array<AudioDevice>> {
+		return await invoke("audio_list_devices");
+	}
+
+	export async function audio_set_device_volume(params: {
+		deviceIndex: number,
+		volume: number
+	}): Promise<void> {
+		return await invoke("audio_set_device_volume", params);
+	}
+
+	export async function audio_get_device_volume(params: {
+		deviceIndex: number,
+	}): Promise<number> {
+		return await invoke("audio_get_device_volume", params);
+	}
+
+
+	// ================================================================================
+	// WayVR related below
+	// ================================================================================
+
+	export class AuthInfo {
+		runtime!: String;
+	};
+
 	export class DisplayHandle {
 		idx!: number;
 		generation!: number;
@@ -56,36 +94,9 @@ export namespace ipc {
 		Stage = "Stage"
 	}
 
-	export async function desktop_file_list(): Promise<Array<DesktopFile>> {
-		return await invoke("desktop_file_list");
+	export async function auth_get_info(): Promise<AuthInfo | undefined> {
+		return await invoke("auth_info");
 	}
-
-	export async function game_list(): Promise<Games> {
-		return await invoke("game_list");
-	}
-
-	export async function game_launch(app_id: number): Promise<void> {
-		return await invoke("game_launch", { appId: app_id })
-	}
-
-	export async function audio_list_devices(): Promise<Array<AudioDevice>> {
-		return await invoke("audio_list_devices");
-	}
-
-	export async function audio_set_device_volume(params: {
-		deviceIndex: number,
-		volume: number
-	}): Promise<void> {
-		return await invoke("audio_set_device_volume", params);
-	}
-
-	export async function audio_get_device_volume(params: {
-		deviceIndex: number,
-	}): Promise<number> {
-		return await invoke("audio_get_device_volume", params);
-	}
-
-	/// ############################
 
 	export async function display_list(): Promise<Array<Display>> {
 		return await invoke("display_list");

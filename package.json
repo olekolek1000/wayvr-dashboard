@@ -18,7 +18,8 @@
     "preact": "^10.16.0",
     "sass": "^1.81.0",
     "vite-plugin-sass": "^0.1.0",
-    "vite-plugin-sass-dts": "^1.3.29"
+    "vite-plugin-sass-dts": "^1.3.29",
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.5.0",

@@ -86,6 +86,14 @@ pub async fn audio_get_device_volume(device_index: i32) -> Result<f32, String> {
 // ############################
 
 #[tauri::command]
+pub async fn auth_info(
+	state: tauri::State<'_, AppState>,
+) -> Result<Option<wayvr_ipc::client::AuthInfo>, String> {
+	let client = state.wayvr_client.lock().await;
+	Ok(client.auth.clone())
+}
+
+#[tauri::command]
 pub async fn display_create(
 	state: tauri::State<'_, AppState>,
 	width: u16,
@@ -97,7 +105,7 @@ pub async fn display_create(
 	let display = handle_result(
 		"create display",
 		WayVRClient::fn_wvr_display_create(
-			state.wavyr_client.clone(),
+			state.wayvr_client.clone(),
 			state.serial_generator.increment_get(),
 			packet_client::WvrDisplayCreateParams {
 				width,
@@ -120,7 +128,7 @@ pub async fn display_list(
 	handle_result(
 		"fetch displays",
 		WayVRClient::fn_wvr_display_list(
-			state.wavyr_client.clone(),
+			state.wayvr_client.clone(),
 			state.serial_generator.increment_get(),
 		)
 		.await,
@@ -135,7 +143,7 @@ pub async fn display_get(
 	let display = handle_result(
 		"fetch display",
 		WayVRClient::fn_wvr_display_get(
-			state.wavyr_client.clone(),
+			state.wayvr_client.clone(),
 			state.serial_generator.increment_get(),
 			handle,
 		)
@@ -154,7 +162,7 @@ pub async fn process_list(
 	handle_result(
 		"fetch processes",
 		WayVRClient::fn_wvr_process_list(
-			state.wavyr_client.clone(),
+			state.wayvr_client.clone(),
 			state.serial_generator.increment_get(),
 		)
 		.await,
@@ -168,7 +176,7 @@ pub async fn process_terminate(
 ) -> Result<(), String> {
 	handle_result(
 		"terminate process",
-		WayVRClient::fn_wvr_process_terminate(state.wavyr_client.clone(), handle).await,
+		WayVRClient::fn_wvr_process_terminate(state.wayvr_client.clone(), handle).await,
 	)
 }
 
@@ -184,7 +192,7 @@ pub async fn process_launch(
 	handle_result(
 		"launch process",
 		WayVRClient::fn_wvr_process_launch(
-			state.wavyr_client.clone(),
+			state.wayvr_client.clone(),
 			state.serial_generator.increment_get(),
 			packet_client::WvrProcessLaunchParams {
 				env,

@@ -1,36 +1,61 @@
 import { useEffect, useState } from "preact/hooks";
-import { PanelButton, Title } from "../gui/gui";
+import { BoxRight, Icon, Title } from "../gui/gui";
 import { ipc } from "../ipc";
-import { DisplayList } from "../views/display_list";
 import { ProcessList } from "../views/process_list";
 import { listDisplays } from "../utils";
+import { Globals } from "@/globals";
+import { createWindowAddDisplay, DisplayList } from "@/views/display_list";
+import { createWindowDisplayOptions } from "@/views/display_options";
 
-export function PanelRunningApps({ }: {}) {
+export function PanelRunningApps({ globals }: { globals: Globals }) {
 	const [displays, setDisplays] = useState<Array<ipc.Display> | undefined>(undefined);
 	const [processes, setProcesses] = useState<Array<ipc.Process> | undefined>(undefined);
-	const [key, setKey] = useState(0);
 
-	const refresh = () => {
-		setKey(key + 1);
+	const refresh = async () => {
+		setDisplays(await listDisplays());
+		setProcesses(await ipc.process_list());
+	}
+
+	const load = () => {
+		refresh().catch((e) => {
+			console.error(e);
+		})
 	}
 
 	useEffect(() => {
-		const run = async () => {
-			setDisplays(await listDisplays());
-			setProcesses(await ipc.process_list());
-		}
+		load();
 
-		run().catch((e) => {
-			console.error(e);
-		});
-	}, [key]);
+		// Refresh every 1.5s if something has changed externally.
+		// TODO: implement feedback from the server
+		// instead of refreshing it
+		const interval = setInterval(() => {
+			load();
+		}, 1500);
+
+		return () => {
+			clearInterval(interval);
+		}
+	}, []);
 	return <>
-		<Title title="Display list" />
-		{displays ? <DisplayList key={key} displays={displays} /> : undefined}
-		<Title title="Process list" />
-		{(processes && displays) ? <ProcessList key={key} processes={processes} displays={displays} on_refresh={refresh} /> : undefined}
-		<PanelButton height={32} icon="icons/refresh.svg" on_click={refresh} >
-			Refresh all (refreshed {key} times)
-		</PanelButton>
+		<BoxRight>
+			<Icon path="icons/display.svg" />
+			<Title title="Display list" />
+		</BoxRight>
+
+		{displays ? <DisplayList displays={displays} params={{
+			on_add: () => {
+				createWindowAddDisplay(globals, displays, () => {
+					refresh();
+				});
+			},
+			on_click: (display) => {
+				createWindowDisplayOptions(globals, display);
+			}
+		}} /> : undefined}
+		<BoxRight>
+			<Icon path="icons/cpu.svg" />
+			<Title title="Process list" />
+		</BoxRight>
+		{(processes && displays) ? <ProcessList processes={processes} displays={displays} on_refresh={load} /> : undefined}
 	</>
 }

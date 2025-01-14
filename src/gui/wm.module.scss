@@ -4,7 +4,6 @@
 	height: 100%;
 	z-index: 2;
 	overflow: hidden;
-	overscroll-behavior: contain;
 }
 
 /* animation timing function doesn't work in Tauri for transform. Not sure why. I need to simulate it. */
@@ -46,7 +45,11 @@
 .content {
 	animation: content_showup 0.2s;
 	padding: 16px;
+	overflow-y: scroll;
 	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
 }
 
 .decoration {

@@ -1,4 +1,4 @@
-import { createWindowManifest, GameCover, Title } from "../gui/gui"
+import { BoxRight, createWindowManifest, GameCover, Icon, Separator, Title } from "../gui/gui"
 import style from "../app.module.scss"
 import { useMemo, useState } from "preact/hooks";
 import { ipc } from "../ipc";
@@ -12,7 +12,7 @@ export function PanelGames({ globals }: { globals: Globals }) {
 
 		const arr = games.manifests.map((manifest) => {
 			return <GameCover key={manifest.app_id} on_click={() => {
-				globals.wm.push(createWindowManifest(globals.wm, manifest));
+				createWindowManifest(globals, manifest);
 			}} manifest={manifest} />
 		});
 
@@ -22,7 +22,13 @@ export function PanelGames({ globals }: { globals: Globals }) {
 	}, [])
 
 	return <>
-		<Title title="Games" />
+		<BoxRight>
+			<Icon path="icons/games.svg" />
+			<Title title="Games" />
+		</BoxRight>
+
+		<Separator />
+
 		<div className={style.games_list}>
 			{list}
 		</div>
