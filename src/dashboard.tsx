@@ -10,6 +10,7 @@ import { PanelRunningApps } from "./panel/running_apps";
 import { ipc } from "./ipc";
 import { Globals } from "./globals";
 import { PanelSettings } from "./panel/settings";
+import { JSX } from "preact/jsx-runtime";
 
 function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) {
 	return <div onClick={on_click} className={style.menu_button}>
@@ -76,6 +77,7 @@ function PopupVolume({ }: {}) {
 export function Dashboard({ globals }: { globals: Globals }) {
 	const [current_panel, setCurrentPanel] = useState(<PanelHome globals={globals} />);
 	const [popup_volume, setPopupVolume] = useState(false);
+	const [error_text, setErrorText] = useState<JSX.Element | undefined>(undefined);
 
 	const [wm_key, setWmKey] = useState(0);
 	globals.wm.key = wm_key;
@@ -84,6 +86,8 @@ export function Dashboard({ globals }: { globals: Globals }) {
 	const [tm_key, setTmKey] = useState(0);
 	globals.toast_manager.key = tm_key;
 	globals.toast_manager.setKey = setTmKey;
+
+	globals.setErrorText = setErrorText;
 
 	return (
 		<div className={style.separator_menu_rest}>
@@ -122,6 +126,7 @@ export function Dashboard({ globals }: { globals: Globals }) {
 				<div className={style.content}>
 					{globals.wm.render()}
 					{globals.toast_manager.render()}
+					{error_text}
 					<div className={style.current_panel}>
 						{current_panel}
 					</div>

@@ -569,6 +569,7 @@ body {
 	border-radius: 4px;
 	box-sizing: border-box;
 	text-align: center;
+	color: white;
 }
 
 .button:hover {
@@ -790,4 +791,19 @@ body {
 	border: 2px solid vars.$color_border;
 	padding: 8px;
 	background-color: vars.$color-background1;
+}
+
+.error_text {
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	z-index: 15;
+	background-color: rgba(0, 0, 0, 0.75);
+	padding: 4px;
+	padding-left: 8px;
+	color: #f66;
+	font-size: 0.75em;
+	font-weight: 500;
+	border-radius: 4px;
+	transform: translateX(-50%);
 }

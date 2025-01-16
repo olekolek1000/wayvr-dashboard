@@ -7,8 +7,7 @@ use crate::util::steam_bridge::SteamBridge;
 
 pub struct AppState {
 	pub steam_bridge: SteamBridge,
-	pub wayvr_client: WayVRClientMutex,
-
+	pub wayvr_client: Option<WayVRClientMutex>,
 	pub serial_generator: ipc::SerialGenerator,
 }
 
@@ -19,8 +18,11 @@ impl AppState {
 		let steam_bridge = SteamBridge::new()?;
 
 		let ipc_client = match WayVRClient::new("WayVR Dashboard").await {
-			Ok(c) => c,
-			Err(e) => anyhow::bail!("WayVR Client failed: {}", e),
+			Ok(c) => Some(c),
+			Err(e) => {
+				log::error!("WayVR Client failed to initialize: {}", e);
+				None
+			}
 		};
 
 		Ok(Self {

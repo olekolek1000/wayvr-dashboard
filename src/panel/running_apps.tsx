@@ -17,9 +17,7 @@ export function PanelRunningApps({ globals }: { globals: Globals }) {
 	}
 
 	const load = () => {
-		refresh().catch((e) => {
-			console.error(e);
-		})
+		refresh();
 	}
 
 	useEffect(() => {

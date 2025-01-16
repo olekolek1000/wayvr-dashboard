@@ -496,7 +496,7 @@ export enum BigButtonColor {
 	blue
 }
 
-export function Button({ children, icon, style, on_click }: { children: any, icon?: string, on_click: () => void, style?: CSSProperties }) {
+export function Button({ children, icon, style, on_click }: { children?: any, icon?: string, on_click: () => void, style?: CSSProperties }) {
 	return <div onClick={on_click} className={scss.button} style={style}>
 		{icon ? <Icon path={icon} /> : undefined}
 		{children}

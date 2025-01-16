@@ -59,5 +59,6 @@ declare const classNames: {
   readonly slider_handle: "slider_handle";
   readonly popup: "popup";
   readonly container: "container";
+  readonly error_text: "error_text";
 };
 export default classNames;

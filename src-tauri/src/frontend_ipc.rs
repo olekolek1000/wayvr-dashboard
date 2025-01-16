@@ -1,5 +1,8 @@
 use serde::Serialize;
-use wayvr_ipc::{client::WayVRClient, packet_client, packet_server};
+use wayvr_ipc::{
+	client::{WayVRClient, WayVRClientMutex},
+	packet_client, packet_server,
+};
 
 use crate::{
 	app::AppState,
@@ -83,13 +86,26 @@ pub async fn audio_get_device_volume(device_index: i32) -> Result<f32, String> {
 	handle_result("get audio volume", audio::get_volume(device_index))
 }
 
+#[tauri::command]
+pub fn is_ipc_connected(state: tauri::State<'_, AppState>) -> bool {
+	state.wayvr_client.is_some()
+}
+
 // ############################
+
+fn get_client(state: &AppState) -> Result<WayVRClientMutex, String> {
+	match &state.wayvr_client {
+		Some(client) => Ok(client.clone()),
+		None => Err(String::from("Couldn't connect to WayVR Server")),
+	}
+}
 
 #[tauri::command]
 pub async fn auth_info(
 	state: tauri::State<'_, AppState>,
 ) -> Result<Option<wayvr_ipc::client::AuthInfo>, String> {
-	let client = state.wayvr_client.lock().await;
+	let c = get_client(&state)?;
+	let client = c.lock().await;
 	Ok(client.auth.clone())
 }
 
@@ -105,7 +121,7 @@ pub async fn display_create(
 	let display = handle_result(
 		"create display",
 		WayVRClient::fn_wvr_display_create(
-			state.wayvr_client.clone(),
+			get_client(&state)?,
 			state.serial_generator.increment_get(),
 			packet_client::WvrDisplayCreateParams {
 				width,
@@ -127,11 +143,8 @@ pub async fn display_list(
 ) -> Result<Vec<packet_server::WvrDisplay>, String> {
 	handle_result(
 		"fetch displays",
-		WayVRClient::fn_wvr_display_list(
-			state.wayvr_client.clone(),
-			state.serial_generator.increment_get(),
-		)
-		.await,
+		WayVRClient::fn_wvr_display_list(get_client(&state)?, state.serial_generator.increment_get())
+			.await,
 	)
 }
 
@@ -143,7 +156,7 @@ pub async fn display_get(
 	let display = handle_result(
 		"fetch display",
 		WayVRClient::fn_wvr_display_get(
-			state.wayvr_client.clone(),
+			get_client(&state)?,
 			state.serial_generator.increment_get(),
 			handle,
 		)
@@ -161,11 +174,8 @@ pub async fn process_list(
 ) -> Result<Vec<packet_server::WvrProcess>, String> {
 	handle_result(
 		"fetch processes",
-		WayVRClient::fn_wvr_process_list(
-			state.wayvr_client.clone(),
-			state.serial_generator.increment_get(),
-		)
-		.await,
+		WayVRClient::fn_wvr_process_list(get_client(&state)?, state.serial_generator.increment_get())
+			.await,
 	)
 }
 
@@ -176,7 +186,7 @@ pub async fn process_terminate(
 ) -> Result<(), String> {
 	handle_result(
 		"terminate process",
-		WayVRClient::fn_wvr_process_terminate(state.wayvr_client.clone(), handle).await,
+		WayVRClient::fn_wvr_process_terminate(get_client(&state)?, handle).await,
 	)
 }
 
@@ -192,7 +202,7 @@ pub async fn process_launch(
 	handle_result(
 		"launch process",
 		WayVRClient::fn_wvr_process_launch(
-			state.wayvr_client.clone(),
+			get_client(&state)?,
 			state.serial_generator.increment_get(),
 			packet_client::WvrProcessLaunchParams {
 				env,

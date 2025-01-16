@@ -8,6 +8,7 @@ if (!import.meta.env.DEV) {
 	}
 }
 
+
 var globals: Globals | null = null;
 
 function Main({ }: {}) {
@@ -19,3 +20,15 @@ function Main({ }: {}) {
 }
 
 render(<Main />, document.getElementById("root")!);
+
+window.onerror = function (message) {
+	if (globals) {
+		globals.setGlobalError(message as string);
+	}
+};
+
+window.onunhandledrejection = (event) => {
+	if (globals) {
+		globals.setGlobalError(event.reason);
+	}
+};
