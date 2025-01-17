@@ -1,0 +1,83 @@
+@use "../vars.scss";
+
+.big_title {
+	font-size: 2em;
+	font-weight: 900;
+	margin-left: 8px;
+}
+
+.centered {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	width: 100%;
+	height: 100%;
+}
+
+@keyframes icon_showup {
+	0% {
+		width: 160px;
+		height: 160px;
+	}
+	100% {
+		width: 80px;
+		height: 80px;
+	}
+}
+
+.icon_dec_size {
+	animation-name: icon_showup;
+	animation-duration: 0.75s;
+	animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+	animation-fill-mode: both;
+}
+
+@keyframes categories_showup {
+	0% {
+		opacity: 0;
+		margin-top: -160px;
+		transform: scale(0.75);
+	}
+	100% {
+		opacity: 1;
+		margin-top: 16px;
+		transform: scale(1);
+	}
+}
+
+.categories {
+	display: flex;
+	gap: 4px;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	height: 160px;
+
+	animation-name: categories_showup;
+	animation-fill-mode: both;
+	animation-duration: 0.5s;
+	animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.category {
+	margin-top: 16px;
+	width: 96px;
+	font-weight: bold;
+	text-align: center;
+	justify-content: center;
+	align-items: center;
+	transition: transform 0.1s;
+}
+
+.category:hover {
+	transform: perspective(400px) rotateX(5deg) scale(1.1);
+	z-index: 1;
+	background-color: vars.$color_accent;
+	border: 2px solid white;
+	box-shadow: 0px 5px 20px rgba(100, 150, 255, 1);
+}
+
+.category:active {
+	background-color: vars.$color_highlight;
+}

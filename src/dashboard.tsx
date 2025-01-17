@@ -74,6 +74,14 @@ function PopupVolume({ }: {}) {
 	</>
 }
 
+function Overlays({ globals, error_text }: { globals: Globals, error_text?: JSX.Element }) {
+	return <>
+		{globals.wm.render()}
+		{globals.toast_manager.render()}
+		{error_text}
+	</>
+}
+
 export function Dashboard({ globals }: { globals: Globals }) {
 	const [current_panel, setCurrentPanel] = useState(<PanelHome globals={globals} />);
 	const [popup_volume, setPopupVolume] = useState(false);
@@ -88,6 +96,7 @@ export function Dashboard({ globals }: { globals: Globals }) {
 	globals.toast_manager.setKey = setTmKey;
 
 	globals.setErrorText = setErrorText;
+	globals.setCurrentPanel = setCurrentPanel;
 
 	return (
 		<div className={style.separator_menu_rest}>
@@ -108,7 +117,7 @@ export function Dashboard({ globals }: { globals: Globals }) {
 					}} />
 				</Tooltip>
 
-				<Tooltip title={"Running apps"}>
+				<Tooltip title={"Process manager"}>
 					<MenuButton icon="icons/window.svg" on_click={() => {
 						setCurrentPanel(<PanelRunningApps globals={globals} />);
 					}} />
@@ -124,9 +133,7 @@ export function Dashboard({ globals }: { globals: Globals }) {
 			</div>
 			<div className={style.separator_content_panel}>
 				<div className={style.content}>
-					{globals.wm.render()}
-					{globals.toast_manager.render()}
-					{error_text}
+					<Overlays globals={globals} error_text={error_text} />
 					<div className={style.current_panel}>
 						{current_panel}
 					</div>

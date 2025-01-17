@@ -53,6 +53,10 @@ export namespace ipc {
 		return await invoke("audio_get_device_volume", params);
 	}
 
+	export async function get_username(): Promise<string> {
+		return await invoke("get_username");
+	}
+
 
 	// ================================================================================
 	// WayVR related below

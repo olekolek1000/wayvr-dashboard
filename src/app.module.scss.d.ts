@@ -60,5 +60,7 @@ declare const classNames: {
   readonly popup: "popup";
   readonly container: "container";
   readonly error_text: "error_text";
+  readonly text_green: "text_green";
+  readonly text_red: "text_red";
 };
 export default classNames;

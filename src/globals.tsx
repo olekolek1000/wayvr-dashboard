@@ -3,12 +3,15 @@ import { ToastManager } from "./gui/toast_manager";
 import { WindowManager } from "./gui/window_manager"
 import scss from "./app.module.scss"
 import { BoxRight, Button } from "./gui/gui";
+import { Dispatch, StateUpdater } from "preact/hooks";
 
 export class Globals {
 	wm = new WindowManager;
 	toast_manager = new ToastManager;
 
+
 	setErrorText!: (el: JSX.Element | undefined) => void;
+	setCurrentPanel!: Dispatch<StateUpdater<JSX.Element>>;
 
 	constructor() {
 

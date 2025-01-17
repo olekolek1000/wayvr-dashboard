@@ -91,6 +91,14 @@ pub fn is_ipc_connected(state: tauri::State<'_, AppState>) -> bool {
 	state.wayvr_client.is_some()
 }
 
+#[tauri::command]
+pub fn get_username() -> String {
+	match std::env::var("USER") {
+		Ok(user) => user,
+		Err(_) => String::from("anonymous"),
+	}
+}
+
 // ############################
 
 fn get_client(state: &AppState) -> Result<WayVRClientMutex, String> {
@@ -104,6 +112,10 @@ fn get_client(state: &AppState) -> Result<WayVRClientMutex, String> {
 pub async fn auth_info(
 	state: tauri::State<'_, AppState>,
 ) -> Result<Option<wayvr_ipc::client::AuthInfo>, String> {
+	if state.wayvr_client.is_none() {
+		return Ok(None);
+	}
+
 	let c = get_client(&state)?;
 	let client = c.lock().await;
 	Ok(client.auth.clone())

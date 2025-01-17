@@ -1,9 +1,14 @@
 import { fetch as tauri_fetch } from '@tauri-apps/plugin-http';
+import { getVersion } from '@tauri-apps/api/app';
 import { ipc } from './ipc';
 
 export function get_external_url(absolute_path: string): string {
 	let api_path = (window as any).__TAURI_INTERNALS__.convertFileSrc(absolute_path)
 	return api_path;
+}
+
+export async function get_version(): Promise<string> {
+	return await getVersion();
 }
 
 export class AppDetails {

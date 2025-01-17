@@ -28,6 +28,10 @@
 	border: 2px solid white;
 }
 
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
 img,
 div {
 	-webkit-user-drag: none;
@@ -68,7 +72,6 @@ body {
 .separator {
 	width: 100%;
 	border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-	margin-bottom: 8px;
 }
 
 .menu_button {
@@ -403,13 +406,16 @@ body {
 }
 
 .game_cover:hover {
-	transform: perspective(500px) scale(1.05) rotateX(3deg);
+	transform: perspective(400px) scale(1.075) rotateX(5deg);
 	z-index: 1;
 	border: 2px solid white;
+	box-shadow: 0px 5px 20px white;
 }
 
 .game_cover_big:hover {
 	transform: unset;
+	box-shadow: unset;
+	border: 2px solid black;
 }
 
 @keyframes tooltip_simple_showup {
@@ -609,6 +615,11 @@ body {
 	padding: 0px;
 }
 
+.big_button:active {
+	color: black;
+	background: white !important;
+}
+
 .wayvr_displays {
 	padding: 8px;
 	border-radius: 10px;
@@ -787,10 +798,11 @@ body {
 	display: flex;
 	gap: 8px;
 	flex-wrap: wrap;
-	flex-direction: row;
+	flex-direction: column;
 	border: 2px solid vars.$color_border;
-	padding: 8px;
 	background-color: vars.$color-background1;
+	padding: 8px;
+	border-radius: 4px;
 }
 
 .error_text {
@@ -806,4 +818,12 @@ body {
 	font-weight: 500;
 	border-radius: 4px;
 	transform: translateX(-50%);
+}
+
+.text_green {
+	color: #9f9;
+}
+
+.text_red {
+	color: #f99;
 }

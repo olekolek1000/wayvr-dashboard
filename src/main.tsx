@@ -21,14 +21,16 @@ function Main({ }: {}) {
 
 render(<Main />, document.getElementById("root")!);
 
-window.onerror = function (message) {
+/*
+window.addEventListener("erorr", (message) => {
 	if (globals) {
-		globals.setGlobalError(message as string);
+		globals.setGlobalError(JSON.stringify(message));
 	}
-};
+})
 
-window.onunhandledrejection = (event) => {
+window.addEventListener("unhandledrejection", (event) => {
 	if (globals) {
 		globals.setGlobalError(event.reason);
 	}
-};
+});
+*/

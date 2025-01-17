@@ -7,10 +7,11 @@ import { Globals } from "@/globals";
 import { CSSProperties } from "preact/compat";
 import { createWindowAddDisplay, DisplayList } from "@/views/display_list";
 
-export function Icon({ path, width, height }: { path: string, width?: number, height?: number }) {
-	return <img className={scss.icon} src={path} style={{
+export function Icon({ path, width, height, color, className }: { path: string, width?: number, height?: number, color?: string, className?: string }) {
+	return <img className={`${scss.icon} ${className ? className : ""}`} src={path} style={{
 		width: width && (width + "px"),
 		height: height && (height + "px"),
+		color: color
 	}}>
 	</img>
 }
@@ -280,19 +281,25 @@ export function Title({ title }: { title: string }) {
 	</div>
 }
 
-export function Inline({ children }: { children: any }) {
+export function Inline({ children }: { children?: any }) {
 	return <div className={scss.inline}>
 		{children}
 	</div>
 }
 
-export function BoxRight({ children }: { children: any }) {
-	return <div className={scss.box_right}>
+export function Container({ children, className, on_click }: { children?: any, className?: string, on_click?: () => void }) {
+	return <div className={`${scss.container} ${className ? className : ""}`} onClick={on_click}>
 		{children}
 	</div>
 }
 
-export function BoxDown({ children }: { children: any }) {
+export function BoxRight({ children, style, className }: { children?: any, style?: CSSProperties, className?: string }) {
+	return <div className={`${scss.box_right} ${className ? className : ""}`} style={style}>
+		{children}
+	</div>
+}
+
+export function BoxDown({ children }: { children?: any }) {
 	return <div className={scss.box_down}>
 		{children}
 	</div >
@@ -409,7 +416,6 @@ async function open_url_wrapper(url: string, globals: Globals) {
 	const target_disp = await getDefaultDisplay();
 	openURL(target_disp, url).then(() => {
 		globals.toast_manager.push("Webpage opened");
-		globals.wm.push(createWindowMessage(globals.wm, "Webpage opened"));
 	}).catch((e) => {
 		globals.wm.replace(createWindowMessage(globals.wm, "Failed to open URL: " + e));
 	})
