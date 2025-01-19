@@ -10,13 +10,13 @@ WayVR Dashboard is a work-in-progress overlay application (WayVR/wlx-overlay-s p
 
 | Done |          Variant | Description                                       | Requires |
 | ---: | ---------------: | :------------------------------------------------ | -------: |
-|   \* |              IPC | wlx-overlay-s (wayvr) <-> WayVR dashboard interop |          |
+|   ✔ |              IPC | wlx-overlay-s (wayvr) <-> WayVR dashboard interop |          |
 |   ✔ | Applications tab | .desktop Application fetch support                |          |
 |   ✔ | Applications tab | .desktop Icon matcher                             |          |
 |   ✔ | Applications tab | Applications viewer                               |          |
 |      | Applications tab | Search box, sort by categories                    |          |
 |   ✔ | Applications tab | Spawn application inside wlx-overlay-s (WayVR)    |      IPC |
-|      | Applications tab | Display manager (select WayVR display)            |      IPC |
+|   ✔ | Applications tab | Display manager (select WayVR display)            |      IPC |
 |   ✔ |            WayVR | WayVR running applications manager                |      IPC |
 |   ✔ |        Games tab | List all installed Steam games                    |          |
 |      |        Games tab | Search box, sort by vr/non-vr games               |          |
@@ -28,7 +28,7 @@ WayVR Dashboard is a work-in-progress overlay application (WayVR/wlx-overlay-s p
 |      |            Utils | Show device battery levels                        |      IPC |
 |      |            Utils | Microphone/speaker volume control                 |          |
 |      |            Utils | Launch index_camera_passthrough                   |          |
-|      |         Settings | Settings window, session metrics                  |          |
+|   ✔ |         Settings | Settings window, session metrics                  |      IPC |
 |      |      Home screen | TODO                                              |          |
 
 # DISCLAIMER
