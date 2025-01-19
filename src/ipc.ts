@@ -110,6 +110,10 @@ export namespace ipc {
 		return await invoke("display_get", { handle: handle });
 	}
 
+	export async function display_remove(handle: DisplayHandle): Promise<void> {
+		return await invoke("display_remove", { handle: handle });
+	}
+
 	export async function display_create(params: {
 		width: number,
 		height: number,

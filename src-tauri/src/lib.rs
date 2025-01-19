@@ -29,6 +29,7 @@ pub async fn run() {
 			frontend_ipc::display_list,
 			frontend_ipc::display_create,
 			frontend_ipc::display_get,
+			frontend_ipc::display_remove,
 			frontend_ipc::process_list,
 			frontend_ipc::process_terminate,
 			frontend_ipc::process_launch,

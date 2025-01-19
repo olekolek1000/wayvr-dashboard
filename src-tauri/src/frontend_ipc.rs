@@ -181,6 +181,22 @@ pub async fn display_get(
 }
 
 #[tauri::command]
+pub async fn display_remove(
+	state: tauri::State<'_, AppState>,
+	handle: packet_server::WvrDisplayHandle,
+) -> Result<(), String> {
+	handle_result(
+		"remove display",
+		WayVRClient::fn_wvr_display_remove(
+			get_client(&state)?,
+			state.serial_generator.increment_get(),
+			handle,
+		)
+		.await,
+	)
+}
+
+#[tauri::command]
 pub async fn process_list(
 	state: tauri::State<'_, AppState>,
 ) -> Result<Vec<packet_server::WvrProcess>, String> {

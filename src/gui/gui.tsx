@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import scss from "../app.module.scss"
 import { ipc } from "../ipc";
-import { get_app_details_json, get_external_url, getDefaultDisplay, openURL } from "../utils";
-import { WindowManager } from "./window_manager";
+import { get_app_details_json, get_external_url, getDefaultDisplay, listDisplays, openURL } from "../utils";
+import { WindowManager, WindowParams } from "./window_manager";
 import { Globals } from "@/globals";
 import { CSSProperties } from "preact/compat";
 import { createWindowAddDisplay, DisplayList } from "@/views/display_list";
@@ -332,7 +332,7 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 	const [selected_display, setSelectedDisplay] = useState<ipc.Display | null>(null);
 
 	const refreshDisplays = async () => {
-		setDisplays(await ipc.display_list());
+		setDisplays(await listDisplays());
 	}
 
 	useEffect(() => {
@@ -373,7 +373,7 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 				globals.toast_manager.push("Application launched on \"" + selected_display.name + "\"");
 				globals.wm.pop();
 			}).catch((e) => {
-				globals.wm.replace(createWindowMessage(globals.wm, "Error: " + e));
+				globals.wm.push(createWindowMessage(globals.wm, "Error: " + e));
 			})
 		}} />
 	}
@@ -417,7 +417,7 @@ async function open_url_wrapper(url: string, globals: Globals) {
 	openURL(target_disp, url).then(() => {
 		globals.toast_manager.push("Webpage opened");
 	}).catch((e) => {
-		globals.wm.replace(createWindowMessage(globals.wm, "Failed to open URL: " + e));
+		globals.wm.push(createWindowMessage(globals.wm, "Failed to open URL: " + e));
 	})
 }
 
@@ -482,7 +482,7 @@ export function createWindowManifest(globals: Globals, manifest: ipc.AppManifest
 	});
 }
 
-export function createWindowMessage(wm: WindowManager, msg: string) {
+export function createWindowMessage(wm: WindowManager, msg: string): WindowParams {
 	return {
 		title: "Info",
 		content: <div className={scss.previewer_content}>
