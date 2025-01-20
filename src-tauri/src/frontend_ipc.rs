@@ -92,6 +92,15 @@ pub fn is_ipc_connected(state: tauri::State<'_, AppState>) -> bool {
 }
 
 #[tauri::command]
+pub fn open_devtools(window: tauri::WebviewWindow) {
+	if window.is_devtools_open() {
+		window.close_devtools();
+	} else {
+		window.open_devtools();
+	}
+}
+
+#[tauri::command]
 pub fn get_username() -> String {
 	match std::env::var("USER") {
 		Ok(user) => user,

@@ -24,6 +24,7 @@ pub async fn run() {
 			frontend_ipc::audio_get_device_volume,
 			frontend_ipc::is_ipc_connected,
 			frontend_ipc::get_username,
+			frontend_ipc::open_devtools,
 			// # wlx IPC below
 			frontend_ipc::auth_info,
 			frontend_ipc::display_list,

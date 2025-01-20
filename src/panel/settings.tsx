@@ -1,6 +1,6 @@
 import { ipc } from "../ipc";
 import { Globals } from "../globals";
-import { BoxRight, Button, Container, Icon, Separator, Title } from "../gui/gui";
+import { BoxRight, Button, Container, failed_covers_clear, Icon, Separator, Title } from "../gui/gui";
 import { useEffect, useState } from "preact/hooks";
 import { get_version } from "@/utils";
 
@@ -47,11 +47,23 @@ export function PanelSettings({ globals }: { globals: Globals }) {
 			Version: <b>{version}</b>
 		</Container>
 
-		<Button icon="icons/refresh.svg" on_click={() => {
-			window.location.reload();
-		}} >
-			Refresh dashboard (F5)
-		</Button>
+		<BoxRight>
+			<Button icon="icons/refresh.svg" on_click={() => {
+				window.location.reload();
+			}} >
+				Refresh dashboard (F5)
+			</Button>
+			<Button icon="icons/refresh.svg" on_click={async () => {
+				await ipc.open_devtools();
+			}}>
+				Open devtools
+			</Button>
+			<Button icon="icons/refresh.svg" on_click={() => {
+				failed_covers_clear();
+			}}>
+				Clear cover arts cache
+			</Button>
+		</BoxRight>
 
 		Created by oo8.dev and its contributors.
 	</>

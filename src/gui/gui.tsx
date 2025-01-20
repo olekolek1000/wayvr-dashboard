@@ -205,6 +205,10 @@ class FailedCovers {
 	covers = new Array<number>;
 }
 
+export function failed_covers_clear() {
+	localStorage.removeItem("failed_covers");
+}
+
 function failed_covers_get() {
 	const covers = localStorage.getItem("failed_covers");
 	if (!covers) {

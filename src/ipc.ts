@@ -57,6 +57,10 @@ export namespace ipc {
 		return await invoke("get_username");
 	}
 
+	export async function open_devtools(): Promise<void> {
+		return await invoke("open_devtools");
+	}
+
 
 	// ================================================================================
 	// WayVR related below
