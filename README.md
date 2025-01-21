@@ -26,85 +26,64 @@ WayVR Dashboard is a work-in-progress overlay application (WayVR/wlx-overlay-s p
 |   \* |        Games tab | Launch/stop Steam games                           |          |
 |      |            Utils | Re-center button                                  |      IPC |
 |      |            Utils | Show device battery levels                        |      IPC |
-|      |            Utils | Microphone/speaker volume control                 |          |
+|   \* |            Utils | Microphone/speaker volume control                 |          |
 |      |            Utils | Launch index_camera_passthrough                   |          |
-|   ✔ |         Settings | Settings window, session metrics                  |      IPC |
-|      |      Home screen | TODO                                              |          |
+|   \* |         Settings | Settings window, session metrics                  |      IPC |
+|   ✔ |      Home screen |                                                   |          |
 
 # DISCLAIMER
 
-### This project is still under heavy development and lacks various features that will be implemented in the future. Install it only if you want to contribute to or help develop this dashboard until it is ready for daily use. Here is our [Matrix and Discord](https://lvra.gitlab.io/docs/community/).
+### This project is still under heavy development and lacks various features that will be implemented in the future. Here is our [Matrix and Discord](https://lvra.gitlab.io/docs/community/).
 
 # Build instructions
 
 Firstly, **read disclaimer above**.
 
-### Running wlx-overlay-s fork
+Make sure to have NodeJS/npm, C/C++ compiler and rust installed and everything in between if you get any build issues.
 
-#### 1. Compile and run wlx-overlay-s from [this wlx-overlay-s fork](https://github.com/olekolek1000/wlx-overlay-s) with `wayvr_dashboard_ipc` branch:
+[Rust installation instructions](https://www.rust-lang.org/tools/install)
+
+[NodeJS installation instructions](https://nodejs.org/en/download) (only if you have an ancient distro)
+
+#### 1. Clone this repository build WayVR dashboard:
 
 ```bash
-git clone --branch wayvr_dashboard_ipc --depth 1 https://github.com/olekolek1000/wlx-overlay-s
-
-cd wlx-overlay-s
+git clone --depth=1 https://github.com/olekolek1000/wayvr-dashboard.git
+cd wayvr-dashboard
+npm install
+npm run tauri build
 ```
 
-#### 2. Change config option to force WayVR Server to launch directly after wlx-overlay-s startup:
+Built executable will be available at `./src-tauri/target/release/wayvr_dashboard`.
 
-Modify `./src/res/wayvr.yaml` file (you can copy it to the `~/.config/wlxoverlay/wayvr.yaml` path if you want to):
+#### 2. Configure _[wlx-overlay-s](https://github.com/galister/wlx-overlay-s)_
+
+```bash
+git clone --depth=1 https://github.com/galister/wlx-overlay-s.git
+cd wlx-overlay-s
+cargo build
+```
+
+#### 3. Add this dashboard to the `wayvr.yaml` file in _wlx-overlay-s_:
+
+Modify `./src/res/wayvr.yaml` file in the _wlx-overlay-s_ repo (you can copy it to the `~/.config/wlxoverlay/wayvr.yaml` path if you want to):
 
 ```yaml
-run_compositor_at_start: true
+dashboard:
+  exec: "/home/YOUR_USER/PATH_TO_REPO/wayvr-dashboard/src-tauri/target/release/wayvr_dashboard"
+  args: ""
+  env: ["GDK_BACKEND=wayland"]
 ```
+
+⚠️ Modify `exec` path accordingly to your executable path!
 
 #### 3. Start wlx-overlay-s:
 
 ```bash
+cd wlx-overlay-s
 cargo run
 ```
 
-### Starting WayVR dashboard
+You are all set! You will see a blue "Dash" button in your watch. You can also assign a controller button to toggle it automatically.
 
-Make sure to have npm, C/C++ compiler and rust installed and everything in between if you get any build issues.
-
-#### 1. Clone this repository and start this WayVR dashboard:
-
-```bash
-npm install
-
-# Make sure wlx-overlay-s is running!
-npm run tauri dev
-```
-
-At this stage, you should have a running WayVR dashboard on your screen.
-
-# Run this dashboard in VR and assign it to a watch
-
-Firstly, you need to copy a previously prepared watch configuration. See this [WayVR README](https://github.com/galister/wlx-overlay-s/tree/main/contrib/wayvr).
-
-#### 1. Compile this WayVR dashboard in release mode:
-
-```bash
-npm run tauri build
-```
-
-This should generate an executable in `./src-tauri/target/release/wayvr_dashboard`.
-
-#### 2. Modify wayvr.yaml file and add a new application to the list:
-
-```yaml
-- name: "Dashboard"
-  target_display: "Disp1"
-  exec: "/home/YOUR_USER/PATH_TO_REPO/wayvr_dashboard/src-tauri/target/release/wayvr_dashboard"
-  env: ["GDK_BACKEND=wayland", "LIBGL_ALWAYS_SOFTWARE=1"]
-```
-
-⚠️ Modify `exec` path accordingly to your executable path.
-
-Environment variables meaning:
-
-`GDK_BACKEND=wayland`: Force-run GTK in Wayland mode
-
-`LIBGL_ALWAYS_SOFTWARE=1`: Run in software rendering mode (prevents Mesa/Webkit mysterious internal crash on AMD GPUs (nvidia not tested yet)). This will be hopefully fixed in the future.
-
-#### 3. Start wlx-overlay-s and run "Dashboard" from the watch.
+### Have fun!
