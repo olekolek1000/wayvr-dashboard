@@ -37,7 +37,11 @@ chmod +x ./lib4bin
         /usr/lib/x86_64-linux-gnu/libvulkan* \
         /usr/lib/x86_64-linux-gnu/dri/* \
         /usr/lib/x86_64-linux-gnu/libpulsecommon* \
-        /usr/lib/x86_64-linux-gnu/libnss_mdns*
+        /usr/lib/x86_64-linux-gnu/libnss_mdns* \
+        /usr/lib/x86_64-linux-gnu/libssl.so.3 \
+        /usr/lib/x86_64-linux-gnu/libcrypto.so.3 \
+        /usr/lib/x86_64-linux-gnu/gio/modules/*
+        
 rm -rf ./usr
 
 #gstreamer is not used by us
