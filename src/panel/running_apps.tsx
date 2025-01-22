@@ -42,7 +42,7 @@ export function PanelRunningApps({ globals }: { globals: Globals }) {
 
 		{displays ? <DisplayList displays={displays} params={{
 			on_add: () => {
-				createWindowAddDisplay(globals, displays, () => {
+				createWindowAddDisplay(globals, () => {
 					refresh();
 				});
 			},

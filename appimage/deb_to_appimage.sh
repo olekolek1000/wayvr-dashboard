@@ -40,6 +40,7 @@ chmod +x ./lib4bin
         /usr/lib/x86_64-linux-gnu/libnss_mdns* \
         /usr/lib/x86_64-linux-gnu/libssl.so.3 \
         /usr/lib/x86_64-linux-gnu/libcrypto.so.3 \
+				/usr/lib/x86_64-linux-gnu/libwebkit2gtk* \
         /usr/lib/x86_64-linux-gnu/gio/modules/*
         
 rm -rf ./usr
@@ -49,21 +50,6 @@ rm -rf ./usr
 
 mkdir -p ./shared/bin
 mkdir -p ./shared/lib
-
-cp -vr /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/* ./shared/bin
-
-mkdir -p ./shared/lib/webkit2gtk-4.1/injected-bundle
-( cd ./shared/lib/webkit2gtk-4.1
-        ln -s ../../../sharun ./WebKitWebProcess
-        ln -s ../../../sharun ./WebKitNetworkProcess
-        ln -s ../../../sharun ./MiniBrowser
-        cd ./injected-bundle
-        cp -v ../../../../shared/bin/injected-bundle/* ./
-)
-ln -s ./ ./shared/lib/x86_64-linux-gnu
-
-find ./shared/lib -name 'libwebkit*' -exec sed -i 's|/usr|././|g' {} \;
-echo 'SHARUN_WORKING_DIR=${SHARUN_DIR}' > ./.env
 
 wget -nc --retry-connrefused --tries=5 "${SHARUNBIN}" -O /tmp/sharun || true
 cp /tmp/sharun ./sharun
@@ -77,5 +63,5 @@ wget -nc --retry-connrefused --tries=5 "${APPIMAGETOOL}" -O /tmp/appimagetool ||
 cp /tmp/appimagetool ./appimagetool
 chmod +x ./appimagetool
 ./appimagetool --comp zstd \
-        --mksquashfs-opt -Xcompression-level --mksquashfs-opt 12 \
+        --mksquashfs-opt -Xcompression-level --mksquashfs-opt 14 \
         -n "$PWD"/AppDir "$PWD"/wayvr_dashboard.AppImage

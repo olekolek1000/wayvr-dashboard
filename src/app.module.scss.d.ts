@@ -53,6 +53,7 @@ declare const classNames: {
   readonly checkbox_body: "checkbox_body";
   readonly checkbox_checkmark: "checkbox_checkmark";
   readonly checkbox_checkmark_checked: "checkbox_checkmark_checked";
+  readonly slider_line: "slider_line";
   readonly slider: "slider";
   readonly slider_filling: "slider_filling";
   readonly slider_bar: "slider_bar";

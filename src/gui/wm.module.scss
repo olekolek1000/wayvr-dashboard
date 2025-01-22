@@ -35,10 +35,12 @@
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+	backdrop-filter: blur(24px);
+	-webkit-backdrop-filter: blur(24px);
 	background: linear-gradient(
 		0deg,
-		rgba(20, 30, 50, 0.9) 0%,
-		rgba(10, 10, 10, 0.9) 100%
+		rgba(20, 30, 70, 0.8) 0%,
+		rgba(10, 15, 20, 0.8) 100%
 	);
 }
 

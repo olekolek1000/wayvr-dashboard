@@ -2,8 +2,7 @@ import { ipc } from "../ipc";
 import style from "../app.module.scss"
 import { Icon } from "@/gui/gui";
 import { Globals } from "@/globals";
-import { getUniqueDisplayName } from "@/utils";
-import { createWindowSelectResolution } from "./select_resolution";
+import { createWindowNewDisplay } from "./new_display";
 
 export function Display({ display, icon, on_click, selected }: { display?: ipc.Display, icon?: string, on_click?: () => void, selected?: boolean }) {
 	let aspect = display ? (display.width / display.height) : 0.5
@@ -62,15 +61,13 @@ export function DisplayList({ displays, params }: { displays: Array<ipc.Display>
 	</div>
 }
 
-export function createWindowAddDisplay(globals: Globals, displays: Array<ipc.Display>, on_add: (handle: ipc.DisplayHandle) => void) {
-	const disp_name = getUniqueDisplayName(displays);
-
-	createWindowSelectResolution(globals, async (res) => {
+export function createWindowAddDisplay(globals: Globals, on_add: (handle: ipc.DisplayHandle) => void) {
+	createWindowNewDisplay(globals, async (res) => {
 		const handle = await ipc.display_create({
-			name: disp_name,
-			width: res.x,
-			height: res.y,
-			attachTo: ipc.AttachTo.None, /* todo !! */
+			name: res.name,
+			width: res.resolution.x,
+			height: res.resolution.y,
+			attachTo: res.attach_to,
 		});
 
 		on_add(handle);

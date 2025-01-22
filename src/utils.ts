@@ -61,10 +61,13 @@ export async function listDisplays(): Promise<Array<ipc.Display>> {
 	return displays;
 }
 
-export function getUniqueDisplayName(displays: Array<ipc.Display>): string {
-	let num = 0;
+export function getUniqueDisplayName(displays: Array<ipc.Display>, candidate: string): string {
+	let num = 1;
 	while (true) {
-		const str = "wvr_" + num;
+		let str = candidate;
+		if (num > 1) {
+			str += "_" + num;
+		}
 		if (displays.find((disp) => {
 			return disp.name == str;
 		}) === undefined) {
@@ -85,7 +88,7 @@ export async function getDefaultDisplay(): Promise<ipc.DisplayHandle> {
 		width: 1280,
 		height: 720,
 		attachTo: ipc.AttachTo.None,
-		name: getUniqueDisplayName(displays),
+		name: getUniqueDisplayName(displays, "wvr"),
 	});
 
 	return handle;

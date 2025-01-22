@@ -602,13 +602,9 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	border: 2px solid black;
+	border: 2px solid vars.$color_border;
 	gap: 8px;
-	transition:
-		border-top 0.1s,
-		border-left 0.25s,
-		border-bottom 0.5s,
-		border-right 0.75s;
+	text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .big_button:hover {
@@ -728,12 +724,24 @@ body {
 	background-color: rgba(255, 255, 255, 0.5);
 }
 
+.checkbox_body:hover .checkbox_checkmark {
+	background-color: rgba(255, 255, 255, 0.5);
+}
+
 .checkbox_checkmark_checked {
 	background-color: vars.$color-accent;
 }
 
 .checkbox_checkmark_checked:hover {
 	background-color: vars.$color-highlight;
+}
+
+.slider_line {
+	height: 12px;
+	position: absolute;
+	width: 2px;
+	background-color: rgba(255, 255, 255, 0.5);
+	transform: rotate(10deg); // this looks cool
 }
 
 .slider {
@@ -801,9 +809,9 @@ body {
 	flex-wrap: wrap;
 	flex-direction: column;
 	border: 2px solid vars.$color_border;
-	background-color: vars.$color-background1;
-	padding: 8px;
-	border-radius: 4px;
+	background-color: rgba(16, 24, 32, 0.5);
+	padding: 16px;
+	border-radius: 8px;
 }
 
 .error_text {

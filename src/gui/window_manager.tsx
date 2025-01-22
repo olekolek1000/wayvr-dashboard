@@ -16,6 +16,7 @@ function WindowDecoration({ title, on_close }: { title: string, on_close: () => 
 
 
 export class WindowParams {
+	centered?: boolean;
 	title!: string;
 	content!: JSX.Element;
 }
@@ -39,7 +40,10 @@ export class WindowManager {
 				<WindowDecoration title={params.title} on_close={() => {
 					this.pop();
 				}} />
-				<div className={style_wm.content}>
+				<div className={style_wm.content} style={{
+					alignItems: params.centered ? "center" : undefined,
+					justifyContent: params.centered ? "center" : undefined
+				}}>
 					{params.content}
 				</div>
 			</div>

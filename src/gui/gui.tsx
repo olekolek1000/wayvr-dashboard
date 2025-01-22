@@ -4,7 +4,7 @@ import { ipc } from "../ipc";
 import { get_app_details_json, get_external_url, getDefaultDisplay, listDisplays, openURL } from "../utils";
 import { WindowManager, WindowParams } from "./window_manager";
 import { Globals } from "@/globals";
-import { CSSProperties } from "preact/compat";
+import { CSSProperties, JSX } from "preact/compat";
 import { createWindowAddDisplay, DisplayList } from "@/views/display_list";
 
 export function Icon({ path, width, height, color, className }: { path: string, width?: number, height?: number, color?: string, className?: string }) {
@@ -30,7 +30,11 @@ function mix(x: number, y: number, a: number) {
 	return x * (1.0 - a) + y * a;
 }
 
-function getSliderParams(el: HTMLDivElement, value: number) {
+function quantize(value: number, steps: number) {
+	return Math.round(value * steps) / steps;
+}
+
+function getSliderParams(el: HTMLDivElement, value: number, steps?: number) {
 	value = Math.max(value, 0.0);
 	value = Math.min(value, 1.0);
 	const rect = el.getBoundingClientRect();
@@ -41,41 +45,27 @@ function getSliderParams(el: HTMLDivElement, value: number) {
 	const right = left + width;
 
 	return {
-		handle_shift: mix(margin, rect.width - margin, value),
-		filling_width: mix(margin, rect.width - margin, value),
+		handle_shift: mix(margin, rect.width - margin, steps === undefined ? value : quantize(value, steps)),
 		top: rect.top,
+		width: width,
 		left: left,
 		right: right,
 		margin: margin,
 	};
 }
 
-export function Line({ from, to }: { from: [number, number], to: [number, number] }) {
-	const angle = Math.atan2(to[1] - from[1], to[0] - from[0]);
-	const dist = Math.sqrt(Math.pow(to[0] - from[0], 2.0) + Math.pow(to[1] - from[1], 2.0));
 
-	return <div style={{
-		position: "fixed",
-		top: 0,
-		left: 0,
-		zIndex: 10,
-		backgroundColor: "white",
-		width: "1px",
-		height: "2px",
-		transformOrigin: "center left",
-		transform: "translateX(" + from[0] + "px) translateY(" + from[1] + "px) rotate(" + angle + "rad) scaleX(" + dist + ")"
-	}}>
-
-	</div>
-}
-
-export function Slider({ value, setValue, width, on_change }: { value: number, setValue: any, on_change: (value: number) => void, width?: number }) {
+export function Slider({ value, setValue, width, on_change, steps }: {
+	value: number,
+	setValue: any,
+	on_change: (value: number) => void,
+	width?: number,
+	steps?: number
+}) {
 	const ref_bar = useRef<HTMLDivElement | null>(null);
 	const [handle_shift, setHandleShift] = useState(0.0);
-	const [filling_width, setFillingWidth] = useState(0.0);
 	const [down, setDown] = useState(false);
-	const [mouse_pos, setMousePos] = useState<[number, number]>([0, 0]);
-	const [target, setTarget] = useState<[number, number]>([0, 0]);
+	const [line_width, setLineWidth] = useState(0.0);
 
 	useEffect(() => {
 		const el = ref_bar.current;
@@ -83,9 +73,9 @@ export function Slider({ value, setValue, width, on_change }: { value: number, s
 			return;
 		}
 
-		const par = getSliderParams(el, value);
+		const par = getSliderParams(el, value, steps);
 		setHandleShift(par.handle_shift);
-		setFillingWidth(par.filling_width);
+		setLineWidth(par.width);
 	}, [ref_bar]);
 
 	const updatePos = (mouse_x: number) => {
@@ -98,11 +88,9 @@ export function Slider({ value, setValue, width, on_change }: { value: number, s
 		setValue(value);
 		on_change(Math.max(0.0, Math.min(1.0, value)));
 
-		const par2 = getSliderParams(el, value);
+		const par2 = getSliderParams(el, value, steps);
 		setHandleShift(par2.handle_shift);
-		setFillingWidth(par2.filling_width);
-
-		setTarget([par2.left + par2.handle_shift - 12, par2.top + 6]);
+		setLineWidth(par2.width);
 	}
 
 	useEffect(() => {
@@ -110,9 +98,8 @@ export function Slider({ value, setValue, width, on_change }: { value: number, s
 			return;
 		}
 
-		const func_move = (e: any) => {
+		const func_move = (e: MouseEvent) => {
 			updatePos(e.clientX);
-			setMousePos([e.clientX, e.clientY]);
 		};
 
 		const func_up = () => {
@@ -128,14 +115,26 @@ export function Slider({ value, setValue, width, on_change }: { value: number, s
 		}
 	}, [down]);
 
+	let lines: Array<JSX.Element> | undefined = undefined;
+
+	const calc_width = width ? width : 160;
+
+	if (steps !== undefined) {
+		lines = [];
+		for (let i = 0; i <= steps; i++) {
+			lines.push(<div className={scss.slider_line} style={{
+				left: ((i + 0.5) * (line_width / (steps))) + "px"
+			}} />);
+		}
+	}
+
 	return <div className={scss.slider}
 		style={{
-			width: (width ? width : 160) + "px"
+			width: (calc_width) + "px"
 		}}
 		onMouseDown={(e) => {
 			setDown(true);
 			updatePos(e.clientX);
-			setMousePos([e.clientX, e.clientY]);
 		}}
 		onMouseMove={(e) => {
 			if (!down) {
@@ -147,20 +146,18 @@ export function Slider({ value, setValue, width, on_change }: { value: number, s
 			setDown(false);
 		}}
 	>
-		{down ? <Line from={mouse_pos} to={target} /> : undefined}
-
 		<div ref={ref_bar} className={scss.slider_bar}>
 			<div className={scss.slider_filling}
 				style={{
-					width: filling_width + "px"
+					width: handle_shift + "px"
 				}}
 			/>
+			{lines}
 			<div className={scss.slider_handle}
 				style={{
 					visibility: (ref_bar && ref_bar.current) ? "visible" : "hidden",
 					transform: "translateX(-12px) translateY(-12px) translateX(" + handle_shift + "px)",
 				}}>
-
 			</div>
 		</div>
 	</div>
@@ -310,11 +307,13 @@ export function BoxDown({ children }: { children?: any }) {
 }
 
 
-export function Checkbox({ pair, title, onChange }: { pair: [checked: boolean, setChecked: any], title: string, onChange?: (n: boolean) => void }) {
-	const checked = pair[0];
-	const setChecked = pair[1];
+export function Checkbox({ pair, title, onChange }: { pair: [checked: boolean, setChecked?: (checked: boolean) => void], title: string, onChange?: (n: boolean) => void }) {
+	const checked = pair ? pair[0] : undefined;
+	const setChecked = pair ? pair[1] : undefined;
 	return <div className={scss.checkbox_body} onClick={() => {
-		setChecked(!checked);
+		if (setChecked) {
+			setChecked(!checked);
+		}
 		if (onChange) {
 			onChange(!checked);
 		}
@@ -326,6 +325,23 @@ export function Checkbox({ pair, title, onChange }: { pair: [checked: boolean, s
 			{title}
 		</div>
 	</div>
+}
+
+function RadioItem({ item, checked, setValue }: { item: string, checked: boolean, setValue: (value: string) => void }) {
+	return <Checkbox title={item} key={item} pair={[checked, undefined]} onChange={() => {
+		setValue(item);
+	}} />
+}
+
+export function RadioSelect({ items, pair }: { items: Array<string>, pair: [value: string, setValue: (value: any) => void] }) {
+	const value = pair[0];
+	const setValue = pair[1];
+
+	return <BoxDown>
+		{items.map((item) => {
+			return <RadioItem checked={value === item} item={item} setValue={setValue} />
+		})}
+	</BoxDown>
 }
 
 function ApplicationView({ globals, application, }: { globals: Globals, application: ipc.DesktopFile }) {
@@ -401,7 +417,7 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 			<Title title="Select display to run app from" />
 			{displays !== null ? <DisplayList displays={displays} params={{
 				on_add: () => {
-					createWindowAddDisplay(globals, displays, () => {
+					createWindowAddDisplay(globals, () => {
 						refreshDisplays();
 					});
 				},
@@ -506,7 +522,7 @@ export enum BigButtonColor {
 	blue
 }
 
-export function Button({ children, icon, style, on_click }: { children?: any, icon?: string, on_click: () => void, style?: CSSProperties }) {
+export function Button({ children, icon, style, on_click }: { children?: any, icon?: string, on_click?: () => void, style?: CSSProperties }) {
 	return <div onClick={on_click} className={scss.button} style={style}>
 		{icon ? <Icon path={icon} /> : undefined}
 		{children}
@@ -517,11 +533,11 @@ export function BigButton({ type, title, icon, on_click }: { type: BigButtonColo
 	let bg = "";
 	switch (type) {
 		case BigButtonColor.blue: {
-			bg = "linear-gradient(#506fcb, #003f9b)";
+			bg = "linear-gradient( #506fcb, #003f9b)";
 			break;
 		}
 		case BigButtonColor.green: {
-			bg = "linear-gradient(#7bcb50, #3fae52)";
+			bg = "linear-gradient(rgb(118, 202, 73),rgb(44, 151, 62))";
 			break;
 		}
 	}
