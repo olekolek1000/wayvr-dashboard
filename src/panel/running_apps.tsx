@@ -13,7 +13,8 @@ export function PanelRunningApps({ globals }: { globals: Globals }) {
 
 	const refresh = async () => {
 		setDisplays(await listDisplays());
-		setProcesses(await ipc.process_list());
+
+		setProcesses((await ipc.process_list()).filter((process) => { return process.name.toLowerCase().indexOf("wayvr_dashboard") == -1 }));
 	}
 
 	const load = () => {
@@ -47,7 +48,9 @@ export function PanelRunningApps({ globals }: { globals: Globals }) {
 				});
 			},
 			on_click: (display) => {
-				createWindowDisplayOptions(globals, display);
+				createWindowDisplayOptions(globals, display, () => {
+					refresh();
+				});
 			}
 		}} /> : undefined}
 		<BoxRight>

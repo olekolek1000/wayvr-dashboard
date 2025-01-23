@@ -1,8 +1,8 @@
 [package]
 name = "wayvr_dashboard"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Tauri App"
-authors = ["you"]
+authors = ["oo8.dev"]
 edition = "2021"
 
 
@@ -40,13 +40,13 @@ rust-ini = "0.21.1"
 log = "0.4.22"
 env_logger = "0.11.6"
 keyvalues-parser = { git = "https://github.com/CosmicHorrorDev/vdf-rs.git" }
-tauri-plugin-http = "2"
+tauri-plugin-http = { version = "2.2.0", features = ["unsafe-headers"] }
 interprocess = { version = "2.2.2", features = ["tokio"] }
 bytes = "1.9.0"
 tokio = "1.42.0"
 tokio-util = "0.7.13"
 smallvec = "1.13.2"
-wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "94ab6125ec07c091099bf71b028d701b58eccccf", features = [
+wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "fe2e8be04c7b86adcf972be7ebe46961bd881f35", features = [
 	"client",
 ] }
 alsa = "0.9.1"

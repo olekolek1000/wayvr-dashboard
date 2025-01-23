@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import scss from "../app.module.scss"
 import { ipc } from "../ipc";
-import { get_app_details_json, get_external_url, getDefaultDisplay, listDisplays, openURL } from "../utils";
+import { get_app_details_json, get_external_url, getDefaultDisplay, listDisplays, openURL, vibrate_down, vibrate_hover, vibrate_up } from "../utils";
 import { WindowManager, WindowParams } from "./window_manager";
 import { Globals } from "@/globals";
 import { CSSProperties, JSX } from "preact/compat";
 import { createWindowAddDisplay, DisplayList } from "@/views/display_list";
+import { global_scale } from "@/main";
 
 export function Icon({ path, width, height, color, className }: { path: string, width?: number, height?: number, color?: string, className?: string }) {
 	return <img className={`${scss.icon} ${className ? className : ""}`} src={path} style={{
@@ -17,7 +18,7 @@ export function Icon({ path, width, height, color, className }: { path: string, 
 }
 
 export function PanelButton({ icon, height, on_click, square, children }: { icon: string, height?: number, on_click: () => void, square?: boolean, children?: any }) {
-	return <div onClick={on_click} className={square ? scss.panel_button_square : scss.panel_button} style={{
+	return <div onClick={on_click} onMouseEnter={vibrate_hover} onMouseDown={vibrate_down} onMouseUp={vibrate_up} className={square ? scss.panel_button_square : scss.panel_button} style={{
 		height: height ? (height + "px") : "undefined",
 
 	}}>
@@ -99,7 +100,7 @@ export function Slider({ value, setValue, width, on_change, steps }: {
 		}
 
 		const func_move = (e: MouseEvent) => {
-			updatePos(e.clientX);
+			updatePos(e.clientX / global_scale);
 		};
 
 		const func_up = () => {
@@ -134,13 +135,13 @@ export function Slider({ value, setValue, width, on_change, steps }: {
 		}}
 		onMouseDown={(e) => {
 			setDown(true);
-			updatePos(e.clientX);
+			updatePos(e.clientX / global_scale);
 		}}
 		onMouseMove={(e) => {
 			if (!down) {
 				return;
 			}
-			updatePos(e.clientX);
+			updatePos(e.clientX / global_scale);
 		}}
 		onMouseUp={() => {
 			setDown(false);
@@ -249,7 +250,7 @@ export function GameCover({ manifest, big, on_click }: { manifest: ipc.AppManife
 		}
 	}, []);
 
-	return <div onClick={on_click} className={big ? scss.game_cover_big : scss.game_cover} style={{
+	return <div onClick={on_click} onMouseEnter={vibrate_hover} onMouseDown={vibrate_down} onMouseUp={vibrate_up} className={big ? scss.game_cover_big : scss.game_cover} style={{
 	}}>
 		{content}
 		<div className={scss.game_cover_shine} />
@@ -257,7 +258,7 @@ export function GameCover({ manifest, big, on_click }: { manifest: ipc.AppManife
 }
 
 export function ApplicationCover({ big, application, on_click }: { big?: boolean, application: ipc.DesktopFile, on_click?: () => void }) {
-	return <div className={big ? scss.application_cover_big : scss.application_cover} onClick={on_click}>
+	return <div className={big ? scss.application_cover_big : scss.application_cover} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={on_click !== undefined ? vibrate_hover : undefined} onClick={on_click}>
 		<div className={scss.application_cover_icon} style={{
 			background: "url('" + (application.icon ? get_external_url(application.icon) : "icons/unknown.svg") + "')",
 			backgroundSize: "contain",
@@ -289,7 +290,7 @@ export function Inline({ children }: { children?: any }) {
 }
 
 export function Container({ children, className, on_click }: { children?: any, className?: string, on_click?: () => void }) {
-	return <div className={`${scss.container} ${className ? className : ""}`} onClick={on_click}>
+	return <div className={`${scss.container} ${className ? className : ""}`} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={on_click !== undefined ? vibrate_hover : undefined} onClick={on_click}>
 		{children}
 	</div>
 }
@@ -310,7 +311,7 @@ export function BoxDown({ children }: { children?: any }) {
 export function Checkbox({ pair, title, onChange }: { pair: [checked: boolean, setChecked?: (checked: boolean) => void], title: string, onChange?: (n: boolean) => void }) {
 	const checked = pair ? pair[0] : undefined;
 	const setChecked = pair ? pair[1] : undefined;
-	return <div className={scss.checkbox_body} onClick={() => {
+	return <div className={scss.checkbox_body} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} onClick={() => {
 		if (setChecked) {
 			setChecked(!checked);
 		}
@@ -389,6 +390,8 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 				args: ""
 			};
 
+			ipc.display_set_visible({ handle: params.targetDisplay, visible: true }).catch(() => { });
+
 			ipc.process_launch(params).then(() => {
 				globals.toast_manager.push("Application launched on \"" + selected_display.name + "\"");
 				globals.wm.pop();
@@ -417,8 +420,10 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 			<Title title="Select display to run app from" />
 			{displays !== null ? <DisplayList displays={displays} params={{
 				on_add: () => {
-					createWindowAddDisplay(globals, () => {
-						refreshDisplays();
+					createWindowAddDisplay(globals, async (display_handle) => {
+						// make it invisible by default so it wouldn't block input in front of the user
+						await ipc.display_set_visible({ handle: display_handle, visible: false });
+						await refreshDisplays();
 					});
 				},
 				on_click: (disp) => {
@@ -523,7 +528,7 @@ export enum BigButtonColor {
 }
 
 export function Button({ children, icon, style, on_click }: { children?: any, icon?: string, on_click?: () => void, style?: CSSProperties }) {
-	return <div onClick={on_click} className={scss.button} style={style}>
+	return <div onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={on_click !== undefined ? vibrate_hover : undefined} onClick={on_click} className={scss.button} style={style}>
 		{icon ? <Icon path={icon} /> : undefined}
 		{children}
 	</div>
@@ -542,7 +547,7 @@ export function BigButton({ type, title, icon, on_click }: { type: BigButtonColo
 		}
 	}
 
-	return <div onClick={on_click} className={scss.big_button} style={{ background: bg }}>
+	return <div onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} onClick={on_click} className={scss.big_button} style={{ background: bg }}>
 		{icon ? <Icon path={icon} /> : undefined}
 		{title}
 	</div>

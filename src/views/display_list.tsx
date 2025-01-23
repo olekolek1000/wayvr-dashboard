@@ -3,6 +3,7 @@ import style from "../app.module.scss"
 import { Icon } from "@/gui/gui";
 import { Globals } from "@/globals";
 import { createWindowNewDisplay } from "./new_display";
+import { vibrate_down, vibrate_hover, vibrate_up } from "@/utils";
 
 export function Display({ display, icon, on_click, selected }: { display?: ipc.Display, icon?: string, on_click?: () => void, selected?: boolean }) {
 	let aspect = display ? (display.width / display.height) : 0.5
@@ -12,7 +13,7 @@ export function Display({ display, icon, on_click, selected }: { display?: ipc.D
 	let visible = display ? display.visible : false;
 	let name = display ? display.name : undefined;
 
-	return <div onClick={on_click} className={`${style.wayvr_display} ${on_click ? style.wayvr_display_hover : ""} ${selected ? style.wayvr_display_sel : ""}`} style={{
+	return <div onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} onClick={on_click} className={`${style.wayvr_display} ${on_click ? style.wayvr_display_hover : ""} ${selected ? style.wayvr_display_sel : ""}`} style={{
 		color: visible ? "#FFF" : "rgba(255, 255, 255, 0.6)",
 		border: visible ? "2px solid rgba(255, 255, 255, 0.8)" : "2px solid rgba(255, 255, 255, 0.2)",
 		width: width + "px",

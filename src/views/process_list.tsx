@@ -1,6 +1,7 @@
 import { ipc } from "../ipc";
 import style from "../app.module.scss"
 import { Icon, Tooltip } from "../gui/gui";
+import { vibrate_down, vibrate_hover, vibrate_up } from "@/utils";
 
 function ProcessEntry({ process, display, on_refresh }: { process: ipc.Process, display?: ipc.Display, on_refresh: () => any }) {
 	let e_disp = undefined;
@@ -14,7 +15,7 @@ function ProcessEntry({ process, display, on_refresh }: { process: ipc.Process, 
 
 	return <div className={style.wayvr_process}>
 		<Tooltip simple title={"Terminate process \"" + process.name + "\""}>
-			<div className={style.wayvr_process_name} onClick={async () => {
+			<div className={style.wayvr_process_name} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} onClick={async () => {
 				await ipc.process_terminate(process.handle);
 				setTimeout(() => {
 					on_refresh();

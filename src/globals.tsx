@@ -8,6 +8,7 @@ import { Dispatch, StateUpdater } from "preact/hooks";
 export class Globals {
 	wm = new WindowManager;
 	toast_manager = new ToastManager;
+	global_scale!: number;
 
 
 	setErrorText!: (el: JSX.Element | undefined) => void;

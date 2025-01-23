@@ -206,6 +206,18 @@ pub async fn display_remove(
 }
 
 #[tauri::command]
+pub async fn display_set_visible(
+	state: tauri::State<'_, AppState>,
+	handle: packet_server::WvrDisplayHandle,
+	visible: bool,
+) -> Result<(), String> {
+	handle_result(
+		"set display visibility",
+		WayVRClient::fn_wvr_display_set_visible(get_client(&state)?, handle, visible).await,
+	)
+}
+
+#[tauri::command]
 pub async fn process_list(
 	state: tauri::State<'_, AppState>,
 ) -> Result<Vec<packet_server::WvrProcess>, String> {
@@ -247,6 +259,27 @@ pub async fn process_launch(
 				name,
 				target_display,
 				args,
+			},
+		)
+		.await,
+	)
+}
+
+#[tauri::command]
+pub async fn haptics(
+	state: tauri::State<'_, AppState>,
+	intensity: f32,
+	duration: f32,
+	frequency: f32,
+) -> Result<(), String> {
+	handle_result(
+		"send haptics",
+		WayVRClient::fn_wlx_haptics(
+			get_client(&state)?,
+			packet_client::WlxHapticsParams {
+				intensity,
+				duration,
+				frequency,
 			},
 		)
 		.await,

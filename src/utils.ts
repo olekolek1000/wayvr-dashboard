@@ -103,5 +103,36 @@ export async function openURL(disp: ipc.DisplayHandle, url: string) {
 		args: url
 	};
 
+	await ipc.display_set_visible({ handle: disp, visible: true });
 	await ipc.process_launch(params);
+}
+
+export function vibrate_hover() {
+	ipc.haptics({
+		intensity: 0.15,
+		duration: 0.1,
+		frequency: 0.08,
+	}).catch((e) => {
+		console.error("Failed to vibrate: ", e);
+	})
+}
+
+export function vibrate_down() {
+	ipc.haptics({
+		intensity: 0.35,
+		duration: 0.08,
+		frequency: 0.75,
+	}).catch((e) => {
+		console.error("Failed to vibrate: ", e);
+	})
+}
+
+export function vibrate_up() {
+	ipc.haptics({
+		intensity: 0.25,
+		duration: 0.08,
+		frequency: 0.3,
+	}).catch((e) => {
+		console.error("Failed to vibrate: ", e);
+	})
 }

@@ -118,6 +118,13 @@ export namespace ipc {
 		return await invoke("display_remove", { handle: handle });
 	}
 
+	export async function display_set_visible(params: {
+		handle: DisplayHandle,
+		visible: boolean,
+	}): Promise<void> {
+		return await invoke("display_set_visible", params);
+	}
+
 	export async function display_create(params: {
 		width: number,
 		height: number,
@@ -145,5 +152,13 @@ export namespace ipc {
 		args: string,
 	}): Promise<ProcessHandle> {
 		return await invoke("process_launch", params);
+	}
+
+	export async function haptics(params: {
+		intensity: number,
+		duration: number,
+		frequency: number
+	}): Promise<void> {
+		return await invoke("haptics", params);
 	}
 }

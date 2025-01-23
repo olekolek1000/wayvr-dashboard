@@ -11,9 +11,10 @@ import { ipc } from "./ipc";
 import { Globals } from "./globals";
 import { PanelSettings } from "./panel/settings";
 import { JSX } from "preact/jsx-runtime";
+import { vibrate_down, vibrate_hover, vibrate_up } from "./utils";
 
 function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) {
-	return <div onClick={on_click} className={style.menu_button}>
+	return <div onClick={on_click} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} className={style.menu_button}>
 		<Icon path={icon} />
 	</div>
 }
