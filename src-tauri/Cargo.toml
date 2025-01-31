@@ -1,7 +1,7 @@
 [package]
 name = "wayvr_dashboard"
-version = "0.1.1"
-description = "A Tauri App"
+version = "0.1.2"
+description = "A VR dashboard for WayVR"
 authors = ["oo8.dev"]
 edition = "2021"
 
@@ -46,7 +46,7 @@ bytes = "1.9.0"
 tokio = "1.42.0"
 tokio-util = "0.7.13"
 smallvec = "1.13.2"
-wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "fe2e8be04c7b86adcf972be7ebe46961bd881f35", features = [
+wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "3c411d09ba1bba2609288e29739c0f1ec736b012", features = [
 	"client",
 ] }
 alsa = "0.9.1"

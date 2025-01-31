@@ -1,3 +1,4 @@
+use tauri::{Emitter, Manager};
 use wayvr_ipc::{
 	client::{WayVRClient, WayVRClientMutex},
 	ipc,
@@ -17,7 +18,7 @@ impl AppState {
 
 		let steam_bridge = SteamBridge::new()?;
 
-		let ipc_client = match WayVRClient::new("WayVR Dashboard").await {
+		let wayvr_client = match WayVRClient::new("WayVR Dashboard").await {
 			Ok(c) => Some(c),
 			Err(e) => {
 				log::error!("WayVR Client failed to initialize: {}", e);
@@ -27,8 +28,33 @@ impl AppState {
 
 		Ok(Self {
 			steam_bridge,
-			wayvr_client: ipc_client,
+			wayvr_client,
 			serial_generator,
 		})
+	}
+
+	pub async fn configure_signal_handler(handle: tauri::AppHandle) {
+		let app = handle.app_handle().state::<AppState>();
+		let Some(wayvr_client) = &app.wayvr_client else {
+			return;
+		};
+
+		let mut client = wayvr_client.lock().await;
+
+		// configure signal handler
+		let handle = handle.clone();
+		client.on_signal = Some(Box::new(move |signal| match signal {
+			wayvr_ipc::client::Signal::WvrStateChanged(wvr_state_changed) => {
+				if let Err(e) = handle.emit("signal_state_changed", wvr_state_changed) {
+					log::error!("Failed to send signal: {:?}", e);
+				}
+			}
+		}));
+	}
+
+	pub fn configure_async(handle: tauri::AppHandle) {
+		tokio::spawn(async move {
+			AppState::configure_signal_handler(handle).await;
+		});
 	}
 }

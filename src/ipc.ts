@@ -1,27 +1,27 @@
 import { invoke } from "@tauri-apps/api/core";
 
 export namespace ipc {
-	export class DesktopFile {
-		name!: string;
+	export interface DesktopFile {
+		name: string;
 		icon?: string;
-		exec!: string;
+		exec: string;
 	}
 
-	export class AppManifest {
-		app_id!: number;
-		name!: string;
-		raw_state_flags!: number;
+	export interface AppManifest {
+		app_id: number;
+		name: string;
+		raw_state_flags: number;
 		last_played?: number
 	}
 
-	export class Games {
-		manifests!: Array<AppManifest>;
+	export interface Games {
+		manifests: Array<AppManifest>;
 	}
 
-	export class AudioDevice {
-		name!: string;
-		long_name!: string;
-		index!: number;
+	export interface AudioDevice {
+		name: string;
+		long_name: string;
+		index: number;
 	}
 
 	export async function desktop_file_list(): Promise<Array<DesktopFile>> {
@@ -61,37 +61,70 @@ export namespace ipc {
 		return await invoke("open_devtools");
 	}
 
-
 	// ================================================================================
 	// WayVR related below
 	// ================================================================================
 
-	export class AuthInfo {
-		runtime!: String;
+	export interface AuthInfo {
+		runtime: String;
 	};
 
-	export class DisplayHandle {
-		idx!: number;
-		generation!: number;
+	export interface DisplayHandle {
+		idx: number;
+		generation: number;
 	}
 
-	export class Display {
-		width!: number;
-		height!: number;
-		name!: string;
-		visible!: boolean;
-		handle!: DisplayHandle;
+	export interface WindowHandle {
+		idx: number;
+		generation: number;
 	}
 
-	export class ProcessHandle {
-		idx!: number;
-		generation!: number;
+	export interface ProcessHandle {
+		idx: number;
+		generation: number;
 	}
 
-	export class Process {
-		name!: string;
-		display_handle!: DisplayHandle;
-		handle!: ProcessHandle;
+	interface Margins {
+		left: number;
+		right: number;
+		top: number;
+		bottom: number;
+	}
+
+	interface StackingOptions {
+		margins_first: Margins;
+		margins_rest: Margins;
+	}
+
+	type DisplayWindowLayout =
+		| "Tiling"
+		| {
+			"Stacking": StackingOptions;
+		};
+	export interface Display {
+		width: number;
+		height: number;
+		name: string;
+		visible: boolean;
+		handle: DisplayHandle;
+	}
+
+	export interface Window {
+		pos_x: number;
+		pos_y: number;
+		size_x: number;
+		size_y: number;
+		visible: number;
+		handle: WindowHandle;
+		process_handle: ProcessHandle;
+		display_handle: DisplayHandle;
+	}
+
+	export interface Process {
+		name: string;
+		display_handle: DisplayHandle;
+		handle: ProcessHandle;
+		userdata: any;
 	}
 
 	export enum AttachTo {
@@ -125,6 +158,19 @@ export namespace ipc {
 		return await invoke("display_set_visible", params);
 	}
 
+	export async function display_set_layout(params: {
+		handle: DisplayHandle,
+		layout: DisplayWindowLayout
+	}): Promise<void> {
+		return await invoke("display_set_layout", params);
+	}
+
+	export async function display_window_list(params: {
+		handle: DisplayHandle
+	}): Promise<Array<Window> | undefined> {
+		return await invoke("display_window_list", params);
+	}
+
 	export async function display_create(params: {
 		width: number,
 		height: number,
@@ -136,11 +182,22 @@ export namespace ipc {
 		return await invoke("display_create", params)
 	}
 
+	export async function window_set_visible(params: {
+		handle: WindowHandle,
+		visible: boolean,
+	}): Promise<void> {
+		return await invoke("window_set_visible", params);
+	}
+
+	export async function process_get(handle: ProcessHandle): Promise<Process | undefined> {
+		return await invoke("process_get", { handle: handle });
+	}
+
 	export async function process_list(): Promise<Array<Process>> {
 		return await invoke("process_list");
 	}
 
-	export async function process_terminate(handle: ProcessHandle): Promise<undefined> {
+	export async function process_terminate(handle: ProcessHandle): Promise<void> {
 		return await invoke("process_terminate", { handle: handle });
 	}
 
@@ -150,6 +207,7 @@ export namespace ipc {
 		env: Array<string>,
 		targetDisplay: DisplayHandle,
 		args: string,
+		userdata: Map<string, string>
 	}): Promise<ProcessHandle> {
 		return await invoke("process_launch", params);
 	}

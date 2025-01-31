@@ -1,7 +1,7 @@
 import style_tm from "./toast_manager.module.scss"
 
-export class ToastParams {
-	text!: string;
+export interface ToastParams {
+	text: string;
 }
 
 export class ToastManager {

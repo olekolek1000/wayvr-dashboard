@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import scss from "../app.module.scss"
 import { ipc } from "../ipc";
-import { get_app_details_json, get_external_url, getDefaultDisplay, listDisplays, openURL, vibrate_down, vibrate_hover, vibrate_up } from "../utils";
+import { get_app_details_json, getDashboardDisplay, getDefaultDisplay, getDesktopFileURL, listDisplays, openURL, vibrate_down, vibrate_hover, vibrate_up } from "../utils";
 import { WindowManager, WindowParams } from "./window_manager";
 import { Globals } from "@/globals";
 import { CSSProperties, JSX } from "preact/compat";
@@ -17,12 +17,12 @@ export function Icon({ path, width, height, color, className }: { path: string, 
 	</img>
 }
 
-export function PanelButton({ icon, height, on_click, square, children }: { icon: string, height?: number, on_click: () => void, square?: boolean, children?: any }) {
+export function PanelButton({ icon, icon_size, height, on_click, square, opacity, children }: { icon: string, icon_size?: number, height?: number, on_click: () => void, square?: boolean, opacity?: number, children?: any }) {
 	return <div onClick={on_click} onMouseEnter={vibrate_hover} onMouseDown={vibrate_down} onMouseUp={vibrate_up} className={square ? scss.panel_button_square : scss.panel_button} style={{
 		height: height ? (height + "px") : "undefined",
-
+		opacity: opacity
 	}}>
-		<Icon path={icon} />
+		<Icon width={icon_size} height={icon_size} path={icon} />
 		{children}
 	</div>
 }
@@ -164,7 +164,7 @@ export function Slider({ value, setValue, width, on_change, steps }: {
 	</div>
 }
 
-export function Tooltip({ children, title, simple }: { children: any, title: any, simple?: boolean }) {
+export function Tooltip({ children, title, simple, extend }: { children: any, title: any, simple?: boolean, extend?: boolean }) {
 	const [hovered, setHovered] = useState(false);
 	const ref_tooltip = useRef<HTMLDivElement | null>(null);
 
@@ -176,10 +176,22 @@ export function Tooltip({ children, title, simple }: { children: any, title: any
 		</div>
 	};
 
+	let top;
+	let bottom;
+
+	if (simple) {
+		top = "0";
+		bottom = undefined;
+	}
+	else {
+		top = "0";
+		bottom = undefined;
+	}
+
 	return <div style={{
 		position: "relative",
-		width: "100%",
-		height: "100%"
+		width: (!simple || extend) ? "100%" : undefined,
+		height: (!simple || extend) ? "100%" : undefined,
 	}} onMouseEnter={() => {
 		setHovered(true);
 	}} onMouseLeave={() => {
@@ -189,8 +201,8 @@ export function Tooltip({ children, title, simple }: { children: any, title: any
 			{hovered ? <div style={{
 				position: "absolute",
 				right: simple ? undefined : "0",
-				top: simple ? undefined : "0",
-				bottom: simple ? "0" : undefined,
+				top: top,
+				bottom: bottom,
 			}}>
 				{content}
 			</div> : undefined}
@@ -260,7 +272,7 @@ export function GameCover({ manifest, big, on_click }: { manifest: ipc.AppManife
 export function ApplicationCover({ big, application, on_click }: { big?: boolean, application: ipc.DesktopFile, on_click?: () => void }) {
 	return <div className={big ? scss.application_cover_big : scss.application_cover} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={on_click !== undefined ? vibrate_hover : undefined} onClick={on_click}>
 		<div className={scss.application_cover_icon} style={{
-			background: "url('" + (application.icon ? get_external_url(application.icon) : "icons/unknown.svg") + "')",
+			background: "url('" + getDesktopFileURL(application) + "')",
 			backgroundSize: "contain",
 			backgroundPosition: "center",
 			backgroundRepeat: "no-repeat"
@@ -351,6 +363,7 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 	const [force_wayland, setForceWayland] = useState(true);
 	const [displays, setDisplays] = useState<ipc.Display[] | null>(null);
 	const [selected_display, setSelectedDisplay] = useState<ipc.Display | null>(null);
+	const [detached_options, setDetachedOptions] = useState(false);
 
 	const refreshDisplays = async () => {
 		setDisplays(await listDisplays());
@@ -361,44 +374,91 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 		refreshDisplays();
 	}, []);
 
-	let button = undefined;
+	const launch = async (selected_display: ipc.Display) => {
+		let env: Array<string> = [];
 
-	if (selected_display) {
-		button = <BigButton title="Launch" type={BigButtonColor.green} on_click={async () => {
-			let env: Array<string> = [];
+		if (force_wayland) {
+			// This list could be larger, feel free to expand it
+			env.push("QT_QPA_PLATFORM=wayland");
+			env.push("GDK_BACKEND=wayland");
+			env.push("SDL_VIDEODRIVER=wayland");
+			env.push("XDG_SESSION_TYPE=wayland");
+			env.push("ELECTRON_OZONE_PLATFORM_HINT=wayland");
+		}
 
-			if (force_wayland) {
-				// This list could be larger, feel free to expand it
-				env.push("QT_QPA_PLATFORM=wayland");
-				env.push("GDK_BACKEND=wayland");
-				env.push("SDL_VIDEODRIVER=wayland");
-				env.push("XDG_SESSION_TYPE=wayland");
-				env.push("ELECTRON_OZONE_PLATFORM_HINT=wayland");
-			}
+		let userdata = new Map<string, string>();
+		userdata.set("desktop_file", JSON.stringify(application));
 
-			let params = xwayland_mode ? {
-				env: env,
-				exec: "cage",
-				name: application.name,
-				targetDisplay: selected_display.handle,
-				args: "-- " + application.exec
-			} : {
-				env: env,
-				exec: application.exec,
-				name: application.name,
-				targetDisplay: selected_display.handle,
-				args: ""
-			};
+		let params = xwayland_mode ? {
+			env: env,
+			exec: "cage",
+			name: application.name,
+			targetDisplay: selected_display.handle,
+			args: "-- " + application.exec,
+			userdata: userdata,
+		} : {
+			env: env,
+			exec: application.exec,
+			name: application.name,
+			targetDisplay: selected_display.handle,
+			args: "",
+			userdata: userdata,
+		};
 
-			ipc.display_set_visible({ handle: params.targetDisplay, visible: true }).catch(() => { });
+		ipc.display_set_visible({ handle: params.targetDisplay, visible: true }).catch(() => { });
 
-			ipc.process_launch(params).then(() => {
-				globals.toast_manager.push("Application launched on \"" + selected_display.name + "\"");
-				globals.wm.pop();
-			}).catch((e) => {
-				globals.wm.push(createWindowMessage(globals.wm, "Error: " + e));
-			})
-		}} />
+		ipc.process_launch(params).then(() => {
+			globals.toast_manager.push("Application launched on \"" + selected_display.name + "\"");
+			globals.wm.pop();
+		}).catch((e) => {
+			globals.wm.push(createWindowMessage(globals.wm, "Error: " + e));
+		})
+	}
+
+	let el = undefined;
+
+	if (detached_options) {
+		el =
+			<Container>
+				<BoxRight>
+					<Button icon="icons/back.svg" on_click={() => {
+						setDetachedOptions(false);
+					}} />
+					<Title title="Select display to run app from" />
+				</BoxRight>
+				{
+					displays !== null ? <DisplayList displays={displays} params={{
+						on_add: () => {
+							createWindowAddDisplay(globals, async (display_handle) => {
+								// make it invisible by default so it wouldn't block input in front of the user
+								await ipc.display_set_visible({ handle: display_handle, visible: false });
+								await refreshDisplays();
+							});
+						},
+						on_click: (disp) => {
+							setSelectedDisplay(disp);
+						},
+						selected_display: selected_display ?? undefined
+					}} /> : undefined
+				}
+				{selected_display ? <BigButton extend title="Launch" icon="icons/play.svg" type={BigButtonColor.green} on_click={() => {
+					launch(selected_display);
+				}} /> : undefined}
+			</Container>
+	}
+	else {
+		el = <BoxRight>
+			<BigButton extend icon="icons/play.svg" title="Launch here" type={BigButtonColor.green} on_click={async () => {
+				const display = await getDashboardDisplay();
+				if (display !== null) {
+					await launch(display);
+				}
+			}} />
+
+			<BigButton extend icon="icons/panorama.svg" title="Launch detached" type={BigButtonColor.purple} on_click={async () => {
+				setDetachedOptions(true);
+			}} />
+		</BoxRight>;
 	}
 
 	return <div className={scss.previewer_content}>
@@ -417,22 +477,7 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 				}
 			}} />
 
-			<Title title="Select display to run app from" />
-			{displays !== null ? <DisplayList displays={displays} params={{
-				on_add: () => {
-					createWindowAddDisplay(globals, async (display_handle) => {
-						// make it invisible by default so it wouldn't block input in front of the user
-						await ipc.display_set_visible({ handle: display_handle, visible: false });
-						await refreshDisplays();
-					});
-				},
-				on_click: (disp) => {
-					setSelectedDisplay(disp);
-				},
-				selected_display: selected_display ?? undefined
-			}} /> : undefined}
-
-			{button}
+			{el}
 		</div>
 	</div>
 }
@@ -524,17 +569,18 @@ export function createWindowMessage(wm: WindowManager, msg: string): WindowParam
 
 export enum BigButtonColor {
 	green,
+	purple,
 	blue
 }
 
-export function Button({ children, icon, style, on_click }: { children?: any, icon?: string, on_click?: () => void, style?: CSSProperties }) {
-	return <div onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={on_click !== undefined ? vibrate_hover : undefined} onClick={on_click} className={scss.button} style={style}>
-		{icon ? <Icon path={icon} /> : undefined}
+export function Button({ children, size, icon, style, on_click, className }: { children?: any, size?: number, icon?: string, on_click?: () => void, style?: CSSProperties, className?: string }) {
+	return <div onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={on_click !== undefined ? vibrate_hover : undefined} onClick={on_click} style={style} className={`${scss.button} ${className}`} >
+		{icon ? <Icon width={size} height={size} path={icon} /> : undefined}
 		{children}
 	</div>
 }
 
-export function BigButton({ type, title, icon, on_click }: { type: BigButtonColor, title: string, icon?: string, on_click: () => void }) {
+export function BigButton({ type, title, icon, extend, on_click }: { type: BigButtonColor, title: string, icon?: string, extend?: boolean, on_click: () => void }) {
 	let bg = "";
 	switch (type) {
 		case BigButtonColor.blue: {
@@ -545,9 +591,22 @@ export function BigButton({ type, title, icon, on_click }: { type: BigButtonColo
 			bg = "linear-gradient(rgb(118, 202, 73),rgb(44, 151, 62))";
 			break;
 		}
+		case BigButtonColor.purple: {
+			bg = "linear-gradient(rgb(83, 175, 255),rgb(94, 69, 255))";
+			break;
+		}
 	}
 
-	return <div onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} onClick={on_click} className={scss.big_button} style={{ background: bg }}>
+	return <div
+		onMouseDown={vibrate_down}
+		onMouseUp={vibrate_up}
+		onMouseEnter={vibrate_hover}
+		onClick={on_click}
+		className={scss.big_button}
+		style={{
+			background: bg,
+			width: extend ? "100%" : undefined
+		}}>
 		{icon ? <Icon path={icon} /> : undefined}
 		{title}
 	</div>

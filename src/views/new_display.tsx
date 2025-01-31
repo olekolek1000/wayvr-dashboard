@@ -48,15 +48,15 @@ const resolution_list = [
 	//[4096, 2048],
 ]
 
-class Resolution {
-	x!: number;
-	y!: number;
+interface Resolution {
+	x: number;
+	y: number;
 }
 
-class NewWindowResult {
-	resolution!: Resolution;
-	attach_to!: ipc.AttachTo;
-	name!: string;
+interface NewWindowResult {
+	resolution: Resolution;
+	attach_to: ipc.AttachTo;
+	name: string;
 }
 
 function NewWindow({ on_submit }: { on_submit: (res: NewWindowResult) => void }) {

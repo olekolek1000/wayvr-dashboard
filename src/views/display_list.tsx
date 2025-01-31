@@ -7,7 +7,7 @@ import { vibrate_down, vibrate_hover, vibrate_up } from "@/utils";
 
 export function Display({ display, icon, on_click, selected }: { display?: ipc.Display, icon?: string, on_click?: () => void, selected?: boolean }) {
 	let aspect = display ? (display.width / display.height) : 0.5
-	const height = 80;
+	const height = 72;
 	const width = Math.max(60, height * aspect);
 
 	let visible = display ? display.visible : false;
@@ -30,7 +30,7 @@ export function Display({ display, icon, on_click, selected }: { display?: ipc.D
 	</div>
 }
 
-class Params {
+interface Params {
 	on_add?: () => void;
 	on_click?: (display: ipc.Display) => void;
 	selected_display?: ipc.Display;

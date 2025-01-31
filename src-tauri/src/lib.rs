@@ -13,6 +13,7 @@ pub async fn run() {
 		.plugin(tauri_plugin_http::init())
 		.setup(|app| {
 			app.manage(app_state);
+			AppState::configure_async(app.handle().clone());
 			Ok(())
 		})
 		.invoke_handler(tauri::generate_handler![
@@ -32,6 +33,10 @@ pub async fn run() {
 			frontend_ipc::display_get,
 			frontend_ipc::display_remove,
 			frontend_ipc::display_set_visible,
+			frontend_ipc::display_set_layout,
+			frontend_ipc::display_window_list,
+			frontend_ipc::window_set_visible,
+			frontend_ipc::process_get,
 			frontend_ipc::process_list,
 			frontend_ipc::process_terminate,
 			frontend_ipc::process_launch,

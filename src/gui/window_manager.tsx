@@ -15,10 +15,10 @@ function WindowDecoration({ title, on_close }: { title: string, on_close: () => 
 }
 
 
-export class WindowParams {
+export interface WindowParams {
 	centered?: boolean;
-	title!: string;
-	content!: JSX.Element;
+	title: string;
+	content: JSX.Element;
 }
 
 export class WindowManager {

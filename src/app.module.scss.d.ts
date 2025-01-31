@@ -9,6 +9,8 @@ declare const classNames: {
   readonly menu_button: "menu_button";
   readonly separator_menu_rest: "separator_menu_rest";
   readonly separator_content_panel: "separator_content_panel";
+  readonly content_showing_process: "content_showing_process";
+  readonly showing_process_bottom_bar: "showing_process_bottom_bar";
   readonly current_panel: "current_panel";
   readonly panel_left: "panel_left";
   readonly panel_center: "panel_center";

@@ -1,4 +1,7 @@
+use std::collections::HashMap;
+
 use serde::Serialize;
+use tauri::{AppHandle, Emitter};
 use wayvr_ipc::{
 	client::{WayVRClient, WayVRClientMutex},
 	packet_client, packet_server,
@@ -110,6 +113,11 @@ pub fn get_username() -> String {
 
 // ############################
 
+#[tauri::command]
+pub fn signal_state_changed(app: AppHandle, state: packet_server::WvrStateChanged) {
+	app.emit("state_changed", state).unwrap();
+}
+
 fn get_client(state: &AppState) -> Result<WayVRClientMutex, String> {
 	match &state.wayvr_client {
 		Some(client) => Ok(client.clone()),
@@ -173,7 +181,7 @@ pub async fn display_list(
 pub async fn display_get(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::WvrDisplayHandle,
-) -> Result<packet_server::WvrDisplay, String> {
+) -> Result<Option<packet_server::WvrDisplay>, String> {
 	let display = handle_result(
 		"fetch display",
 		WayVRClient::fn_wvr_display_get(
@@ -183,10 +191,23 @@ pub async fn display_get(
 		)
 		.await,
 	)?;
-
-	let display = handle_result("fetch display", display.ok_or("Display doesn't exist"))?;
-
 	Ok(display)
+}
+
+#[tauri::command]
+pub async fn display_window_list(
+	state: tauri::State<'_, AppState>,
+	handle: packet_server::WvrDisplayHandle,
+) -> Result<Option<Vec<packet_server::WvrWindow>>, String> {
+	handle_result(
+		"list window displays",
+		WayVRClient::fn_wvr_display_window_list(
+			get_client(&state)?,
+			state.serial_generator.increment_get(),
+			handle,
+		)
+		.await,
+	)
 }
 
 #[tauri::command]
@@ -215,6 +236,48 @@ pub async fn display_set_visible(
 		"set display visibility",
 		WayVRClient::fn_wvr_display_set_visible(get_client(&state)?, handle, visible).await,
 	)
+}
+
+#[tauri::command]
+pub async fn display_set_layout(
+	state: tauri::State<'_, AppState>,
+	handle: packet_server::WvrDisplayHandle,
+	layout: packet_server::WvrDisplayWindowLayout,
+) -> Result<(), String> {
+	handle_result(
+		"set display layout",
+		WayVRClient::fn_wvr_display_set_layout(get_client(&state)?, handle, layout).await,
+	)
+}
+
+#[tauri::command]
+pub async fn window_set_visible(
+	state: tauri::State<'_, AppState>,
+	handle: packet_server::WvrWindowHandle,
+	visible: bool,
+) -> Result<(), String> {
+	handle_result(
+		"set window visibility",
+		WayVRClient::fn_wvr_window_set_visible(get_client(&state)?, handle, visible).await,
+	)
+}
+
+#[tauri::command]
+pub async fn process_get(
+	state: tauri::State<'_, AppState>,
+	handle: packet_server::WvrProcessHandle,
+) -> Result<Option<packet_server::WvrProcess>, String> {
+	let process = handle_result(
+		"fetch process",
+		WayVRClient::fn_wvr_process_get(
+			get_client(&state)?,
+			state.serial_generator.increment_get(),
+			handle,
+		)
+		.await,
+	)?;
+
+	Ok(process)
 }
 
 #[tauri::command]
@@ -247,6 +310,7 @@ pub async fn process_launch(
 	env: Vec<String>,
 	target_display: packet_server::WvrDisplayHandle,
 	args: String,
+	userdata: HashMap<String, String>,
 ) -> Result<packet_server::WvrProcessHandle, String> {
 	handle_result(
 		"launch process",
@@ -259,6 +323,7 @@ pub async fn process_launch(
 				name,
 				target_display,
 				args,
+				userdata,
 			},
 		)
 		.await,

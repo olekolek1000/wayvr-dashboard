@@ -1,6 +1,7 @@
 import { fetch as tauri_fetch } from '@tauri-apps/plugin-http';
 import { getVersion } from '@tauri-apps/api/app';
 import { ipc } from './ipc';
+import { Globals } from './globals';
 
 export function get_external_url(absolute_path: string): string {
 	let api_path = (window as any).__TAURI_INTERNALS__.convertFileSrc(absolute_path)
@@ -55,6 +56,14 @@ export async function get_app_details_json(app_id: number) {
 
 const dashboard_display_name = "_DASHBOARD";
 
+export async function getDashboardDisplay(): Promise<ipc.Display | null> {
+	const displays = (await ipc.display_list()).filter((disp) => { return disp.name == dashboard_display_name });
+	if (displays.length == 0) {
+		return null;
+	}
+	return displays[0];
+}
+
 // lists displays except our own dashboard display
 export async function listDisplays(): Promise<Array<ipc.Display>> {
 	const displays = (await ipc.display_list()).filter((disp) => { return disp.name != dashboard_display_name });
@@ -94,17 +103,42 @@ export async function getDefaultDisplay(): Promise<ipc.DisplayHandle> {
 	return handle;
 }
 
+export async function getAllWindows(): Promise<Array<ipc.Window>> {
+	let windows = new Array<ipc.Window>;
+
+	const displays = await ipc.display_list();
+	for (const display of displays) {
+		const window_list = await ipc.display_window_list({
+			handle: display.handle
+		});
+		if (!window_list) {
+			continue;
+		}
+
+		for (const window of window_list) {
+			windows.push(window);
+		}
+	}
+
+	return windows;
+}
+
 export async function openURL(disp: ipc.DisplayHandle, url: string) {
 	let params = {
 		env: [],
 		exec: "xdg-open",
 		name: "OpenURL",
 		targetDisplay: disp,
-		args: url
+		args: url,
+		userdata: new Map<string, string>()
 	};
 
 	await ipc.display_set_visible({ handle: disp, visible: true });
 	await ipc.process_launch(params);
+}
+
+export function getDesktopFileURL(desktop_file: ipc.DesktopFile) {
+	return (desktop_file.icon ? get_external_url(desktop_file.icon) : "icons/unknown.svg");
 }
 
 export function vibrate_hover() {
@@ -135,4 +169,92 @@ export function vibrate_up() {
 	}).catch((e) => {
 		console.error("Failed to vibrate: ", e);
 	})
+}
+
+// yes, I know.
+export function obj_equals<T>(a: T, b: T): boolean {
+	return JSON.stringify(a) === JSON.stringify(b);
+}
+
+export async function isDashboardWindow(window: ipc.Window) {
+	const process = await ipc.process_get(window.process_handle);
+	if (!process) {
+		return false;
+	}
+
+	const type = process.userdata.type as string | undefined;
+	if (type !== undefined && type == "dashboard") {
+		return true;
+	}
+
+	return false;
+}
+
+async function hideAllDashboardWindows() {
+	const dash_display = await getDashboardDisplay();
+	if (!dash_display) {
+		return;
+	}
+
+	const windows = await ipc.display_window_list({
+		handle: dash_display.handle
+	});
+
+	if (!windows) {
+		return;
+	}
+
+	for (const window of windows) {
+		if (await isDashboardWindow(window)) {
+			continue; // skip hiding our dashboard window
+		}
+
+		await ipc.window_set_visible({
+			handle: window.handle,
+			visible: false
+		});
+	}
+}
+
+export async function unfocusAll(globals: Globals) {
+	await hideAllDashboardWindows();
+	globals.focused_window = undefined;
+	globals.setShowingProcess(undefined);
+	globals.setGenerationState(globals.generation_state + 1);
+}
+
+export async function focusWindow(globals: Globals, window: ipc.Window) {
+	const dash_disp = await getDashboardDisplay();
+	if (dash_disp === null) {
+		return; // not running in VR mode
+	}
+
+	if (!obj_equals(dash_disp.handle, window.display_handle)) {
+		return; // this application is not contained in a dashboard display
+	}
+
+	await hideAllDashboardWindows();
+
+	const process = await ipc.process_get(window.process_handle);
+	if (process === undefined) {
+		return;
+	}
+
+
+	if (!obj_equals(globals.focused_window, window.handle)) {
+		// if focusing another window
+		globals.focused_window = window.handle;
+		globals.setShowingProcess(process);
+		await ipc.window_set_visible({
+			handle: window.handle,
+			visible: true
+		});
+	}
+	else {
+		// window has been unfocused
+		globals.focused_window = undefined;
+		globals.setShowingProcess(undefined);
+	}
+
+	globals.setGenerationState(globals.generation_state + 1);
 }

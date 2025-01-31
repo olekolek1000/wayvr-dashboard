@@ -1,23 +1,24 @@
 import { render } from "preact";
 import { Dashboard } from "./dashboard";
 import { Globals } from "./globals";
+import { run_listeners } from "./event";
 
 if (!import.meta.env.DEV) {
 	document.oncontextmenu = (event) => {
 		event.preventDefault()
 	}
 }
-
+export var globals: Globals | null = null;
 
 export var global_scale: number;
-
-var globals: Globals | null = null;
 
 function Main({ }: {}) {
 	if (!globals) {
 		globals = new Globals();
 		globals.global_scale = global_scale;
 	}
+
+	run_listeners(globals);
 
 	return <Dashboard globals={globals} />
 }
@@ -68,16 +69,3 @@ on_resize();
 
 render(<Main />, el_root);
 
-/*
-window.addEventListener("erorr", (message) => {
-	if (globals) {
-		globals.setGlobalError(JSON.stringify(message));
-	}
-})
-
-window.addEventListener("unhandledrejection", (event) => {
-	if (globals) {
-		globals.setGlobalError(event.reason);
-	}
-});
-*/
