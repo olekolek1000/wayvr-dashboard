@@ -9,7 +9,7 @@ use wayvr_ipc::{
 
 use crate::{
 	app::AppState,
-	util::{self, audio, steam_bridge},
+	util::{self, pactl_wrapper, steam_bridge},
 };
 
 #[derive(Debug, Serialize)]
@@ -72,21 +72,48 @@ pub fn game_launch(app_id: i32) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn audio_list_devices() -> Result<Vec<audio::Device>, String> {
-	handle_result("list audio devices", audio::list_devices())
+pub async fn audio_list_sinks() -> Result<Vec<pactl_wrapper::Sink>, String> {
+	handle_result("list audio sinks", pactl_wrapper::list_sinks())
 }
 
-// Volume: from 0.0 to 1.0
+// Volume: from 0.0 to 1.0 (100%), can exceed up to 150%
 #[tauri::command]
-pub async fn audio_set_device_volume(device_index: i32, volume: f32) -> Result<(), String> {
-	handle_result("set audio volume", audio::set_volume(device_index, volume))?;
+pub async fn audio_set_sink_volume(sink_index: u32, volume: f32) -> Result<(), String> {
+	handle_result(
+		"set sink volume",
+		pactl_wrapper::set_sink_volume(sink_index, volume),
+	)?;
+	Ok(())
+}
+
+#[tauri::command]
+pub async fn audio_set_sink_mute(sink_index: u32, mute: bool) -> Result<(), String> {
+	handle_result(
+		"set sink mute",
+		pactl_wrapper::set_sink_mute(sink_index, mute),
+	)?;
 	Ok(())
 }
 
 // Volume: from 0.0 to 1.0
 #[tauri::command]
-pub async fn audio_get_device_volume(device_index: i32) -> Result<f32, String> {
-	handle_result("get audio volume", audio::get_volume(device_index))
+pub async fn audio_get_sink_volume(sink: pactl_wrapper::Sink) -> Result<f32, String> {
+	handle_result("get sink volume", pactl_wrapper::get_sink_volume(&sink))
+}
+
+#[tauri::command]
+pub async fn audio_get_default_sink(
+	sinks: Vec<pactl_wrapper::Sink>,
+) -> Result<Option<pactl_wrapper::Sink>, String> {
+	handle_result("get default sink", pactl_wrapper::get_default_sink(&sinks))
+}
+
+#[tauri::command]
+pub async fn audio_set_default_sink(sink_index: u32) -> Result<(), String> {
+	handle_result(
+		"set default sink",
+		pactl_wrapper::set_default_sink(sink_index),
+	)
 }
 
 #[tauri::command]

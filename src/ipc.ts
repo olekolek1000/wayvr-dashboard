@@ -18,10 +18,23 @@ export namespace ipc {
 		manifests: Array<AppManifest>;
 	}
 
-	export interface AudioDevice {
-		name: string;
-		long_name: string;
+	export interface AudioVolumeChannel {
+		value: number;
+		value_percent: string; // "80%"
+		db: string;
+	}
+	export interface AudioVolume {
+		front_left?: AudioVolumeChannel;
+		front_right?: AudioVolumeChannel;
+	}
+
+	export interface AudioSink {
 		index: number;
+		state: string;
+		name: string;
+		description: string;
+		mute: boolean;
+		volume: AudioVolume;
 	}
 
 	export async function desktop_file_list(): Promise<Array<DesktopFile>> {
@@ -36,21 +49,40 @@ export namespace ipc {
 		return await invoke("game_launch", { appId: app_id })
 	}
 
-	export async function audio_list_devices(): Promise<Array<AudioDevice>> {
-		return await invoke("audio_list_devices");
+	export async function audio_list_sinks(): Promise<Array<AudioSink>> {
+		return await invoke("audio_list_sinks");
 	}
 
-	export async function audio_set_device_volume(params: {
-		deviceIndex: number,
+	export async function audio_set_sink_volume(params: {
+		sinkIndex: number,
 		volume: number
 	}): Promise<void> {
-		return await invoke("audio_set_device_volume", params);
+		return await invoke("audio_set_sink_volume", params);
 	}
 
-	export async function audio_get_device_volume(params: {
-		deviceIndex: number,
+	export async function audio_set_sink_mute(params: {
+		sinkIndex: number,
+		mute: boolean
+	}): Promise<void> {
+		return await invoke("audio_set_sink_mute", params);
+	}
+
+	export async function audio_get_sink_volume(params: {
+		sink: AudioSink,
 	}): Promise<number> {
-		return await invoke("audio_get_device_volume", params);
+		return await invoke("audio_get_sink_volume", params);
+	}
+
+	export async function audio_get_default_sink(params: {
+		sinks: Array<AudioSink>,
+	}): Promise<AudioSink | undefined> {
+		return await invoke("audio_get_default_sink", params);
+	}
+
+	export async function audio_set_default_sink(params: {
+		sinkIndex: number,
+	}): Promise<number> {
+		return await invoke("audio_set_default_sink", params);
 	}
 
 	export async function get_username(): Promise<string> {
@@ -59,6 +91,10 @@ export namespace ipc {
 
 	export async function open_devtools(): Promise<void> {
 		return await invoke("open_devtools");
+	}
+
+	export async function is_ipc_connected(): Promise<boolean> {
+		return await invoke("is_ipc_connected");
 	}
 
 	// ================================================================================

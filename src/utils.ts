@@ -141,7 +141,10 @@ export function getDesktopFileURL(desktop_file: ipc.DesktopFile) {
 	return (desktop_file.icon ? get_external_url(desktop_file.icon) : "icons/unknown.svg");
 }
 
-export function vibrate_hover() {
+export async function vibrate_hover() {
+	if (!await ipc.is_ipc_connected()) {
+		return;
+	}
 	ipc.haptics({
 		intensity: 0.15,
 		duration: 0.1,
@@ -151,7 +154,10 @@ export function vibrate_hover() {
 	})
 }
 
-export function vibrate_down() {
+export async function vibrate_down() {
+	if (!await ipc.is_ipc_connected()) {
+		return;
+	}
 	ipc.haptics({
 		intensity: 0.35,
 		duration: 0.08,
@@ -161,7 +167,10 @@ export function vibrate_down() {
 	})
 }
 
-export function vibrate_up() {
+export async function vibrate_up() {
+	if (!await ipc.is_ipc_connected()) {
+		return;
+	}
 	ipc.haptics({
 		intensity: 0.25,
 		duration: 0.08,
@@ -217,6 +226,9 @@ async function hideAllDashboardWindows() {
 }
 
 export async function unfocusAll(globals: Globals) {
+	if (!await ipc.is_ipc_connected()) {
+		return;
+	}
 	await hideAllDashboardWindows();
 	globals.focused_window = undefined;
 	globals.setShowingProcess(undefined);

@@ -1,8 +1,8 @@
 
 import { Clock } from "./clock";
 import style from "./app.module.scss"
-import { Icon, Tooltip, PanelButton, Popup, Slider, BoxDown, BoxRight, Button } from "./gui/gui";
-import { useEffect, useState } from "preact/hooks";
+import { Icon, Tooltip, PanelButton, Popup, Button } from "./gui/gui";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { PanelHome } from "./panel/home";
 import { PanelGames } from "./panel/games";
 import { PanelApplications } from "./panel/applications";
@@ -13,62 +13,12 @@ import { PanelSettings } from "./panel/settings";
 import { JSX } from "preact/jsx-runtime";
 import { getDashboardDisplay, unfocusAll, vibrate_down, vibrate_hover, vibrate_up } from "./utils";
 import { WindowList } from "./views/window_list";
+import { PopupVolume } from "./views/popup_volume";
 
 function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) {
 	return <div onClick={on_click} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} className={style.menu_button}>
 		<Icon path={icon} />
 	</div>
-}
-
-
-function VolumeDevice({ device }: { device: ipc.AudioDevice }) {
-	const [volume, setVolume] = useState<number | undefined>(undefined);
-
-	useEffect(() => {
-		ipc.audio_get_device_volume({
-			deviceIndex: device.index
-		}).then((vol) => {
-			setVolume(vol);
-		});
-	}, []);
-
-	if (volume === undefined) {
-		return <></>;
-	}
-
-	return <div>
-		{device.index}: {device.name}
-		<BoxRight>
-			<Slider value={volume} setValue={setVolume} on_change={(volume) => {
-				setVolume(volume);
-				ipc.audio_set_device_volume({
-					deviceIndex: device.index,
-					volume: volume,
-				})
-			}} />
-		</BoxRight>
-	</div>
-}
-
-function PopupVolume({ globals }: { globals: Globals }) {
-	const [sliders, setSliders] = useState(<></>);
-
-	useEffect(() => {
-		(async () => {
-			await unfocusAll(globals);
-			const devices = await ipc.audio_list_devices();
-			const res = devices.map((device) => {
-				return <VolumeDevice key={device.index} device={device} />
-			});
-			setSliders(<BoxDown>
-				{res}
-			</BoxDown>);
-		})();
-	}, []);
-
-	return <>
-		{sliders}
-	</>
 }
 
 function Overlays({ globals, error_text }: { globals: Globals, error_text?: JSX.Element }) {
@@ -101,9 +51,31 @@ async function configureLayout() {
 	})
 }
 
+// To be implemented later
+
+/*
+<Tooltip extend simple title={"Menu"}>
+	<PanelButton square icon="icons/burger.svg" on_click={() => {
+		globals.toast_manager.push("Not implemented");
+	}} />
+</Tooltip>
+<Tooltip extend simple title={"Recenter"}>
+	<PanelButton square icon="icons/recenter.svg" on_click={() => {
+		globals.toast_manager.push("Not implemented");
+	}} />
+</Tooltip>
+<Tooltip extend simple title={"Camera passthrough"}>
+	<PanelButton square icon="icons/eye.svg" on_click={() => {
+		globals.toast_manager.push("Not implemented");
+	}} />
+</Tooltip>
+*/
+
 export function Dashboard({ globals }: { globals: Globals }) {
 	const [current_panel, setCurrentPanel] = useState(<PanelHome globals={globals} />);
-	const [popup_volume, setPopupVolume] = useState(false);
+	const [popup_volume, setPopupVolume] = useState<JSX.Element | null>(null);
+	const ref_volume = useRef<HTMLDivElement>(null);
+
 	const [generation_state, setGenerationState] = useState(0);
 	const [showing_process, setShowingProcess] = useState<ipc.Process | undefined>(undefined);
 
@@ -149,81 +121,74 @@ export function Dashboard({ globals }: { globals: Globals }) {
 	}
 
 	return (
-		<div className={style.separator_menu_rest}>
-			<div className={style.menu} >
-				<Tooltip title={"Home screen"}>
-					<MenuButton icon="wayvr_dashboard_transparent.webp" on_click={async () => {
-						await unfocusAll(globals);
-						setCurrentPanel(<PanelHome globals={globals} />);
-					}} />
-				</Tooltip>
-				<Tooltip title={"Applications"}>
-					<MenuButton icon="icons/apps.svg" on_click={async () => {
-						await unfocusAll(globals);
-						setCurrentPanel(<PanelApplications globals={globals} />);
-					}} />
-				</Tooltip>
-				<Tooltip title={"Games"}>
-					<MenuButton icon="icons/games.svg" on_click={async () => {
-						await unfocusAll(globals);
-						setCurrentPanel(<PanelGames globals={globals} />);
-					}} />
-				</Tooltip>
+		<>
+			{popup_volume}
+			<div className={style.separator_menu_rest}>
+				<div className={style.menu} >
+					<Tooltip title={"Home screen"}>
+						<MenuButton icon="wayvr_dashboard_transparent.webp" on_click={async () => {
+							await unfocusAll(globals);
+							setCurrentPanel(<PanelHome globals={globals} />);
+						}} />
+					</Tooltip>
+					<Tooltip title={"Applications"}>
+						<MenuButton icon="icons/apps.svg" on_click={async () => {
+							await unfocusAll(globals);
+							setCurrentPanel(<PanelApplications globals={globals} />);
+						}} />
+					</Tooltip>
+					<Tooltip title={"Games"}>
+						<MenuButton icon="icons/games.svg" on_click={async () => {
+							await unfocusAll(globals);
+							setCurrentPanel(<PanelGames globals={globals} />);
+						}} />
+					</Tooltip>
 
-				<Tooltip title={"Process manager"}>
-					<MenuButton icon="icons/window.svg" on_click={async () => {
-						await unfocusAll(globals);
-						setCurrentPanel(<PanelRunningApps globals={globals} />);
-					}} />
-				</Tooltip>
+					<Tooltip title={"Process manager"}>
+						<MenuButton icon="icons/window.svg" on_click={async () => {
+							await unfocusAll(globals);
+							setCurrentPanel(<PanelRunningApps globals={globals} />);
+						}} />
+					</Tooltip>
 
-				<div className={style.menu_separator} />
+					<div className={style.menu_separator} />
 
-				<Tooltip title={"Settings"}>
-					<MenuButton icon="icons/settings.svg" on_click={async () => {
-						await unfocusAll(globals);
-						setCurrentPanel(<PanelSettings globals={globals} />);
-					}} />
-				</Tooltip>
-			</div>
-			<div className={style.separator_content_panel}>
-				{content}
-				<div className={style.panel}>
-					<div className={style.panel_left}>
-						<Tooltip extend simple title={"Menu"}>
-							<PanelButton square icon="icons/burger.svg" on_click={() => {
-								globals.toast_manager.push("Not implemented");
-							}} />
-						</Tooltip>
-						<Tooltip extend simple title={"Recenter"}>
-							<PanelButton square icon="icons/recenter.svg" on_click={() => {
-								globals.toast_manager.push("Not implemented");
-							}} />
-						</Tooltip>
-						<Tooltip extend simple title={"Volume"}>
-							<Popup pair={[popup_volume, setPopupVolume]}>
-								<PopupVolume globals={globals} />
-							</Popup>
-							<PanelButton square icon="icons/volume.svg" on_click={() => {
-								setPopupVolume(!popup_volume);
-							}} />
-						</Tooltip>
-						<Tooltip extend simple title={"Camera passthrough"}>
-							<PanelButton square icon="icons/eye.svg" on_click={() => {
-								globals.toast_manager.push("Not implemented");
-							}} />
-						</Tooltip>
-					</div>
-					<div className={style.panel_center}>
-						<div className={style.panel_window_list}>
-							<WindowList globals={globals} key={generation_state} />
+					<Tooltip title={"Settings"}>
+						<MenuButton icon="icons/settings.svg" on_click={async () => {
+							await unfocusAll(globals);
+							setCurrentPanel(<PanelSettings globals={globals} />);
+						}} />
+					</Tooltip>
+				</div>
+				<div className={style.separator_content_panel}>
+					{content}
+					<div className={style.panel}>
+						<div className={style.panel_left}>
+							<Tooltip extend simple title={"Volume"}>
+								<PanelButton ext_ref={ref_volume} square icon="icons/volume.svg" on_click={() => {
+									if (popup_volume !== null) {
+										setPopupVolume(null);
+									}
+									else {
+										setPopupVolume(<Popup on_close={() => { setPopupVolume(null) }} ref_element={ref_volume}>
+											<PopupVolume globals={globals} />
+										</Popup>);
+									}
+								}} />
+							</Tooltip>
+
 						</div>
-					</div>
-					<div className={style.panel_right}>
-						<Clock />
+						<div className={style.panel_center}>
+							<div className={style.panel_window_list}>
+								<WindowList globals={globals} key={generation_state} />
+							</div>
+						</div>
+						<div className={style.panel_right}>
+							<Clock />
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 }

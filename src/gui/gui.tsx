@@ -4,7 +4,7 @@ import { ipc } from "../ipc";
 import { get_app_details_json, getDashboardDisplay, getDefaultDisplay, getDesktopFileURL, listDisplays, openURL, vibrate_down, vibrate_hover, vibrate_up } from "../utils";
 import { WindowManager, WindowParams } from "./window_manager";
 import { Globals } from "@/globals";
-import { CSSProperties, JSX } from "preact/compat";
+import { CSSProperties, JSX, Ref } from "preact/compat";
 import { createWindowAddDisplay, DisplayList } from "@/views/display_list";
 import { global_scale } from "@/main";
 
@@ -17,8 +17,8 @@ export function Icon({ path, width, height, color, className }: { path: string, 
 	</img>
 }
 
-export function PanelButton({ icon, icon_size, height, on_click, square, opacity, children }: { icon: string, icon_size?: number, height?: number, on_click: () => void, square?: boolean, opacity?: number, children?: any }) {
-	return <div onClick={on_click} onMouseEnter={vibrate_hover} onMouseDown={vibrate_down} onMouseUp={vibrate_up} className={square ? scss.panel_button_square : scss.panel_button} style={{
+export function PanelButton({ ext_ref, icon, icon_size, height, on_click, square, opacity, children }: { ext_ref?: Ref<HTMLDivElement>, icon: string, icon_size?: number, height?: number, on_click: () => void, square?: boolean, opacity?: number, children?: any }) {
+	return <div ref={ext_ref} onPointerDown={on_click} onMouseEnter={vibrate_hover} onMouseDown={vibrate_down} onMouseUp={vibrate_up} className={square ? scss.panel_button_square : scss.panel_button} style={{
 		height: height ? (height + "px") : "undefined",
 		opacity: opacity
 	}}>
@@ -313,14 +313,16 @@ export function BoxRight({ children, style, className }: { children?: any, style
 	</div>
 }
 
-export function BoxDown({ children }: { children?: any }) {
-	return <div className={scss.box_down}>
+export function BoxDown({ children, center }: { children?: any, center?: boolean }) {
+	return <div className={scss.box_down} style={{
+		alignItems: center ? "center" : undefined,
+	}}>
 		{children}
 	</div >
 }
 
 
-export function Checkbox({ pair, title, onChange }: { pair: [checked: boolean, setChecked?: (checked: boolean) => void], title: string, onChange?: (n: boolean) => void }) {
+export function Checkbox({ pair, title, onChange }: { pair: [checked: boolean, setChecked?: (checked: boolean) => void], title?: string, onChange?: (n: boolean) => void }) {
 	const checked = pair ? pair[0] : undefined;
 	const setChecked = pair ? pair[1] : undefined;
 	return <div className={scss.checkbox_body} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} onClick={() => {
@@ -612,15 +614,37 @@ export function BigButton({ type, title, icon, extend, on_click }: { type: BigBu
 	</div>
 }
 
-export function Popup({ children, pair }: { children: any, pair: [shown: boolean, setShown: any] }) {
-	const shown = pair[0];
-	//const setShown = pair[1];
+export function Popup({ children, on_close, ref_element }: { children: any, on_close: () => void, ref_element: Ref<HTMLDivElement> }) {
+	const element = ((ref_element) as any).current as HTMLDivElement;
+	const rect = element.getBoundingClientRect();
+	const [hovered, setHovered] = useState(false);
 
-	if (!shown) {
-		return <></>;
+	useEffect(() => {
+		const func_down = (_e: MouseEvent) => {
+			if (!hovered) {
+				on_close();
+			}
+		}
+
+		document.addEventListener("mousedown", func_down);
+
+		return () => {
+			document.removeEventListener("mousedown", func_down);
+		}
+	}, [hovered]);
+
+	if (!ref_element) {
+		return;
 	}
 
-	return <div className={scss.popup}>
+	return <div
+		className={scss.popup}
+		onMouseEnter={() => { setHovered(true) }}
+		onMouseLeave={() => { setHovered(false) }}
+		style={{
+			top: (rect.y) + "px",
+			left: rect.x + "px"
+		}}>
 		{children}
 	</div>
 }
