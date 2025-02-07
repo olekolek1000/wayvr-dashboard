@@ -44,6 +44,7 @@ declare const classNames: {
   readonly previewer_developers: "previewer_developers";
   readonly previewer_message: "previewer_message";
   readonly button: "button";
+  readonly button_highlighted: "button_highlighted";
   readonly big_button: "big_button";
   readonly wayvr_displays: "wayvr_displays";
   readonly wayvr_display: "wayvr_display";

@@ -72,6 +72,19 @@ pub fn game_launch(app_id: i32) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub async fn audio_list_cards() -> Result<Vec<pactl_wrapper::Card>, String> {
+	handle_result("list audio cards", pactl_wrapper::list_cards())
+}
+
+#[tauri::command]
+pub async fn audio_set_card_profile(card_index: u32, profile: String) -> Result<(), String> {
+	handle_result(
+		"set card profile",
+		pactl_wrapper::set_card_profile(card_index, profile.as_str()),
+	)
+}
+
+#[tauri::command]
 pub async fn audio_list_sinks() -> Result<Vec<pactl_wrapper::Sink>, String> {
 	handle_result("list audio sinks", pactl_wrapper::list_sinks())
 }

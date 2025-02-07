@@ -575,8 +575,22 @@ export enum BigButtonColor {
 	blue
 }
 
-export function Button({ children, size, icon, style, on_click, className }: { children?: any, size?: number, icon?: string, on_click?: () => void, style?: CSSProperties, className?: string }) {
-	return <div onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={on_click !== undefined ? vibrate_hover : undefined} onClick={on_click} style={style} className={`${scss.button} ${className}`} >
+export function Button({ children, size, icon, style, on_click, className, highlighted }: {
+	children?: any,
+	size?: number,
+	icon?: string,
+	on_click?: () => void,
+	style?: CSSProperties,
+	className?: string,
+	highlighted?: boolean,
+}) {
+	return <div
+		onMouseDown={vibrate_down}
+		onMouseUp={vibrate_up}
+		onMouseEnter={on_click !== undefined ? vibrate_hover : undefined}
+		onClick={on_click}
+		style={style}
+		className={`${scss.button} ${highlighted ? scss.button_highlighted : ""} ${className}`} >
 		{icon ? <Icon width={size} height={size} path={icon} /> : undefined}
 		{children}
 	</div>

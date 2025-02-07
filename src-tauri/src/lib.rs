@@ -26,6 +26,8 @@ pub async fn run() {
 			frontend_ipc::audio_get_sink_volume,
 			frontend_ipc::audio_set_default_sink,
 			frontend_ipc::audio_get_default_sink,
+			frontend_ipc::audio_list_cards,
+			frontend_ipc::audio_set_card_profile,
 			frontend_ipc::is_ipc_connected,
 			frontend_ipc::get_username,
 			frontend_ipc::open_devtools,

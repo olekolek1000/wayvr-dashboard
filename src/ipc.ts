@@ -1,6 +1,20 @@
 import { invoke } from "@tauri-apps/api/core";
 
 export namespace ipc {
+	interface MapType<_Key, _Value> {
+
+	}
+
+	export function mapIter<Key, Value>(map: MapType<Key, Value>, callback: (key: string, value: Value) => void) {
+		for (const key in map as any) {
+			callback(key, (map as any)[key]);
+		}
+	}
+
+	export function mapGet<Key, Value>(map: MapType<Key, Value>, key: string): Value | undefined {
+		return (map as any)[key];
+	}
+
 	export interface DesktopFile {
 		name: string;
 		icon?: string;
@@ -37,6 +51,40 @@ export namespace ipc {
 		volume: AudioVolume;
 	}
 
+	export interface CardProperties {
+		"device.description": string; // Starship/Matisse HD Audio Controller
+		"device.name": string; // alsa_card.pci-0000_0c_00.4
+		"device.nick": string; // HD-Audio Generic
+	}
+
+	export interface CardProfile {
+		description: string; // "Digital Stereo (HDMI 2) Output", "Analog Stereo Output",
+		sinks: number; // 1
+		sources: number; // 0
+		priority: number; // 6500
+		available: boolean; // true
+	}
+
+	export interface CardPort {
+		description: string; // "HDMI / DisplayPort 2"
+		type: string; // "HDMI"
+		profiles: Array<string>; // "output:hdmi-stereo-extra1", "output:hdmi-surround-extra1", "output:analog-stereo", "output:analog-stereo+input:analog-stereo"
+
+		// example:
+		// "port.type": "hdmi"
+		// "device.product_name": "Index HMD"
+		properties: MapType<string, string>;
+	}
+
+	export interface AudioCard {
+		index: number; // 57
+		name: string; // alsa_card.pci-0000_0c_00.4
+		active_profile: string; // output:analog-stereo
+		properties: CardProperties;
+		profiles: MapType<string, CardProfile>; // key: "output:analog-stereo"
+		ports: MapType<string, CardPort>, // key: "analog-output-lineout"
+	}
+
 	export async function desktop_file_list(): Promise<Array<DesktopFile>> {
 		return await invoke("desktop_file_list");
 	}
@@ -47,6 +95,17 @@ export namespace ipc {
 
 	export async function game_launch(app_id: number): Promise<void> {
 		return await invoke("game_launch", { appId: app_id })
+	}
+
+	export async function audio_list_cards(): Promise<Array<AudioCard>> {
+		return await invoke("audio_list_cards");
+	}
+
+	export async function audio_set_card_profile(params: {
+		cardIndex: number,
+		profile: string
+	}): Promise<void> {
+		return await invoke("audio_set_card_profile", params);
 	}
 
 	export async function audio_list_sinks(): Promise<Array<AudioSink>> {

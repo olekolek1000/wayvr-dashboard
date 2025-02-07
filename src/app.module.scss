@@ -616,6 +616,15 @@ body {
 	background-color: rgba(255, 255, 255, 0.4);
 }
 
+.button_highlighted {
+	background-color: rgba(66, 132, 255, 0.8);
+	border: 2px solid white;
+}
+
+.button_highlighted:hover {
+	background-color: rgba(0, 200, 255, 1);
+}
+
 .big_button {
 	width: min-content;
 	min-width: 200px;
@@ -816,7 +825,7 @@ body {
 }
 
 .popup {
-	padding: 4px;
+	padding: 8px;
 	background-color: vars.$color-tooltip;
 	border: 2px solid vars.$color-border;
 	box-sizing: border-box;
@@ -829,6 +838,8 @@ body {
 	transform: translateY(-100%);
 	animation: popup_showup;
 	animation-duration: 0.3s;
+	overflow-y: auto;
+	max-height: 80vh;
 }
 
 .container {

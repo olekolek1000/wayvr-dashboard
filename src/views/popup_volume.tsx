@@ -3,6 +3,7 @@ import { BoxDown, BoxRight, Button, Checkbox, Container, Slider } from "@/gui/gu
 import { ipc } from "@/ipc";
 import { unfocusAll } from "@/utils";
 import { useEffect, useState } from "preact/hooks";
+import { JSX } from "preact/jsx-runtime";
 
 function VolumeSink({ sink, on_refresh, default_sink, setDefaultSink }: {
 	sink: ipc.AudioSink,
@@ -64,15 +65,12 @@ function VolumeSink({ sink, on_refresh, default_sink, setDefaultSink }: {
 	</Container>
 }
 
-export function PopupVolume({ globals }: { globals: Globals }) {
+function ModeSinks() {
 	const [sinks, setSinks] = useState<Array<ipc.AudioSink> | undefined>(undefined);
 	const [default_sink, setDefaultSink] = useState<ipc.AudioSink | undefined>(undefined);
 
-	console.log(default_sink);
-
 	const refresh = async () => {
 		console.log("refreshing sink list");
-		await unfocusAll(globals);
 		const sinks = await ipc.audio_list_sinks();
 		const def_sink = await ipc.audio_get_default_sink({ sinks: sinks });
 		setSinks(sinks);
@@ -97,5 +95,139 @@ export function PopupVolume({ globals }: { globals: Globals }) {
 		{sinks.map((sink) => {
 			return <VolumeSink key={sink.index} sink={sink} on_refresh={refresh} default_sink={default_sink} setDefaultSink={setDefaultSink} />
 		})}
+	</BoxDown>
+}
+
+interface SelectorCell {
+	key: string,
+	display_text: string,
+}
+
+function MultiSelector({ cells, def_cell, onSelect }: {
+	cells: Array<SelectorCell>,
+	def_cell: string,
+	onSelect: (name: string) => void
+}) {
+	return <BoxDown>
+		{cells.map((cell) => {
+			return <Button key={cell.key} highlighted={cell.key === def_cell} on_click={() => {
+				onSelect(cell.key);
+			}}>
+				{cell.display_text}
+			</Button>
+		})}
+	</BoxDown>
+}
+
+function getProfileDisplayName(profile_name: string, card: ipc.AudioCard) {
+	const profile = ipc.mapGet(card.profiles, profile_name);
+	if (profile === undefined) {
+		return profile_name; // fallback
+	}
+
+	return profile.description;
+}
+
+function Card({ card, setProfileSelector }: { card: ipc.AudioCard, setProfileSelector: (el: JSX.Element | undefined) => void }) {
+	const desc = card.properties["device.description"];
+
+	return <Container>
+		<BoxDown center>
+			<small>{desc}</small>
+			<Button style={{ width: "100%" }} on_click={() => {
+				let cells = new Array<SelectorCell>;
+				ipc.mapIter(card.profiles, (profile_name, profile) => {
+					cells.push({
+						key: profile_name,
+						display_text: profile.description
+					});
+				});
+
+				setProfileSelector(<BoxDown>
+					<BoxRight>
+						<Button icon="icons/back.svg" on_click={() => {
+							setProfileSelector(undefined);
+						}} />
+						Select profile
+					</BoxRight>
+					<MultiSelector cells={cells} def_cell={card.active_profile} onSelect={async (profile) => {
+						await ipc.audio_set_card_profile({
+							cardIndex: card.index,
+							profile: profile
+						})
+						setProfileSelector(undefined);
+					}} />
+				</BoxDown>);
+			}}>
+				{getProfileDisplayName(card.active_profile, card)}
+			</Button>
+		</BoxDown>
+	</Container>
+}
+
+function ModeCards() {
+	const [cards, setCards] = useState<Array<ipc.AudioCard> | undefined>(undefined);
+	const [profile_selector, setProfileSelector] = useState<JSX.Element | undefined>(undefined);
+
+	const refresh = async () => {
+		console.log("refreshing card list");
+		const cards = await ipc.audio_list_cards();
+		setCards(cards);
+	}
+
+	useEffect(() => {
+		refresh();
+	}, [profile_selector]);
+
+	if (cards === undefined) {
+		return <></>;
+	}
+
+	if (profile_selector !== undefined) {
+		return profile_selector;
+	}
+
+	return <BoxDown>
+		{cards.map((card) => {
+			return <Card key={card.index} card={card} setProfileSelector={setProfileSelector} />
+		})}
+	</BoxDown>
+}
+
+enum Mode {
+	sinks,
+	cards
+}
+
+export function PopupVolume({ globals }: { globals: Globals }) {
+	const [mode, setMode] = useState<Mode>(Mode.sinks);
+
+	useEffect(() => {
+		unfocusAll(globals);
+	}, []);
+
+	let content = undefined;
+
+	switch (mode) {
+		case Mode.sinks: {
+			content = <ModeSinks />
+			break;
+		}
+		case Mode.cards: {
+			content = <ModeCards />
+			break;
+		}
+	}
+
+	return <BoxDown>
+		{content}
+		<BoxRight>
+			<Button style={{ width: "100%" }} highlighted={mode == Mode.sinks} on_click={() => {
+				setMode(Mode.sinks);
+			}}>Sinks</Button>
+			<Button style={{ width: "100%" }} highlighted={mode == Mode.cards} on_click={() => {
+				setMode(Mode.cards);
+			}}>Cards</Button>
+		</BoxRight>
 	</BoxDown>
 }
