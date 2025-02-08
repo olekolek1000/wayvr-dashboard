@@ -11,6 +11,11 @@ pub struct VolumeChannel {
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Volume {
+	// WiVRn and other devices
+	pub aux0: Option<VolumeChannel>,
+	pub aux1: Option<VolumeChannel>,
+
+	// Analog and HDMI devices
 	#[serde(rename = "front-left")]
 	pub front_left: Option<VolumeChannel>,
 
@@ -121,11 +126,17 @@ pub fn get_sink_from_index(sinks: &[Sink], index: u32) -> Option<&Sink> {
 }
 
 pub fn get_sink_volume(sink: &Sink) -> anyhow::Result<f32> {
-	let Some(front_left) = &sink.volume.front_left else {
-		return Ok(0.0); // fail silently
+	let volume_channel = {
+		if let Some(front_left) = &sink.volume.front_left {
+			front_left
+		} else if let Some(aux0) = &sink.volume.aux0 {
+			aux0
+		} else {
+			return Ok(0.0); // fail silently
+		}
 	};
 
-	let Some(pair) = front_left.value_percent.split_once("%") else {
+	let Some(pair) = volume_channel.value_percent.split_once("%") else {
 		anyhow::bail!("volume percentage invalid"); // shouldn't happen
 	};
 

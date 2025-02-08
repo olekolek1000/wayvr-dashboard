@@ -38,6 +38,8 @@ export namespace ipc {
 		db: string;
 	}
 	export interface AudioVolume {
+		aux0?: AudioVolumeChannel;
+		aux1?: AudioVolumeChannel;
 		front_left?: AudioVolumeChannel;
 		front_right?: AudioVolumeChannel;
 	}
