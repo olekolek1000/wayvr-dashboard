@@ -113,10 +113,10 @@ export function Dashboard({ globals }: { globals: Globals }) {
 	}
 	else {
 		content = <div className={style.content}>
-			<Overlays globals={globals} />
 			<div className={style.current_panel}>
 				{current_panel}
 			</div>
+			<Overlays globals={globals} />
 		</div>;
 	}
 

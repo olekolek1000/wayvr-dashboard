@@ -301,8 +301,8 @@ export function Inline({ children }: { children?: any }) {
 	</div>
 }
 
-export function Container({ children, className, on_click }: { children?: any, className?: string, on_click?: () => void }) {
-	return <div className={`${scss.container} ${className ? className : ""}`} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={on_click !== undefined ? vibrate_hover : undefined} onClick={on_click}>
+export function Container({ children, className, on_click, highlighted }: { children?: any, className?: string, on_click?: () => void, highlighted?: boolean }) {
+	return <div className={`${scss.container} ${highlighted ? scss.container_highlighted : ""} ${className ? className : ""}`} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={on_click !== undefined ? vibrate_hover : undefined} onClick={on_click}>
 		{children}
 	</div>
 }
@@ -336,9 +336,9 @@ export function Checkbox({ pair, title, onChange }: { pair: [checked: boolean, s
 		<div className={`${scss.checkbox_checkmark} ${checked ? scss.checkbox_checkmark_checked : ""}`} >
 			{checked && "✔️"}
 		</div>
-		<div>
+		{title ? <div>
 			{title}
-		</div>
+		</div> : undefined}
 	</div>
 }
 
@@ -575,7 +575,7 @@ export enum BigButtonColor {
 	blue
 }
 
-export function Button({ children, size, icon, style, on_click, className, highlighted }: {
+export function Button({ children, size, icon, style, on_click, className, highlighted, bgcolor }: {
 	children?: any,
 	size?: number,
 	icon?: string,
@@ -583,7 +583,16 @@ export function Button({ children, size, icon, style, on_click, className, highl
 	style?: CSSProperties,
 	className?: string,
 	highlighted?: boolean,
+	bgcolor?: string,
 }) {
+	if (!style) {
+		style = {};
+	}
+
+	if (bgcolor) {
+		style.backgroundColor = bgcolor;
+	}
+
 	return <div
 		onMouseDown={vibrate_down}
 		onMouseUp={vibrate_up}
@@ -591,7 +600,7 @@ export function Button({ children, size, icon, style, on_click, className, highl
 		onClick={on_click}
 		style={style}
 		className={`${scss.button} ${highlighted ? scss.button_highlighted : ""} ${className}`} >
-		{icon ? <Icon width={size} height={size} path={icon} /> : undefined}
+		{icon ? <Icon width={size ? size : 16} height={size ? size : 16} path={icon} /> : undefined}
 		{children}
 	</div>
 }

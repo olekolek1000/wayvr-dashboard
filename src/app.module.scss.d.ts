@@ -63,6 +63,7 @@ declare const classNames: {
   readonly slider_handle: "slider_handle";
   readonly popup: "popup";
   readonly container: "container";
+  readonly container_highlighted: "container_highlighted";
   readonly error_text: "error_text";
   readonly text_green: "text_green";
   readonly text_red: "text_red";

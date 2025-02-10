@@ -593,14 +593,16 @@ body {
 	display: flex;
 	border: 2px solid vars.$color-border;
 	background-color: rgba(170, 200, 255, 0.05);
-	justify-content: center;
+	justify-content: left;
 	align-items: center;
-	gap: 4px;
+	gap: 8px;
 	padding: 4px 12px 4px 12px;
 	border-radius: 4px;
 	box-sizing: border-box;
-	text-align: center;
+	text-align: lueif;
 	color: white;
+	font-size: 0.8em;
+	font-weight: 500;
 }
 
 .button:hover {
@@ -851,6 +853,10 @@ body {
 	background-color: rgba(16, 24, 32, 0.5);
 	padding: 8px;
 	border-radius: 8px;
+}
+
+.container_highlighted {
+	background-color: rgba(44, 85, 150, 0.5);
 }
 
 .error_text {

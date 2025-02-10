@@ -31,6 +31,7 @@ pub struct Sink {
 	pub description: String, // Starship/Matisse HD Audio Controller Analog Stereo
 	pub mute: bool,          // false
 	pub volume: Volume,
+	pub properties: HashMap<String, String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

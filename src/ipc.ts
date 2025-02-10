@@ -50,6 +50,7 @@ export namespace ipc {
 		name: string;
 		description: string;
 		mute: boolean;
+		properties: MapType<string, string>;
 		volume: AudioVolume;
 	}
 
