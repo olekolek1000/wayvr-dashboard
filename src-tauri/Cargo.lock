@@ -4562,7 +4562,7 @@ dependencies = [
 
 [[package]]
 name = "wayvr_dashboard"
-version = "0.1.2"
+version = "0.2.1"
 dependencies = [
  "alsa",
  "anyhow",
