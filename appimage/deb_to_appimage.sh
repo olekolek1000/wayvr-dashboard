@@ -6,8 +6,8 @@ SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 REPO_DIR="${SCRIPT_DIR}/../"
 
 APPIMAGETOOL="https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
-LIB4BIN="https://raw.githubusercontent.com/VHSgunzo/sharun/refs/heads/main/lib4bin"
-SHARUNBIN="https://github.com/VHSgunzo/sharun/releases/download/v0.2.5/sharun-x86_64"
+LIB4BIN="https://raw.githubusercontent.com/VHSgunzo/sharun/9a6124a82595a835b07ea7fad7301be736e5a39b/lib4bin"
+SHARUNBIN="https://github.com/VHSgunzo/sharun/releases/download/v0.3.3/sharun-x86_64"
 
 cd "${SCRIPT_DIR}"
 
@@ -16,7 +16,7 @@ rm -rf AppDir
 mkdir -p AppDir
 cd AppDir
 
-cp "${REPO_DIR}/src-tauri/target/release/bundle/deb/wayvr_dashboard_0.2.1_amd64.deb" ./package.deb
+cp "${REPO_DIR}/src-tauri/target/release/bundle/deb/wayvr_dashboard_0.2.2_amd64.deb" ./package.deb
 ar vx ./package.deb
 
 tar -xvf data.tar.gz

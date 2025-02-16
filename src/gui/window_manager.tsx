@@ -69,6 +69,11 @@ export class WindowManager {
 		this.refresh();
 	}
 
+	popAll() {
+		this.windows = [];
+		this.refresh();
+	}
+
 	refresh() {
 		this.setKey(this.key + 1);
 	}

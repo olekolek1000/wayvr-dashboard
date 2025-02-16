@@ -226,6 +226,8 @@ async function hideAllDashboardWindows() {
 }
 
 export async function unfocusAll(globals: Globals) {
+	globals.wm.popAll();
+
 	if (!await ipc.is_ipc_connected()) {
 		return;
 	}
