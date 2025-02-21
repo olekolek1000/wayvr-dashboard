@@ -1,6 +1,6 @@
 import { ipc } from "../ipc";
 import style from "../app.module.scss"
-import { BoxRight, Button, Icon, Tooltip } from "../gui/gui";
+import { BoxRight, Button, Icon, TooltipSimple } from "../gui/gui";
 import { getAllWindows, getDesktopFileURL, obj_equals } from "@/utils";
 import { useEffect, useState } from "preact/hooks";
 
@@ -53,14 +53,14 @@ function ProcessEntry({ process, display, windows, on_refresh }: { process: ipc.
 	}
 
 	return <div className={style.wayvr_process}>
-		<Tooltip simple title={"Terminate process \"" + process_name + "\""}>
+		<TooltipSimple title={"Terminate process \"" + process_name + "\""}>
 			<Button icon="icons/remove_circle.svg" on_click={async () => {
 				await ipc.process_terminate(process.handle);
 				setTimeout(() => {
 					on_refresh();
 				}, 100);
 			}} />
-		</Tooltip>
+		</TooltipSimple>
 		<div className={style.wayvr_process_name} >
 			{name}
 			{e_disp}

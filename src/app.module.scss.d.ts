@@ -67,5 +67,6 @@ declare const classNames: {
   readonly error_text: "error_text";
   readonly text_green: "text_green";
   readonly text_red: "text_red";
+  readonly battery_container: "battery_container";
 };
 export default classNames;

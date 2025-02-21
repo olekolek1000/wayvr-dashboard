@@ -1,4 +1,7 @@
+use std::sync::Arc;
+
 use tauri::{Emitter, Manager};
+use tokio::sync::Mutex;
 use wayvr_ipc::{
 	client::{WayVRClient, WayVRClientMutex},
 	ipc,
@@ -10,6 +13,7 @@ pub struct AppState {
 	pub steam_bridge: SteamBridge,
 	pub wayvr_client: Option<WayVRClientMutex>,
 	pub serial_generator: ipc::SerialGenerator,
+	pub monado: Option<Arc<Mutex<libmonado::Monado>>>,
 }
 
 impl AppState {
@@ -17,6 +21,17 @@ impl AppState {
 		let serial_generator = ipc::SerialGenerator::new();
 
 		let steam_bridge = SteamBridge::new()?;
+
+		let monado = match libmonado::Monado::auto_connect() {
+			Ok(monado) => {
+				log::info!("Connected to Monado IPC");
+				Some(Arc::new(Mutex::new(monado)))
+			}
+			Err(e) => {
+				log::warn!("Couldn't connect to Monado IPC: {}", e);
+				None
+			}
+		};
 
 		let wayvr_client = match WayVRClient::new("WayVR Dashboard").await {
 			Ok(c) => Some(c),
@@ -30,7 +45,13 @@ impl AppState {
 			steam_bridge,
 			wayvr_client,
 			serial_generator,
+			monado,
 		})
+	}
+
+	pub async fn get_monado(&self) -> Option<tokio::sync::OwnedMutexGuard<libmonado::Monado>> {
+		let monado = self.monado.clone()?;
+		Some(monado.lock_owned().await)
 	}
 
 	pub async fn configure_signal_handler(handle: tauri::AppHandle) {

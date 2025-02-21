@@ -1,6 +1,6 @@
 [package]
 name = "wayvr_dashboard"
-version = "0.2.2"
+version = "0.2.3"
 description = "A VR dashboard for WayVR"
 authors = ["oo8.dev"]
 edition = "2021"
@@ -36,7 +36,7 @@ walkdir = "2.5.0"
 xdg = "2.5.2"
 anyhow = "1.0.93"
 rust-ini = "0.21.1"
-#steamworks = "0.11.0"
+libmonado = { git = "https://github.com/olekolek1000/libmonado-rs.git", rev = "edfbba6f47ee28181755c80531586e3eb91745c8" }
 log = "0.4.22"
 env_logger = "0.11.6"
 keyvalues-parser = { git = "https://github.com/CosmicHorrorDev/vdf-rs.git" }

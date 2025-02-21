@@ -31,6 +31,13 @@ where
 	result.map_err(|e| format!("failed to {}: {}", msg, e))
 }
 
+fn handle_err<T, E>(result: Result<T, E>) -> Result<T, String>
+where
+	E: std::fmt::Display,
+{
+	result.map_err(|e| format!("error: {}", e))
+}
+
 #[tauri::command]
 pub fn desktop_file_list() -> Result<Vec<DesktopFile>, String> {
 	Ok(
@@ -149,6 +156,73 @@ pub fn get_username() -> String {
 		Ok(user) => user,
 		Err(_) => String::from("anonymous"),
 	}
+}
+
+fn get_err_monado() -> String {
+	String::from("Monado is not present")
+}
+
+#[tauri::command]
+pub fn is_monado_present(state: tauri::State<'_, AppState>) -> bool {
+	state.monado.is_some()
+}
+
+#[derive(Serialize)]
+pub struct BatteryLevel {
+	device_name: String,
+	percent: f32,
+	charging: bool,
+}
+
+#[tauri::command]
+pub async fn monado_get_battery_levels(
+	state: tauri::State<'_, AppState>,
+) -> Result<Vec<BatteryLevel>, String> {
+	let Some(monado) = state.get_monado().await else {
+		return Err(get_err_monado());
+	};
+
+	let mut res = Vec::<BatteryLevel>::new();
+
+	for device in handle_err(monado.devices())? {
+		let Ok(bat) = device.battery_status() else {
+			continue; // just ignore
+		};
+
+		if !bat.present {
+			continue; // battery not present
+		}
+
+		res.push(BatteryLevel {
+			device_name: device.name,
+			charging: bat.charging,
+			percent: bat.charge,
+		})
+	}
+
+	Ok(res)
+}
+
+#[tauri::command]
+pub async fn monado_recenter(state: tauri::State<'_, AppState>) -> Result<(), String> {
+	let Some(_monado) = state.get_monado().await else {
+		return Err(get_err_monado());
+	};
+
+	todo!();
+
+	//Ok(())
+}
+
+#[tauri::command]
+pub async fn monado_fix_floor(state: tauri::State<'_, AppState>) -> Result<(), String> {
+	let Some(_monado) = state.get_monado().await else {
+		return Err(get_err_monado());
+	};
+
+	todo!();
+
+	//Ok(())
 }
 
 // ############################

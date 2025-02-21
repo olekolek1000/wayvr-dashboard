@@ -155,8 +155,30 @@ export namespace ipc {
 		return await invoke("open_devtools");
 	}
 
-	export async function is_ipc_connected(): Promise<boolean> {
-		return await invoke("is_ipc_connected");
+	// ================================================================================
+	// Monado related below
+	// ================================================================================
+
+	export interface MonadoBatteryLevel {
+		device_name: string;
+		percent: number;
+		charging: boolean;
+	}
+
+	export async function is_monado_present(): Promise<boolean> {
+		return await invoke("is_monado_present");
+	}
+
+	export async function monado_recenter(): Promise<void> {
+		return await invoke("monado_recenter");
+	}
+
+	export async function monado_fix_floor(): Promise<void> {
+		return await invoke("monado_fix_floor");
+	}
+
+	export async function monado_get_battery_levels(): Promise<MonadoBatteryLevel[]> {
+		return await invoke("monado_get_battery_levels");
 	}
 
 	// ================================================================================
@@ -231,6 +253,10 @@ export namespace ipc {
 		HandRight = "HandRight",
 		Head = "Head",
 		Stage = "Stage"
+	}
+
+	export async function is_ipc_connected(): Promise<boolean> {
+		return await invoke("is_ipc_connected");
 	}
 
 	export async function auth_get_info(): Promise<AuthInfo | undefined> {

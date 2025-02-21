@@ -1,4 +1,4 @@
-import { BoxRight, PanelButton, Tooltip } from "@/gui/gui";
+import { BoxRight, PanelButton, TooltipSimple } from "@/gui/gui";
 import { ipc } from "@/ipc";
 import { focusWindow, getAllWindows, getDesktopFileURL } from "@/utils";
 import { useEffect, useState } from "preact/hooks";
@@ -30,11 +30,11 @@ function WindowEntry({ globals, windows, window }: {
 		return;
 	}
 
-	return <Tooltip extend simple title={desktop_file.name}>
+	return <TooltipSimple extend title={desktop_file.name}>
 		<PanelButton icon_size={32} square icon={getDesktopFileURL(desktop_file)} opacity={window.visible ? 1.0 : 0.5} on_click={() => {
 			focusWindow(globals, window);
 		}} />
-	</Tooltip>
+	</TooltipSimple>
 }
 
 

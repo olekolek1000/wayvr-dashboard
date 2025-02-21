@@ -164,34 +164,14 @@ export function Slider({ value, setValue, width, on_change, steps }: {
 	</div>
 }
 
-export function Tooltip({ children, title, simple, extend }: { children: any, title: any, simple?: boolean, extend?: boolean }) {
+export function TooltipSide({ children, title }: { children: any, title: any }) {
 	const [hovered, setHovered] = useState(false);
 	const ref_tooltip = useRef<HTMLDivElement | null>(null);
 
-	let content = undefined;
-
-	if (hovered) {
-		content = <div ref={ref_tooltip} className={simple ? scss.tooltip_simple : scss.tooltip}>
-			{title}
-		</div>
-	};
-
-	let top;
-	let bottom;
-
-	if (simple) {
-		top = "0";
-		bottom = undefined;
-	}
-	else {
-		top = "0";
-		bottom = undefined;
-	}
-
 	return <div style={{
 		position: "relative",
-		width: (!simple || extend) ? "100%" : undefined,
-		height: (!simple || extend) ? "100%" : undefined,
+		width: "100%",
+		height: "100%",
 	}} onMouseEnter={() => {
 		setHovered(true);
 	}} onMouseLeave={() => {
@@ -200,15 +180,57 @@ export function Tooltip({ children, title, simple, extend }: { children: any, ti
 		<>
 			{hovered ? <div style={{
 				position: "absolute",
-				right: simple ? undefined : "0",
-				top: top,
-				bottom: bottom,
+				top: "0",
+				right: "0"
 			}}>
-				{content}
+				<div ref={ref_tooltip} className={scss.tooltip}>
+					{title}
+				</div>
 			</div> : undefined}
 			{children}
 		</>
 	</div>
+
+}
+
+
+export function TooltipSimple({ children, title, extend }: { children: any, title: any, extend?: boolean }) {
+	const [hovered, setHovered] = useState(false);
+	const [left_side, setLeftSide] = useState(false);
+	const ref_tooltip = useRef<HTMLDivElement | null>(null);
+
+	let trans = "translateY(calc(-100% - 2px))";
+
+	if (!left_side) {
+		trans += " translateX(-100%)"
+	}
+
+	return <div style={{
+		position: "relative",
+		width: extend ? "100%" : undefined,
+		height: extend ? "100%" : undefined,
+	}} onMouseEnter={(e) => {
+		const percent = e.pageX / window.innerWidth;
+		setLeftSide(percent < 0.5);
+		setHovered(true);
+	}} onMouseLeave={() => {
+		setHovered(false);
+	}}>
+		<>
+			{hovered ? <div style={{
+				position: "absolute",
+				right: left_side ? undefined : "0"
+			}}>
+				<div ref={ref_tooltip} className={scss.tooltip_simple} style={{
+					transform: trans
+				}}>
+					{title}
+				</div>
+			</div> : undefined}
+			{children}
+		</>
+	</div>
+
 }
 
 class FailedCovers {

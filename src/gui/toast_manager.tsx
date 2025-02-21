@@ -36,6 +36,10 @@ export class ToastManager {
 		}
 	}
 
+	pushMonadoNotPresent() {
+		this.push("Monado is not present");
+	}
+
 	popFront() {
 		if (this.toasts.length == 0) {
 			return;

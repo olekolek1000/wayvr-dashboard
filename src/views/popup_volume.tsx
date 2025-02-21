@@ -1,5 +1,5 @@
 import { Globals } from "@/globals";
-import { BoxDown, BoxRight, Button, Checkbox, Container, Icon, Slider, Tooltip } from "@/gui/gui";
+import { BoxDown, BoxRight, Button, Checkbox, Container, Icon, Slider, TooltipSimple } from "@/gui/gui";
 import { ipc } from "@/ipc";
 import { unfocusAll } from "@/utils";
 import { useEffect, useState } from "preact/hooks";
@@ -404,13 +404,13 @@ export function PopupVolume({ globals }: { globals: Globals }) {
 	return <BoxDown key={key}>
 		{content}
 		<BoxRight>
-			<Tooltip title="Auto-switch to VR audio" simple >
+			<TooltipSimple title="Auto-switch to VR audio" >
 				<Button bgcolor="#00CCFFAA" icon="icons/magic_wand.svg" on_click={async () => {
 					await switchToVRAudio(globals, () => {
 						setKey(key + 1);
 					});
 				}} />
-			</Tooltip>
+			</TooltipSimple>
 			<Button icon="icons/volume.svg" style={{ width: "100%" }} highlighted={mode == Mode.sinks} on_click={() => {
 				setMode(Mode.sinks);
 			}}>Sinks</Button>

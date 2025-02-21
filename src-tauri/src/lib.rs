@@ -28,10 +28,15 @@ pub async fn run() {
 			frontend_ipc::audio_get_default_sink,
 			frontend_ipc::audio_list_cards,
 			frontend_ipc::audio_set_card_profile,
-			frontend_ipc::is_ipc_connected,
 			frontend_ipc::get_username,
 			frontend_ipc::open_devtools,
+			// # monado IPC below
+			frontend_ipc::is_monado_present,
+			frontend_ipc::monado_recenter,
+			frontend_ipc::monado_fix_floor,
+			frontend_ipc::monado_get_battery_levels,
 			// # wlx IPC below
+			frontend_ipc::is_ipc_connected,
 			frontend_ipc::auth_info,
 			frontend_ipc::display_list,
 			frontend_ipc::display_create,

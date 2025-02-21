@@ -1,7 +1,7 @@
 
 import { Clock } from "./clock";
-import style from "./app.module.scss"
-import { Icon, Tooltip, PanelButton, Popup, Button } from "./gui/gui";
+import scss from "./app.module.scss"
+import { Icon, PanelButton, Popup, Button, TooltipSimple, TooltipSide } from "./gui/gui";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { PanelHome } from "./panel/home";
 import { PanelGames } from "./panel/games";
@@ -16,7 +16,7 @@ import { WindowList } from "./views/window_list";
 import { PopupVolume } from "./views/popup_volume";
 
 function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) {
-	return <div onClick={on_click} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} className={style.menu_button}>
+	return <div onClick={on_click} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} className={scss.menu_button}>
 		<Icon path={icon} />
 	</div>
 }
@@ -54,22 +54,81 @@ async function configureLayout() {
 // To be implemented later
 
 /*
-<Tooltip extend simple title={"Menu"}>
+<TooltipSimple extend simple title={"Menu"}>
 	<PanelButton square icon="icons/burger.svg" on_click={() => {
 		globals.toast_manager.push("Not implemented");
 	}} />
-</Tooltip>
-<Tooltip extend simple title={"Recenter"}>
-	<PanelButton square icon="icons/recenter.svg" on_click={() => {
-		globals.toast_manager.push("Not implemented");
-	}} />
-</Tooltip>
-<Tooltip extend simple title={"Camera passthrough"}>
+</TooltipSimple>
+<TooltipSimple extend simple title={"Camera passthrough"}>
 	<PanelButton square icon="icons/eye.svg" on_click={() => {
 		globals.toast_manager.push("Not implemented");
 	}} />
-</Tooltip>
+</TooltipSimple>
+<TooltipSimple extend simple title={"Recenter"}>
+	<PanelButton square icon="icons/recenter.svg" on_click={async () => {
+		if (!await ipc.is_monado_present()) {
+			globals.toast_manager.pushMonadoNotPresent();
+		}
+		await ipc.monado_recenter();
+	}} />
+</TooltipSimple>
+<TooltipSimple extend simple title={"Fix floor"}>
+	<PanelButton square icon="icons/fix_floor.svg" on_click={async () => {
+		if (!await ipc.is_monado_present()) {
+			globals.toast_manager.pushMonadoNotPresent();
+		}
+		await ipc.monado_fix_floor();
+	}} />
+</TooltipSimple>
 */
+
+function getBatPath(percent: number, charging: boolean) {
+	return "icons/bat_" + (charging ? "chr_" : "") + Math.round(percent * 10.0) * 10.0 + ".svg";
+}
+
+function Battery({ bat }: { bat: ipc.MonadoBatteryLevel }) {
+	return <TooltipSimple title={bat.device_name}>
+		<div className={scss.battery_container}>
+			<Icon path={getBatPath(bat.percent, bat.charging)} height={24} width={24} />
+			{Math.round(bat.percent * 100.0)}%
+		</div>
+	</TooltipSimple>
+}
+
+function BatteryLevels() {
+	const [bats, setBats] = useState<ipc.MonadoBatteryLevel[] | undefined>(undefined);
+
+	const refresh = async () => {
+		if (!await ipc.is_monado_present()) {
+			return;
+		}
+
+		setBats(await ipc.monado_get_battery_levels());
+	}
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			refresh();
+		}, 10000);
+
+		refresh();
+
+		return () => {
+			clearInterval(interval);
+		}
+	}, []);
+
+
+	if (bats === undefined) {
+		return <></>;
+	}
+
+	return <>
+		{bats.map((bat) => {
+			return <Battery bat={bat} />
+		})}
+	</>
+}
 
 export function Dashboard({ globals }: { globals: Globals }) {
 	const [current_panel, setCurrentPanel] = useState(<PanelHome globals={globals} />);
@@ -103,8 +162,8 @@ export function Dashboard({ globals }: { globals: Globals }) {
 	let content = undefined;
 
 	if (showing_process) {
-		content = <div className={style.content_showing_process} >
-			<div className={style.showing_process_bottom_bar}>
+		content = <div className={scss.content_showing_process} >
+			<div className={scss.showing_process_bottom_bar}>
 				<Button size={16} icon="icons/back.svg" on_click={() => {
 					unfocusAll(globals);
 				}}>Hide window</Button>
@@ -112,8 +171,8 @@ export function Dashboard({ globals }: { globals: Globals }) {
 		</div>;
 	}
 	else {
-		content = <div className={style.content}>
-			<div className={style.current_panel}>
+		content = <div className={scss.content}>
+			<div className={scss.current_panel}>
 				{current_panel}
 			</div>
 			<Overlays globals={globals} />
@@ -123,48 +182,48 @@ export function Dashboard({ globals }: { globals: Globals }) {
 	return (
 		<>
 			{popup_volume}
-			<div className={style.separator_menu_rest}>
-				<div className={style.menu} >
-					<Tooltip title={"Home screen"}>
+			<div className={scss.separator_menu_rest}>
+				<div className={scss.menu} >
+					<TooltipSide title={"Home screen"}>
 						<MenuButton icon="wayvr_dashboard_transparent.webp" on_click={async () => {
 							await unfocusAll(globals);
 							setCurrentPanel(<PanelHome globals={globals} />);
 						}} />
-					</Tooltip>
-					<Tooltip title={"Applications"}>
+					</TooltipSide>
+					<TooltipSide title={"Applications"}>
 						<MenuButton icon="icons/apps.svg" on_click={async () => {
 							await unfocusAll(globals);
 							setCurrentPanel(<PanelApplications globals={globals} />);
 						}} />
-					</Tooltip>
-					<Tooltip title={"Games"}>
+					</TooltipSide>
+					<TooltipSide title={"Games"}>
 						<MenuButton icon="icons/games.svg" on_click={async () => {
 							await unfocusAll(globals);
 							setCurrentPanel(<PanelGames globals={globals} />);
 						}} />
-					</Tooltip>
+					</TooltipSide>
 
-					<Tooltip title={"Process manager"}>
+					<TooltipSide title={"Process manager"}>
 						<MenuButton icon="icons/window.svg" on_click={async () => {
 							await unfocusAll(globals);
 							setCurrentPanel(<PanelRunningApps globals={globals} />);
 						}} />
-					</Tooltip>
+					</TooltipSide>
 
-					<div className={style.menu_separator} />
+					<div className={scss.menu_separator} />
 
-					<Tooltip title={"Settings"}>
+					<TooltipSide title={"Settings"}>
 						<MenuButton icon="icons/settings.svg" on_click={async () => {
 							await unfocusAll(globals);
 							setCurrentPanel(<PanelSettings globals={globals} />);
 						}} />
-					</Tooltip>
+					</TooltipSide>
 				</div>
-				<div className={style.separator_content_panel}>
+				<div className={scss.separator_content_panel}>
 					{content}
-					<div className={style.panel}>
-						<div className={style.panel_left}>
-							<Tooltip extend simple title={"Volume"}>
+					<div className={scss.panel}>
+						<div className={scss.panel_left}>
+							<TooltipSimple extend title={"Volume"}>
 								<PanelButton ext_ref={ref_volume} square icon="icons/volume.svg" on_click={() => {
 									if (popup_volume !== null) {
 										setPopupVolume(null);
@@ -175,15 +234,15 @@ export function Dashboard({ globals }: { globals: Globals }) {
 										</Popup>);
 									}
 								}} />
-							</Tooltip>
-
+							</TooltipSimple>
 						</div>
-						<div className={style.panel_center}>
-							<div className={style.panel_window_list}>
+						<div className={scss.panel_center}>
+							<div className={scss.panel_window_list}>
 								<WindowList globals={globals} key={generation_state} />
 							</div>
 						</div>
-						<div className={style.panel_right}>
+						<div className={scss.panel_right}>
+							<BatteryLevels />
 							<Clock />
 						</div>
 					</div>

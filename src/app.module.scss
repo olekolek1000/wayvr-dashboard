@@ -243,17 +243,22 @@ body {
 }
 
 .panel_right {
+	display: flex;
 	position: absolute;
 	right: 0;
 	top: 50%;
 	transform: translateY(-50%);
 	margin-right: 4px;
+	height: 48px;
+	justify-content: center;
+	align-items: center;
 }
 
 .clock {
 	font-weight: 100;
 	font-size: 1.2em;
 	margin-right: 12px;
+	margin-left: 12px;
 }
 
 .panel_button {
@@ -443,15 +448,10 @@ body {
 
 @keyframes tooltip_simple_showup {
 	0% {
-		transform: perspective(300px) rotateX(90deg);
 		opacity: 0;
 	}
-	50% {
-		transform: perspective(300px) rotateX(20deg);
-		opacity: 1;
-	}
+
 	100% {
-		transform: perspective(300px) rotateX(0deg);
 		opacity: 1;
 	}
 }
@@ -471,9 +471,8 @@ body {
 	padding-bottom: 4px;
 	position: absolute;
 
-	animation: tooltip_simple_showup 0.15s linear;
+	animation: tooltip_simple_showup 0.05s linear;
 	transform-origin: 50% 100%;
-	top: -32px;
 }
 
 .tooltip_simple:hover {
@@ -880,4 +879,19 @@ body {
 
 .text_red {
 	color: #f99;
+}
+
+.battery_container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	font-size: 0.6em;
+	font-weight: 500;
+	border-radius: 4px;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+
+.battery_container:hover {
+	background-color: rgba(255, 255, 255, 0.25);
 }
