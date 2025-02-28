@@ -34,8 +34,23 @@ async function scanForFocusedWindows(globals: Globals) {
 export function run_listeners(globals: Globals) {
 	listen("signal_state_changed", (event) => {
 		const payload = event.payload as string;
-		if (payload === "WindowCreated") {
-			scanForFocusedWindows(globals);
+		switch (payload) {
+			case "WindowCreated": {
+				scanForFocusedWindows(globals);
+				break;
+			}
+			case "DashboardShown": {
+				globals.setVisible(true);
+				break;
+			}
+			case "DashboardHidden": {
+				globals.setVisible(false);
+				break;
+			}
+			default: {
+				console.warn("Unknown payload:", payload);
+				break;
+			}
 		}
 
 		globals.setGenerationState(globals.generation_state + 1);

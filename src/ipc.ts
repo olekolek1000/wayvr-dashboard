@@ -182,6 +182,31 @@ export namespace ipc {
 	}
 
 	// ================================================================================
+	// WLX related below
+	// ================================================================================
+
+	export interface WlxInputStatePointer {
+		pos: [number, number, number];
+	}
+	export interface WlxInputState {
+		hmd_pos: [number, number, number];
+		left: WlxInputStatePointer;
+		right: WlxInputStatePointer;
+	}
+
+	export async function haptics(params: {
+		intensity: number,
+		duration: number,
+		frequency: number
+	}): Promise<void> {
+		return await invoke("wlx_haptics", params);
+	}
+
+	export async function get_input_state(): Promise<WlxInputState> {
+		return await invoke("wlx_input_state");
+	}
+
+	// ================================================================================
 	// WayVR related below
 	// ================================================================================
 
@@ -260,39 +285,39 @@ export namespace ipc {
 	}
 
 	export async function auth_get_info(): Promise<AuthInfo | undefined> {
-		return await invoke("auth_info");
+		return await invoke("wvr_auth_info");
 	}
 
 	export async function display_list(): Promise<Array<Display>> {
-		return await invoke("display_list");
+		return await invoke("wvr_display_list");
 	}
 
 	export async function display_get(handle: DisplayHandle): Promise<Display> {
-		return await invoke("display_get", { handle: handle });
+		return await invoke("wvr_display_get", { handle: handle });
 	}
 
 	export async function display_remove(handle: DisplayHandle): Promise<void> {
-		return await invoke("display_remove", { handle: handle });
+		return await invoke("wvr_display_remove", { handle: handle });
 	}
 
 	export async function display_set_visible(params: {
 		handle: DisplayHandle,
 		visible: boolean,
 	}): Promise<void> {
-		return await invoke("display_set_visible", params);
+		return await invoke("wvr_display_set_visible", params);
 	}
 
 	export async function display_set_layout(params: {
 		handle: DisplayHandle,
 		layout: DisplayWindowLayout
 	}): Promise<void> {
-		return await invoke("display_set_layout", params);
+		return await invoke("wvr_display_set_layout", params);
 	}
 
 	export async function display_window_list(params: {
 		handle: DisplayHandle
 	}): Promise<Array<Window> | undefined> {
-		return await invoke("display_window_list", params);
+		return await invoke("wvr_display_window_list", params);
 	}
 
 	export async function display_create(params: {
@@ -303,7 +328,7 @@ export namespace ipc {
 		attachTo: AttachTo
 	}): Promise<DisplayHandle> {
 		console.log("Creating display with name " + params.name);
-		return await invoke("display_create", params)
+		return await invoke("wvr_display_create", params)
 	}
 
 	export async function window_set_visible(params: {
@@ -314,15 +339,15 @@ export namespace ipc {
 	}
 
 	export async function process_get(handle: ProcessHandle): Promise<Process | undefined> {
-		return await invoke("process_get", { handle: handle });
+		return await invoke("wvr_process_get", { handle: handle });
 	}
 
 	export async function process_list(): Promise<Array<Process>> {
-		return await invoke("process_list");
+		return await invoke("wvr_process_list");
 	}
 
 	export async function process_terminate(handle: ProcessHandle): Promise<void> {
-		return await invoke("process_terminate", { handle: handle });
+		return await invoke("wvr_process_terminate", { handle: handle });
 	}
 
 	export async function process_launch(params: {
@@ -333,14 +358,8 @@ export namespace ipc {
 		args: string,
 		userdata: Map<string, string>
 	}): Promise<ProcessHandle> {
-		return await invoke("process_launch", params);
+		return await invoke("wvr_process_launch", params);
 	}
 
-	export async function haptics(params: {
-		intensity: number,
-		duration: number,
-		frequency: number
-	}): Promise<void> {
-		return await invoke("haptics", params);
-	}
+
 }

@@ -7,6 +7,7 @@ declare const classNames: {
   readonly menu_separator: "menu_separator";
   readonly separator: "separator";
   readonly menu_button: "menu_button";
+  readonly dashboard_showup: "dashboard_showup";
   readonly separator_menu_rest: "separator_menu_rest";
   readonly separator_content_panel: "separator_content_panel";
   readonly content_showing_process: "content_showing_process";

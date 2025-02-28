@@ -1,29 +1,29 @@
 import { useEffect, useState } from "preact/hooks";
 import style from "./app.module.scss"
 
-function getTimeString() {
-  let date = new Date();
-  let options = {
-    hour: "2-digit", minute: "2-digit"
-  };
+function getTimeString(twelve_hour: boolean) {
+	let date = new Date();
+	let options = {
+		hour: "2-digit", minute: "2-digit"
+	};
 
-  return date.toLocaleTimeString("en-us", options as any)
+	return date.toLocaleTimeString(twelve_hour ? "en-US" : "en-GB", options as any)
 }
 
-export function Clock({ }: {}) {
-  const [time, setTime] = useState(getTimeString());
+export function Clock({ twelve_hour }: { twelve_hour: boolean }) {
+	const [time, setTime] = useState(getTimeString(twelve_hour));
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(getTimeString());
-    }, 60000 /* roughly every minute */);
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setTime(getTimeString(twelve_hour));
+		}, 60000 /* roughly every minute */);
 
-    return () => {
-      clearInterval(interval);
-    }
-  }, []);
+		return () => {
+			clearInterval(interval);
+		}
+	}, []);
 
-  return <div className={style.clock}>
-    {time}
-  </div>
+	return <div className={style.clock}>
+		{time}
+	</div>
 }

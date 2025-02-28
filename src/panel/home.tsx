@@ -8,8 +8,9 @@ import { PanelApplications } from "./applications";
 import { PanelGames } from "./games";
 import { PanelSettings } from "./settings";
 import { PanelRunningApps } from "./running_apps";
+import { preferences } from "@/preferences";
 
-function Hello({ }: {}) {
+function Hello({ prefs }: { prefs: preferences.Preferences }) {
 	const [username, setUsername] = useState<string | undefined>(undefined);
 
 	useEffect(() => {
@@ -20,7 +21,12 @@ function Hello({ }: {}) {
 		})();
 	}, []);
 
-	return <div className={scss_home.big_title}>Hello, {username}!</div>
+	if (prefs.hide_username) {
+		return <div className={scss_home.big_title}>Hello!</div>
+	}
+	else {
+		return <div className={scss_home.big_title}>Hello, {username}!</div>
+	}
 }
 
 function Auth({ }: {}) {
@@ -53,7 +59,7 @@ export function PanelHome({ globals }: { globals: Globals }) {
 			setIconClass(scss_home.icon_dec_size);
 
 			setCategories(<div className={scss_home.categories}>
-				<Hello />
+				<Hello prefs={globals.prefs} />
 				<Auth />
 
 				<BoxRight>

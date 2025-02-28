@@ -1,6 +1,6 @@
 [package]
 name = "wayvr_dashboard"
-version = "0.2.3"
+version = "0.2.4"
 description = "A VR dashboard for WayVR"
 authors = ["oo8.dev"]
 edition = "2021"
@@ -28,7 +28,7 @@ incremental = true
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["protocol-asset", "devtools"] }
+tauri = { version = "2", features = ["protocol-asset", "devtools", "unstable"] }
 tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 tauri-plugin-fs = "2"
@@ -46,8 +46,9 @@ bytes = "1.9.0"
 tokio = "1.42.0"
 tokio-util = "0.7.13"
 smallvec = "1.13.2"
-wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "3c411d09ba1bba2609288e29739c0f1ec736b012", features = [
+wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "a72587d23f3bb8624d9aeb1f13c0a21e65350f51", features = [
 	"client",
 ] }
 alsa = "0.9.1"
 serde_json = "1.0.135"
+glam = { version = "0.30.0", features = ["mint"] }

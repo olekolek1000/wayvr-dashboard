@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import scss from "../app.module.scss"
 import { ipc } from "../ipc";
-import { get_app_details_json, getDashboardDisplay, getDefaultDisplay, getDesktopFileURL, listDisplays, openURL, vibrate_down, vibrate_hover, vibrate_up } from "../utils";
+import { get_app_details_json, getDashboardDisplay, getDesktopFileURL, listDisplays, openURL, vibrate_down, vibrate_hover, vibrate_up } from "../utils";
 import { WindowManager, WindowParams } from "./window_manager";
 import { Globals } from "@/globals";
 import { CSSProperties, JSX, Ref } from "preact/compat";
@@ -506,14 +506,7 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 	</div>
 }
 
-async function open_url_wrapper(url: string, globals: Globals) {
-	const target_disp = await getDefaultDisplay();
-	openURL(target_disp, url).then(() => {
-		globals.toast_manager.push("Webpage opened");
-	}).catch((e) => {
-		globals.wm.push(createWindowMessage(globals.wm, "Failed to open URL: " + e));
-	})
-}
+
 
 function ManifestView({ globals, manifest }: { globals: Globals, manifest: ipc.AppManifest }) {
 	const [details, setDetails] = useState(<></>);
@@ -551,11 +544,11 @@ function ManifestView({ globals, manifest }: { globals: Globals, manifest: ipc.A
 			<BoxRight>
 				<BigButton title="Product page" type={BigButtonColor.blue} on_click={async () => {
 					const url = "https://store.steampowered.com/app/" + manifest.app_id;
-					await open_url_wrapper(url, globals);
+					await openURL(url, globals);
 				}} />
 				<BigButton title="Reviews" type={BigButtonColor.blue} on_click={async () => {
 					const url = "https://steamcommunity.com/app/" + manifest.app_id + "/reviews";
-					await open_url_wrapper(url, globals);
+					await openURL(url, globals);
 				}} />
 			</BoxRight>
 		</div>

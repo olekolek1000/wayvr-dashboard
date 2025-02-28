@@ -5,6 +5,7 @@ use tokio::sync::Mutex;
 use wayvr_ipc::{
 	client::{WayVRClient, WayVRClientMutex},
 	ipc,
+	packet_server::PacketServer,
 };
 
 use crate::util::steam_bridge::SteamBridge;
@@ -65,10 +66,15 @@ impl AppState {
 		// configure signal handler
 		let handle = handle.clone();
 		client.on_signal = Some(Box::new(move |signal| match signal {
-			wayvr_ipc::client::Signal::WvrStateChanged(wvr_state_changed) => {
+			PacketServer::WvrStateChanged(wvr_state_changed) => {
 				if let Err(e) = handle.emit("signal_state_changed", wvr_state_changed) {
 					log::error!("Failed to send signal: {:?}", e);
 				}
+				true
+			}
+			_ => {
+				// Ignore packet
+				false
 			}
 		}));
 	}

@@ -2,6 +2,7 @@ import { fetch as tauri_fetch } from '@tauri-apps/plugin-http';
 import { getVersion } from '@tauri-apps/api/app';
 import { ipc } from './ipc';
 import { Globals } from './globals';
+import { createWindowMessage } from './gui/gui';
 
 export function get_external_url(absolute_path: string): string {
 	let api_path = (window as any).__TAURI_INTERNALS__.convertFileSrc(absolute_path)
@@ -123,7 +124,7 @@ export async function getAllWindows(): Promise<Array<ipc.Window>> {
 	return windows;
 }
 
-export async function openURL(disp: ipc.DisplayHandle, url: string) {
+async function openURLInternal(disp: ipc.DisplayHandle, url: string) {
 	let params = {
 		env: [],
 		exec: "xdg-open",
@@ -135,6 +136,15 @@ export async function openURL(disp: ipc.DisplayHandle, url: string) {
 
 	await ipc.display_set_visible({ handle: disp, visible: true });
 	await ipc.process_launch(params);
+}
+
+export async function openURL(url: string, globals: Globals) {
+	const target_disp = await getDefaultDisplay();
+	openURLInternal(target_disp, url).then(() => {
+		globals.toast_manager.push("Webpage opened");
+	}).catch((e) => {
+		globals.wm.push(createWindowMessage(globals.wm, "Failed to open URL: " + e));
+	})
 }
 
 export function getDesktopFileURL(desktop_file: ipc.DesktopFile) {

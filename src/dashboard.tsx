@@ -14,6 +14,8 @@ import { JSX } from "preact/jsx-runtime";
 import { getDashboardDisplay, unfocusAll, vibrate_down, vibrate_hover, vibrate_up } from "./utils";
 import { WindowList } from "./views/window_list";
 import { PopupVolume } from "./views/popup_volume";
+import { BatteryLevels } from "./views/battery_levels";
+import { preferences } from "./preferences";
 
 function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) {
 	return <div onClick={on_click} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} className={scss.menu_button}>
@@ -82,53 +84,12 @@ async function configureLayout() {
 </TooltipSimple>
 */
 
-function getBatPath(percent: number, charging: boolean) {
-	return "icons/bat_" + (charging ? "chr_" : "") + Math.round(percent * 10.0) * 10.0 + ".svg";
-}
-
-function Battery({ bat }: { bat: ipc.MonadoBatteryLevel }) {
-	return <TooltipSimple title={bat.device_name}>
-		<div className={scss.battery_container}>
-			<Icon path={getBatPath(bat.percent, bat.charging)} height={24} width={24} />
-			{Math.round(bat.percent * 100.0)}%
-		</div>
-	</TooltipSimple>
-}
-
-function BatteryLevels() {
-	const [bats, setBats] = useState<ipc.MonadoBatteryLevel[] | undefined>(undefined);
-
-	const refresh = async () => {
-		if (!await ipc.is_monado_present()) {
-			return;
-		}
-
-		setBats(await ipc.monado_get_battery_levels());
-	}
-
-	useEffect(() => {
-		const interval = setInterval(() => {
-			refresh();
-		}, 10000);
-
-		refresh();
-
-		return () => {
-			clearInterval(interval);
-		}
-	}, []);
-
-
-	if (bats === undefined) {
-		return <></>;
-	}
-
-	return <>
-		{bats.map((bat) => {
-			return <Battery bat={bat} />
-		})}
-	</>
-}
+const color_bg_opaque = `radial-gradient(
+	circle,
+	rgb(30, 40, 60) 60%,
+	rgb(0,0,40) 150%
+)
+`;
 
 export function Dashboard({ globals }: { globals: Globals }) {
 	const [current_panel, setCurrentPanel] = useState(<PanelHome globals={globals} />);
@@ -137,6 +98,11 @@ export function Dashboard({ globals }: { globals: Globals }) {
 
 	const [generation_state, setGenerationState] = useState(0);
 	const [showing_process, setShowingProcess] = useState<ipc.Process | undefined>(undefined);
+
+	const [prefs, setPrefs] = useState<preferences.Preferences>(preferences.loadPreferences());
+
+	// The dashboard is visible by default after startup
+	const [visible, setVisible] = useState(true);
 
 	const [wm_key, setWmKey] = useState(0);
 	globals.wm.key = wm_key;
@@ -153,10 +119,25 @@ export function Dashboard({ globals }: { globals: Globals }) {
 
 	globals.setCurrentPanel = setCurrentPanel;
 
+	globals.visible = visible;
+	globals.setVisible = setVisible;
+
+	globals.prefs = prefs;
+	globals.setPrefs = setPrefs;
+
 	useEffect(() => {
 		configureLayout().catch((e) => {
 			console.error(e);
 		})
+
+		/*const t = setInterval(async () => {
+			const state = await ipc.get_input_state();
+			//console.log(state);
+		}, 50);
+
+		return () => {
+			clearInterval(t);
+		}*/
 	}, []);
 
 	let content = undefined;
@@ -171,7 +152,9 @@ export function Dashboard({ globals }: { globals: Globals }) {
 		</div>;
 	}
 	else {
-		content = <div className={scss.content}>
+		content = <div className={scss.content} style={{
+			background: globals.prefs.opaque_background ? color_bg_opaque : undefined
+		}}>
 			<div className={scss.current_panel}>
 				{current_panel}
 			</div>
@@ -182,7 +165,9 @@ export function Dashboard({ globals }: { globals: Globals }) {
 	return (
 		<>
 			{popup_volume}
-			<div className={scss.separator_menu_rest}>
+			<div className={`${scss.separator_menu_rest} ${visible ? scss.dashboard_showup : ""}`} style={{
+				opacity: visible ? 1.0 : 0.0,
+			}}>
 				<div className={scss.menu} >
 					<TooltipSide title={"Home screen"}>
 						<MenuButton icon="wayvr_dashboard_transparent.webp" on_click={async () => {
@@ -235,6 +220,14 @@ export function Dashboard({ globals }: { globals: Globals }) {
 									}
 								}} />
 							</TooltipSimple>
+							<TooltipSimple extend title={"Recenter"}>
+								<PanelButton square icon="icons/recenter.svg" on_click={async () => {
+									if (!await ipc.is_monado_present()) {
+										globals.toast_manager.pushMonadoNotPresent();
+									}
+									await ipc.monado_recenter();
+								}} />
+							</TooltipSimple>
 						</div>
 						<div className={scss.panel_center}>
 							<div className={scss.panel_window_list}>
@@ -242,8 +235,8 @@ export function Dashboard({ globals }: { globals: Globals }) {
 							</div>
 						</div>
 						<div className={scss.panel_right}>
-							<BatteryLevels />
-							<Clock />
+							<BatteryLevels dash_visible={visible} />
+							<Clock key={prefs.twelve_hour_clock} twelve_hour={prefs.twelve_hour_clock ?? false} />
 						</div>
 					</div>
 				</div>

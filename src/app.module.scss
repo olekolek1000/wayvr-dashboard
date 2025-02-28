@@ -119,6 +119,36 @@ body {
 	@extend .shine;
 }
 
+// webkit supports only linear timing function
+@keyframes dashboard_showup {
+	0% {
+		transform: perspective(400px) rotateX(3deg) translateZ(-80px);
+		opacity: 0;
+	}
+	60% {
+		transform: perspective(400px) rotateX(1deg) translateZ(-20px);
+		opacity: 0.7;
+	}
+	75% {
+		transform: perspective(400px) rotateX(0.5deg) translateZ(-10px);
+		opacity: 0.9;
+	}
+	90% {
+		transform: perspective(400px) rotateX(0.25deg) translateZ(-2px);
+		opacity: 0.95;
+	}
+	100% {
+		transform: perspective(400px) rotateX(0deg);
+		opacity: 1;
+	}
+}
+
+.dashboard_showup {
+	animation-name: dashboard_showup;
+	animation-timing-function: linear;
+	animation-duration: 0.25s;
+}
+
 .separator_menu_rest {
 	display: flex;
 	flex-direction: row;
@@ -175,7 +205,6 @@ body {
 	position: absolute;
 	background-color: black;
 	border-radius: 8px;
-	font-size: 0.75em;
 	font-weight: bold;
 }
 

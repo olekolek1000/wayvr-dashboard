@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use libmonado::ReferenceSpaceType;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter};
 use wayvr_ipc::{
@@ -205,13 +206,35 @@ pub async fn monado_get_battery_levels(
 
 #[tauri::command]
 pub async fn monado_recenter(state: tauri::State<'_, AppState>) -> Result<(), String> {
-	let Some(_monado) = state.get_monado().await else {
+	let client = get_client(&state)?;
+
+	let Some(monado) = state.get_monado().await else {
 		return Err(get_err_monado());
 	};
 
-	todo!();
+	let input_state = handle_result(
+		"fetch input state",
+		WayVRClient::fn_wlx_input_state(client, state.serial_generator.increment_get()).await,
+	)?;
 
-	//Ok(())
+	let mut pose = handle_result(
+		"get reference space offset",
+		monado.get_reference_space_offset(ReferenceSpaceType::Stage),
+	)?;
+
+	log::info!("pose: {:?}", pose);
+
+	log::info!("input state: {:?}", input_state);
+
+	pose.position.x += input_state.hmd_pos[0];
+	pose.position.z += input_state.hmd_pos[2];
+
+	handle_result(
+		"set reference space offset",
+		monado.set_reference_space_offset(ReferenceSpaceType::Stage, pose),
+	)?;
+
+	Ok(())
 }
 
 #[tauri::command]
@@ -240,7 +263,7 @@ fn get_client(state: &AppState) -> Result<WayVRClientMutex, String> {
 }
 
 #[tauri::command]
-pub async fn auth_info(
+pub async fn wvr_auth_info(
 	state: tauri::State<'_, AppState>,
 ) -> Result<Option<wayvr_ipc::client::AuthInfo>, String> {
 	if state.wayvr_client.is_none() {
@@ -253,7 +276,7 @@ pub async fn auth_info(
 }
 
 #[tauri::command]
-pub async fn display_create(
+pub async fn wvr_display_create(
 	state: tauri::State<'_, AppState>,
 	width: u16,
 	height: u16,
@@ -281,7 +304,7 @@ pub async fn display_create(
 }
 
 #[tauri::command]
-pub async fn display_list(
+pub async fn wvr_display_list(
 	state: tauri::State<'_, AppState>,
 ) -> Result<Vec<packet_server::WvrDisplay>, String> {
 	handle_result(
@@ -292,7 +315,7 @@ pub async fn display_list(
 }
 
 #[tauri::command]
-pub async fn display_get(
+pub async fn wvr_display_get(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::WvrDisplayHandle,
 ) -> Result<Option<packet_server::WvrDisplay>, String> {
@@ -309,7 +332,7 @@ pub async fn display_get(
 }
 
 #[tauri::command]
-pub async fn display_window_list(
+pub async fn wvr_display_window_list(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::WvrDisplayHandle,
 ) -> Result<Option<Vec<packet_server::WvrWindow>>, String> {
@@ -325,7 +348,7 @@ pub async fn display_window_list(
 }
 
 #[tauri::command]
-pub async fn display_remove(
+pub async fn wvr_display_remove(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::WvrDisplayHandle,
 ) -> Result<(), String> {
@@ -341,7 +364,7 @@ pub async fn display_remove(
 }
 
 #[tauri::command]
-pub async fn display_set_visible(
+pub async fn wvr_display_set_visible(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::WvrDisplayHandle,
 	visible: bool,
@@ -353,7 +376,7 @@ pub async fn display_set_visible(
 }
 
 #[tauri::command]
-pub async fn display_set_layout(
+pub async fn wvr_display_set_layout(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::WvrDisplayHandle,
 	layout: packet_server::WvrDisplayWindowLayout,
@@ -365,7 +388,7 @@ pub async fn display_set_layout(
 }
 
 #[tauri::command]
-pub async fn window_set_visible(
+pub async fn wvr_window_set_visible(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::WvrWindowHandle,
 	visible: bool,
@@ -377,7 +400,7 @@ pub async fn window_set_visible(
 }
 
 #[tauri::command]
-pub async fn process_get(
+pub async fn wvr_process_get(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::WvrProcessHandle,
 ) -> Result<Option<packet_server::WvrProcess>, String> {
@@ -395,7 +418,7 @@ pub async fn process_get(
 }
 
 #[tauri::command]
-pub async fn process_list(
+pub async fn wvr_process_list(
 	state: tauri::State<'_, AppState>,
 ) -> Result<Vec<packet_server::WvrProcess>, String> {
 	handle_result(
@@ -406,7 +429,7 @@ pub async fn process_list(
 }
 
 #[tauri::command]
-pub async fn process_terminate(
+pub async fn wvr_process_terminate(
 	state: tauri::State<'_, AppState>,
 	handle: packet_server::WvrProcessHandle,
 ) -> Result<(), String> {
@@ -417,7 +440,7 @@ pub async fn process_terminate(
 }
 
 #[tauri::command]
-pub async fn process_launch(
+pub async fn wvr_process_launch(
 	state: tauri::State<'_, AppState>,
 	exec: String,
 	name: String,
@@ -445,7 +468,7 @@ pub async fn process_launch(
 }
 
 #[tauri::command]
-pub async fn haptics(
+pub async fn wlx_haptics(
 	state: tauri::State<'_, AppState>,
 	intensity: f32,
 	duration: f32,
@@ -462,5 +485,16 @@ pub async fn haptics(
 			},
 		)
 		.await,
+	)
+}
+
+#[tauri::command]
+pub async fn wlx_input_state(
+	state: tauri::State<'_, AppState>,
+) -> Result<packet_server::WlxInputState, String> {
+	handle_result(
+		"request input state",
+		WayVRClient::fn_wlx_input_state(get_client(&state)?, state.serial_generator.increment_get())
+			.await,
 	)
 }
