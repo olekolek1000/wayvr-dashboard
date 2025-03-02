@@ -381,13 +381,58 @@ export function RadioSelect({ items, pair }: { items: Array<string>, pair: [valu
 	</BoxDown>
 }
 
+async function launch(
+	globals: Globals,
+	selected_display: ipc.Display,
+	application: ipc.DesktopFile,
+	force_wayland: boolean,
+	xwayland_mode: boolean,
+) {
+	let env: Array<string> = [];
+
+	if (force_wayland) {
+		// This list could be larger, feel free to expand it
+		env.push("QT_QPA_PLATFORM=wayland");
+		env.push("GDK_BACKEND=wayland");
+		env.push("SDL_VIDEODRIVER=wayland");
+		env.push("XDG_SESSION_TYPE=wayland");
+		env.push("ELECTRON_OZONE_PLATFORM_HINT=wayland");
+	}
+
+	let userdata = new Map<string, string>();
+	userdata.set("desktop_file", JSON.stringify(application));
+
+	let params = xwayland_mode ? {
+		env: env,
+		exec: "cage",
+		name: application.name,
+		targetDisplay: selected_display.handle,
+		args: "-- " + application.exec,
+		userdata: userdata,
+	} : {
+		env: env,
+		exec: application.exec,
+		name: application.name,
+		targetDisplay: selected_display.handle,
+		args: "",
+		userdata: userdata,
+	};
+
+	ipc.display_set_visible({ handle: params.targetDisplay, visible: true }).catch(() => { });
+
+	ipc.process_launch(params).then(() => {
+		globals.toast_manager.push("Application launched on \"" + selected_display.name + "\"");
+		globals.wm.pop();
+	}).catch((e) => {
+		globals.wm.push(createWindowMessage(globals.wm, "Error: " + e));
+	})
+}
+
 function ApplicationView({ globals, application, }: { globals: Globals, application: ipc.DesktopFile }) {
 	const [details, setDetails] = useState(<></>);
 	const [xwayland_mode, setXWaylandMode] = useState(false);
 	const [force_wayland, setForceWayland] = useState(true);
 	const [displays, setDisplays] = useState<ipc.Display[] | null>(null);
-	const [selected_display, setSelectedDisplay] = useState<ipc.Display | null>(null);
-	const [detached_options, setDetachedOptions] = useState(false);
 
 	const refreshDisplays = async () => {
 		setDisplays(await listDisplays());
@@ -398,92 +443,6 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 		refreshDisplays();
 	}, []);
 
-	const launch = async (selected_display: ipc.Display) => {
-		let env: Array<string> = [];
-
-		if (force_wayland) {
-			// This list could be larger, feel free to expand it
-			env.push("QT_QPA_PLATFORM=wayland");
-			env.push("GDK_BACKEND=wayland");
-			env.push("SDL_VIDEODRIVER=wayland");
-			env.push("XDG_SESSION_TYPE=wayland");
-			env.push("ELECTRON_OZONE_PLATFORM_HINT=wayland");
-		}
-
-		let userdata = new Map<string, string>();
-		userdata.set("desktop_file", JSON.stringify(application));
-
-		let params = xwayland_mode ? {
-			env: env,
-			exec: "cage",
-			name: application.name,
-			targetDisplay: selected_display.handle,
-			args: "-- " + application.exec,
-			userdata: userdata,
-		} : {
-			env: env,
-			exec: application.exec,
-			name: application.name,
-			targetDisplay: selected_display.handle,
-			args: "",
-			userdata: userdata,
-		};
-
-		ipc.display_set_visible({ handle: params.targetDisplay, visible: true }).catch(() => { });
-
-		ipc.process_launch(params).then(() => {
-			globals.toast_manager.push("Application launched on \"" + selected_display.name + "\"");
-			globals.wm.pop();
-		}).catch((e) => {
-			globals.wm.push(createWindowMessage(globals.wm, "Error: " + e));
-		})
-	}
-
-	let el = undefined;
-
-	if (detached_options) {
-		el =
-			<Container>
-				<BoxRight>
-					<Button icon="icons/back.svg" on_click={() => {
-						setDetachedOptions(false);
-					}} />
-					<Title title="Select display to run app from" />
-				</BoxRight>
-				{
-					displays !== null ? <DisplayList displays={displays} params={{
-						on_add: () => {
-							createWindowAddDisplay(globals, async (display_handle) => {
-								// make it invisible by default so it wouldn't block input in front of the user
-								await ipc.display_set_visible({ handle: display_handle, visible: false });
-								await refreshDisplays();
-							});
-						},
-						on_click: (disp) => {
-							setSelectedDisplay(disp);
-						},
-						selected_display: selected_display ?? undefined
-					}} /> : undefined
-				}
-				{selected_display ? <BigButton extend title="Launch" icon="icons/play.svg" type={BigButtonColor.green} on_click={() => {
-					launch(selected_display);
-				}} /> : undefined}
-			</Container>
-	}
-	else {
-		el = <BoxRight>
-			<BigButton extend icon="icons/play.svg" title="Launch here" type={BigButtonColor.green} on_click={async () => {
-				const display = await getDashboardDisplay();
-				if (display !== null) {
-					await launch(display);
-				}
-			}} />
-
-			<BigButton extend icon="icons/panorama.svg" title="Launch detached" type={BigButtonColor.purple} on_click={async () => {
-				setDetachedOptions(true);
-			}} />
-		</BoxRight>;
-	}
 
 	return <div className={scss.previewer_content}>
 		<ApplicationCover big application={application} />
@@ -501,7 +460,33 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 				}
 			}} />
 
-			{el}
+			<BoxRight>
+				<BigButton icon="icons/play.svg" title="Launch embedded" type={BigButtonColor.green} on_click={async () => {
+					const display = await getDashboardDisplay();
+					if (display !== null) {
+						await launch(globals, display, application, force_wayland, xwayland_mode);
+					}
+				}} />
+			</BoxRight>
+
+			<Container>
+				<b>Or launch it detached</b>
+				{
+					displays !== null ? <DisplayList displays={displays} params={{
+						on_add: () => {
+							createWindowAddDisplay(globals, async (display_handle) => {
+								// make it invisible by default so it wouldn't block input in front of the user
+								await ipc.display_set_visible({ handle: display_handle, visible: false });
+								const display = await ipc.display_get(display_handle);
+								await launch(globals, display, application, force_wayland, xwayland_mode);
+							});
+						},
+						on_click: async (disp) => {
+							await launch(globals, disp, application, force_wayland, xwayland_mode);
+						},
+					}} /> : undefined
+				}
+			</Container>
 		</div>
 	</div>
 }

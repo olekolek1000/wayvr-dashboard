@@ -658,21 +658,23 @@ body {
 .big_button {
 	width: min-content;
 	min-width: 200px;
-	min-height: 48px;
+	min-height: 40px;
 	border-radius: 8px;
 	font-weight: 600;
 	font-size: 1.2em;
+	padding-left: 8px;
+	padding-right: 8px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	border: 2px solid vars.$color_border;
 	gap: 8px;
 	text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
+	text-wrap: nowrap;
 }
 
 .big_button:hover {
 	border: 2px solid white;
-	padding: 0px;
 }
 
 .big_button:active {

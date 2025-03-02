@@ -60,7 +60,7 @@ interface NewWindowResult {
 }
 
 function NewWindow({ on_submit }: { on_submit: (res: NewWindowResult) => void }) {
-	const [value, setValue] = useState(0.4);
+	const [value, setValue] = useState(0.45);
 	const [res, setRes] = useState(resolution_list[0]);
 	const [portrait, setPortrait] = useState(false);
 	const [attach_to, setAttachTo] = useState(ipc.AttachTo.None);

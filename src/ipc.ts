@@ -335,7 +335,7 @@ export namespace ipc {
 		handle: WindowHandle,
 		visible: boolean,
 	}): Promise<void> {
-		return await invoke("window_set_visible", params);
+		return await invoke("wvr_window_set_visible", params);
 	}
 
 	export async function process_get(handle: ProcessHandle): Promise<Process | undefined> {
