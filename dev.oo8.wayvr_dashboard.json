@@ -13,5 +13,5 @@
 	"env_vars": { "GDK_BACKEND": "wayland" },
 	"plugin_type": "WayVrDashboard",
 	"dependencies": ["com.github.galister.wlx-overlay-s"],
-	"exec_url": "https://github.com/olekolek1000/wayvr-dashboard/releases/download/0.2.2/wayvr_dashboard.AppImage"
+	"exec_url": "https://github.com/olekolek1000/wayvr-dashboard/releases/download/0.2.5/wayvr_dashboard.AppImage"
 }
