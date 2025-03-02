@@ -4,40 +4,21 @@
 
 WayVR Dashboard is a work-in-progress overlay application (WayVR/wlx-overlay-s plugin via IPC) for launching various applications and games directly into a VR desktop environment. It will also offer numerous quality-of-life features to bring Linux VR gaming on par with SteamVR's dashboard. Stay tuned!
 
-### Roadmap
+# Quick setup
 
-`*` - working on it
+## Method 1: Via [Envision](https://gitlab.com/gabmus/envision):
 
-| Done |          Variant | Description                                       | Requires |
-| ---: | ---------------: | :------------------------------------------------ | -------: |
-|   ✔ |              IPC | wlx-overlay-s (wayvr) <-> WayVR dashboard interop |          |
-|   ✔ | Applications tab | .desktop Application fetch support                |          |
-|   ✔ | Applications tab | .desktop Icon matcher                             |          |
-|   ✔ | Applications tab | Applications viewer                               |          |
-|      | Applications tab | Search box, sort by categories                    |          |
-|   ✔ | Applications tab | Spawn application inside wlx-overlay-s (WayVR)    |      IPC |
-|   ✔ | Applications tab | Display manager (select WayVR display)            |      IPC |
-|   ✔ |            WayVR | WayVR running applications manager                |      IPC |
-|   ✔ |        Games tab | List all installed Steam games                    |          |
-|      |        Games tab | Search box, sort by vr/non-vr games               |          |
-|   ✔ |        Games tab | Launch desktop games inside WayVR                 |          |
-|   ✔ |        Games tab | Fetch cover image of games                        |          |
-|   ✔ |        Games tab | Games viewer                                      |          |
-|   \* |        Games tab | Launch/stop Steam games                           |          |
-|   ✔ |            Utils | Re-center button                                  |      IPC |
-|   ✔ |            Utils | Show device battery levels                        |      IPC |
-|   \* |            Utils | Microphone/speaker volume control                 |          |
-|      |            Utils | Launch index_camera_passthrough                   |          |
-|   \* |         Settings | Settings window, session metrics                  |      IPC |
-|   ✔ |      Home screen |                                                   |          |
+Open "Plugins" and install the newest WayVR Dashboard release:
 
-# DISCLAIMER
+![Envision plugins window](contrib/envision_installation.png)
 
-### This project is still under heavy development and lacks various features that will be implemented in the future. Here is our [Matrix and Discord](https://lvra.gitlab.io/docs/community/).
+That's it. No further configuration is required.
 
-# Build instructions
+## Method 2: Via [Releases](https://github.com/olekolek1000/wayvr-dashboard/releases) page:
 
-Firstly, **read disclaimer above**.
+Unzip the newest WayVR Dashboard, mark it as executable and link it to the `wayvr.yaml` file, [and then configure wlx-overlay-s accordingly.](#assigning-wayvr-dashboard-to-the-wayvr-config-in-wlx-overlay-s)
+
+## Method 3: Manual compilation
 
 Make sure to have NodeJS/npm, C/C++ compiler and rust installed and everything in between if you get any build issues.
 
@@ -64,9 +45,9 @@ cd wlx-overlay-s
 cargo build
 ```
 
-#### 3. Add this dashboard to the `wayvr.yaml` file in _wlx-overlay-s_:
+## Assigning WayVR Dashboard to the WayVR config in wlx-overlay-s
 
-Modify `./src/res/wayvr.yaml` file in the _wlx-overlay-s_ repo (you can copy it to the `~/.config/wlxoverlay/wayvr.yaml` path if you want to):
+1. Go to `~/.config/wlxoverlay/wayvr.yaml` or copy it from `./src/res/wayvr.yaml` in the _wlx-overlay-s_ repository and edit it:
 
 ```yaml
 dashboard:
@@ -77,7 +58,7 @@ dashboard:
 
 ⚠️ Modify `exec` path accordingly to your executable path!
 
-#### 3. Start wlx-overlay-s:
+And now you can start wlx-overlay-s via Envision or manually:
 
 ```bash
 cd wlx-overlay-s
