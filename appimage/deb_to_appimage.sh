@@ -31,7 +31,7 @@ wget -nc --retry-connrefused --tries=5  "${LIB4BIN}" -O /tmp/lib4bin || true
 cp /tmp/lib4bin ./lib4bin
 
 chmod +x ./lib4bin
-./lib4bin -p -v -r -s -k ./usr/bin/wayvr_dashboard \
+./lib4bin -p -v -s -k ./usr/bin/wayvr_dashboard \
         /usr/lib/x86_64-linux-gnu/libGL* \
         /usr/lib/x86_64-linux-gnu/libEGL* \
         /usr/lib/x86_64-linux-gnu/libvulkan* \
