@@ -17,7 +17,9 @@ use crate::{
 pub struct DesktopFile {
 	name: String,
 	icon: Option<String>,
-	exec: String,
+	exec_path: String,
+	exec_args: Vec<String>,
+	categories: Vec<String>,
 }
 
 #[derive(Serialize)]
@@ -46,11 +48,13 @@ pub fn desktop_file_list() -> Result<Vec<DesktopFile>, String> {
 			"find desktop file entries",
 			util::desktop_finder::find_entries(),
 		)?
-		.iter()
+		.into_iter()
 		.map(|entry| DesktopFile {
-			exec: entry.exec_path.clone(),
-			icon: entry.icon_path.clone(),
-			name: entry.app_name.clone(),
+			exec_path: entry.exec_path,
+			exec_args: entry.exec_args,
+			icon: entry.icon_path,
+			name: entry.app_name,
+			categories: entry.categories,
 		})
 		.collect::<Vec<DesktopFile>>(),
 	)

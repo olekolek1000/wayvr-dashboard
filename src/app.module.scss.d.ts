@@ -23,10 +23,11 @@ declare const classNames: {
   readonly panel_window: "panel_window";
   readonly games_list: "games_list";
   readonly applications_list: "applications_list";
+  readonly applications_list_sticky_top: "applications_list_sticky_top";
   readonly application_cover: "application_cover";
   readonly application_cover_big: "application_cover_big";
-  readonly application_cover_title: "application_cover_title";
   readonly application_cover_icon: "application_cover_icon";
+  readonly application_cover_title: "application_cover_title";
   readonly game_cover: "game_cover";
   readonly game_cover_big: "game_cover_big";
   readonly game_cover_image: "game_cover_image";

@@ -148,7 +148,7 @@ export async function openURL(url: string, globals: Globals) {
 }
 
 export function getDesktopFileURL(desktop_file: ipc.DesktopFile) {
-	return (desktop_file.icon ? get_external_url(desktop_file.icon) : "icons/unknown.svg");
+	return (desktop_file.icon ? get_external_url(desktop_file.icon) : "icons/terminal.svg");
 }
 
 export async function vibrate_hover() {

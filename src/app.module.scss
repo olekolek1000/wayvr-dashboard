@@ -351,13 +351,27 @@ body {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
-	align-items: center;
-	justify-content: center;
 	gap: 4px;
 }
 
+.applications_list_sticky_top {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	width: 100%;
+	padding-left: 16px;
+	padding-right: 16px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	box-sizing: border-box;
+	border: 2px solid vars.$color-bg-medium;
+	background-color: vars.$color-bg-dark;
+	border-radius: 4px;
+	border-bottom: 2px solid vars.$color-accent;
+}
+
 .application_cover {
-	width: 100px;
+	width: 116px;
 	height: 100px;
 	display: flex;
 	flex-direction: column;
@@ -365,7 +379,9 @@ body {
 	background-color: vars.$color-bg-dark;
 	box-sizing: border-box;
 	align-items: center;
-	border-radius: 4px 4px 0 0;
+	border-radius: 4px;
+	border: 2px solid vars.$color-bg-medium;
+	font-weight: 600;
 }
 
 .application_cover_big {
@@ -377,12 +393,6 @@ body {
 
 .application_cover:hover {
 	background-color: vars.$color-accent;
-	z-index: 1;
-}
-
-.application_cover:hover .application_cover_title {
-	background-color: vars.$color-highlight;
-	color: #000;
 }
 
 .application_cover_icon {
@@ -396,7 +406,6 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-color: vars.$color-bg-medium;
 	min-height: 2em;
 	padding-top: 2px;
 	padding-bottom: 2px;
@@ -590,7 +599,7 @@ body {
 	flex-grow: 1;
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: 8px;
 }
 
 .previewer_title {

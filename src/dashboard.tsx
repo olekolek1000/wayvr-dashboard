@@ -5,7 +5,7 @@ import { Icon, PanelButton, Popup, Button, TooltipSimple, TooltipSide } from "./
 import { useEffect, useRef, useState } from "preact/hooks";
 import { PanelHome } from "./panel/home";
 import { PanelGames } from "./panel/games";
-import { PanelApplications } from "./panel/applications";
+import { enterPanelApplications } from "./panel/applications";
 import { PanelRunningApps } from "./panel/running_apps";
 import { ipc } from "./ipc";
 import { Globals } from "./globals";
@@ -178,7 +178,7 @@ export function Dashboard({ globals }: { globals: Globals }) {
 					<TooltipSide title={"Applications"}>
 						<MenuButton icon="icons/apps.svg" on_click={async () => {
 							await unfocusAll(globals);
-							setCurrentPanel(<PanelApplications globals={globals} />);
+							await enterPanelApplications(globals);
 						}} />
 					</TooltipSide>
 					<TooltipSide title={"Games"}>

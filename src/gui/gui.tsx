@@ -402,19 +402,21 @@ async function launch(
 	let userdata = new Map<string, string>();
 	userdata.set("desktop_file", JSON.stringify(application));
 
+	let exec_args_str = application.exec_args.join(" ");
+
 	let params = xwayland_mode ? {
 		env: env,
 		exec: "cage",
 		name: application.name,
 		targetDisplay: selected_display.handle,
-		args: "-- " + application.exec,
+		args: "-- " + application.exec_path + " " + exec_args_str,
 		userdata: userdata,
 	} : {
 		env: env,
-		exec: application.exec,
+		exec: application.exec_path,
 		name: application.name,
 		targetDisplay: selected_display.handle,
-		args: "",
+		args: exec_args_str,
 		userdata: userdata,
 	};
 
@@ -439,7 +441,10 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 	}
 
 	useEffect(() => {
-		setDetails(<>Executable: {application.exec}</>);
+		setDetails(<BoxDown>
+			<small><b>Exec:</b> {application.exec_path}</small>
+			{application.exec_args.length > 0 ? <small><b>Args:</b> {application.exec_args.join(" ")}</small> : undefined}
+		</BoxDown>);
 		refreshDisplays();
 	}, []);
 
@@ -449,6 +454,7 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 		<div className={scss.previewer_info}>
 			<div className={scss.previewer_title}>{application.name}</div>
 			{details}
+			<Separator />
 			<Checkbox title="Run in X11 mode via XWayland (cage)" pair={[xwayland_mode, setXWaylandMode]} onChange={(n) => {
 				if (n) {
 					setForceWayland(false);
@@ -459,7 +465,7 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 					setXWaylandMode(false);
 				}
 			}} />
-
+			<Separator />
 			<BoxRight>
 				<BigButton icon="icons/play.svg" title="Launch embedded" type={BigButtonColor.green} on_click={async () => {
 					const display = await getDashboardDisplay();
@@ -468,7 +474,7 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 					}
 				}} />
 			</BoxRight>
-
+			<Separator />
 			<Container>
 				<b>Or launch it detached</b>
 				{

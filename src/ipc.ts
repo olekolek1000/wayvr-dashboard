@@ -18,7 +18,9 @@ export namespace ipc {
 	export interface DesktopFile {
 		name: string;
 		icon?: string;
-		exec: string;
+		exec_path: string;
+		exec_args: Array<string>,
+		categories: Array<string>,
 	}
 
 	export interface AppManifest {

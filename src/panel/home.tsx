@@ -4,7 +4,7 @@ import scss_home from "./home.module.scss"
 import { useEffect, useState } from "preact/hooks";
 import { ipc } from "@/ipc";
 import scss from "../app.module.scss"
-import { PanelApplications } from "./applications";
+import { enterPanelApplications } from "./applications";
 import { PanelGames } from "./games";
 import { PanelSettings } from "./settings";
 import { PanelRunningApps } from "./running_apps";
@@ -63,8 +63,8 @@ export function PanelHome({ globals }: { globals: Globals }) {
 				<Auth />
 
 				<BoxRight>
-					<Container className={scss_home.category} on_click={() => {
-						globals.setCurrentPanel(<PanelApplications globals={globals} />)
+					<Container className={scss_home.category} on_click={async () => {
+						await enterPanelApplications(globals);
 					}}>
 						<Icon path="icons/apps.svg" width={32} height={32} />
 						Apps
