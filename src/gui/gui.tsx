@@ -17,6 +17,29 @@ export function Icon({ path, width, height, color, className }: { path: string, 
 	</img>
 }
 
+export function TextField(
+	{ required, placeholder, valfunc, type }:
+		{
+			required?: boolean,
+			placeholder?: string,
+			valfunc: [value: string, func: (str: string) => void],
+			type?: React.HTMLInputTypeAttribute,
+		}) {
+	return <span className={scss.text_input_bg}>
+		<input
+			className={scss.text_input}
+			required={required}
+			type={type}
+			placeholder={placeholder}
+			onChange={(e) => {
+				valfunc[1]((e.target as any).value)
+			}}
+			onKeyUp={(e) => {
+				valfunc[1]((e.target as any).value)
+			}} />
+	</span>
+}
+
 export function PanelButton({ ext_ref, icon, icon_size, height, on_click, square, opacity, children }: { ext_ref?: Ref<HTMLDivElement>, icon: string, icon_size?: number, height?: number, on_click: () => void, square?: boolean, opacity?: number, children?: any }) {
 	return <div ref={ext_ref} onPointerDown={on_click} onMouseEnter={vibrate_hover} onMouseDown={vibrate_down} onMouseUp={vibrate_up} className={square ? scss.panel_button_square : scss.panel_button} style={{
 		height: height ? (height + "px") : "undefined",

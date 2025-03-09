@@ -1,6 +1,6 @@
 [package]
 name = "wayvr_dashboard"
-version = "0.2.6"
+version = "0.2.7"
 description = "A VR dashboard for WayVR"
 authors = ["oo8.dev"]
 edition = "2021"
@@ -25,30 +25,33 @@ opt-level = 0
 incremental = true
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.0.6", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["protocol-asset", "devtools", "unstable"] }
-tauri-plugin-shell = "2"
-serde = { version = "1", features = ["derive"] }
-tauri-plugin-fs = "2"
+tauri = { version = "2.3.1", features = [
+	"protocol-asset",
+	"devtools",
+	"unstable",
+] }
+tauri-plugin-shell = "2.2.0"
+serde = { version = "1.0.218", features = ["derive"] }
+tauri-plugin-fs = "2.2.0"
 walkdir = "2.5.0"
 xdg = "2.5.2"
-anyhow = "1.0.93"
+anyhow = "1.0.97"
 rust-ini = "0.21.1"
 libmonado = { git = "https://github.com/olekolek1000/libmonado-rs.git", rev = "edfbba6f47ee28181755c80531586e3eb91745c8" }
-log = "0.4.22"
-env_logger = "0.11.6"
-keyvalues-parser = { git = "https://github.com/CosmicHorrorDev/vdf-rs.git" }
-tauri-plugin-http = { version = "2.2.0", features = ["unsafe-headers"] }
-interprocess = { version = "2.2.2", features = ["tokio"] }
-bytes = "1.9.0"
-tokio = "1.42.0"
+log = "0.4.26"
+keyvalues-parser = { git = "https://github.com/CosmicHorrorDev/vdf-rs.git", rev = "2aff7147c5ba2bf2551566269dc167099fe7d527" }
+tauri-plugin-http = { version = "2.3.0", features = ["unsafe-headers"] }
+interprocess = { version = "2.2.3", features = ["tokio"] }
+bytes = "1.10.1"
+tokio = "1.44.0"
 tokio-util = "0.7.13"
-smallvec = "1.13.2"
+smallvec = "1.14.0"
 wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "a72587d23f3bb8624d9aeb1f13c0a21e65350f51", features = [
 	"client",
 ] }
-alsa = "0.9.1"
-serde_json = "1.0.135"
-glam = { version = "0.30.0", features = ["mint"] }
+serde_json = "1.0.140"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing = "0.1.41"

@@ -29,7 +29,7 @@ impl AppState {
 				Some(Arc::new(Mutex::new(monado)))
 			}
 			Err(e) => {
-				log::warn!("Couldn't connect to Monado IPC: {}", e);
+				log::warn!("Couldn't connect to Monado IPC: {}. You will not be able to reset playspace or alter your XR runtime.", e);
 				None
 			}
 		};
@@ -37,10 +37,12 @@ impl AppState {
 		let wayvr_client = match WayVRClient::new("WayVR Dashboard").await {
 			Ok(c) => Some(c),
 			Err(e) => {
-				log::error!("WayVR Client failed to initialize: {}", e);
+				log::warn!("WayVR Client failed to initialize, will run without any remote communication features: {}", e);
 				None
 			}
 		};
+
+		log::info!("WayVR Dashboard v{} started.", env!("CARGO_PKG_VERSION"));
 
 		Ok(Self {
 			steam_bridge,

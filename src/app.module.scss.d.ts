@@ -22,6 +22,7 @@ declare const classNames: {
   readonly panel_window_list: "panel_window_list";
   readonly panel_window: "panel_window";
   readonly games_list: "games_list";
+  readonly applications_list_top_bar: "applications_list_top_bar";
   readonly applications_list: "applications_list";
   readonly applications_list_sticky_top: "applications_list_sticky_top";
   readonly application_cover: "application_cover";
@@ -70,5 +71,7 @@ declare const classNames: {
   readonly text_green: "text_green";
   readonly text_red: "text_red";
   readonly battery_container: "battery_container";
+  readonly text_input_bg: "text_input_bg";
+  readonly text_input: "text_input";
 };
 export default classNames;

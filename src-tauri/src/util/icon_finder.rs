@@ -33,6 +33,7 @@ fn sort_by_priority<'a>(directories: &'a Vec<&str>) -> Vec<(usize, &'a str)> {
 
 pub fn find_icons(
 	icon_list: HashSet<&str>,
+	share_path: &str,
 ) -> anyhow::Result<HashMap<String /* icon name */, String /* icon path */>> {
 	let xdg = xdg::BaseDirectories::new()?;
 
@@ -46,8 +47,9 @@ pub fn find_icons(
 	let mut all_icon_files = Vec::<Cell>::new();
 
 	let mut scan_dir = |path: &PathBuf| {
+		log::debug!("Scanning directory {:?}", path);
 		let Ok(scanner) = std::fs::read_dir(path) else {
-			log::error!("Failed to scan directory {:?}", path);
+			log::debug!("Failed to scan directory {:?}, skipping", path);
 			return;
 		};
 
@@ -56,7 +58,7 @@ pub fn find_icons(
 				continue;
 			};
 
-			if !ftype.is_file() {
+			if ftype.is_dir() {
 				continue;
 			}
 
@@ -87,7 +89,7 @@ pub fn find_icons(
 
 	let mut theme_dirs: Vec<String> = Vec::new();
 
-	let local_share_path = xdg.get_data_home();
+	let share_path = PathBuf::from(share_path);
 
 	// Get currently set user icon theme
 	let config_path = xdg.get_config_home();
@@ -99,7 +101,7 @@ pub fn find_icons(
 				theme_dirs.push(format!("/usr/share/icons/{}", icon_theme_name));
 				// locally installed icons
 				theme_dirs.push(
-					local_share_path
+					share_path
 						.join(format!("icons/{}", icon_theme_name))
 						.to_string_lossy()
 						.to_string(),
@@ -113,7 +115,7 @@ pub fn find_icons(
 
 	// local hicolor icons (steam uses them)
 	theme_dirs.push(
-		local_share_path
+		share_path
 			.join("icons/hicolor")
 			.to_string_lossy()
 			.to_string(),
@@ -130,12 +132,12 @@ pub fn find_icons(
 
 		if let Ok(ini) = Ini::load_from_file(path_index) {
 			let Some(section_icon_theme) = ini.section(Some("Icon Theme")) else {
-				log::warn!("[Icon theme] section not found");
+				log::debug!("[Icon theme] section not found");
 				continue;
 			};
 
 			let Some(directories_str) = section_icon_theme.get("Directories") else {
-				log::warn!("\"Directories\" missing");
+				log::debug!("\"Directories\" missing");
 				continue;
 			};
 
@@ -147,7 +149,7 @@ pub fn find_icons(
 			}
 		} else {
 			// somewhat common, just go on
-			log::info!("index.theme invalid or not found, using predefined paths");
+			log::debug!("index.theme invalid or not found, using predefined paths");
 			// for steam
 			scan_dir(&theme_dir_path.join("128x128/apps"));
 			scan_dir(&theme_dir_path.join("64x64/apps"));

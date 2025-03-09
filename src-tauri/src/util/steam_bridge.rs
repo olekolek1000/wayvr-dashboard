@@ -83,7 +83,7 @@ impl SteamBridge {
 				continue;
 			};
 
-			println!("path: {}", path);
+			//log::trace!("path: {}", path);
 
 			res.extend(
 				apps

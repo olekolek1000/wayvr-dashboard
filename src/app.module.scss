@@ -347,10 +347,21 @@ body {
 	gap: 12px;
 }
 
+.applications_list_top_bar {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	justify-content: stretch;
+	align-items: center;
+}
+
 .applications_list {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
+	justify-content: stretch;
 	gap: 4px;
 }
 
@@ -359,29 +370,56 @@ body {
 	top: 0;
 	z-index: 1;
 	width: 100%;
-	padding-left: 16px;
-	padding-right: 16px;
-	padding-top: 4px;
-	padding-bottom: 4px;
+	padding: 4px;
+	padding-left: 8px;
 	box-sizing: border-box;
 	border: 2px solid vars.$color-bg-medium;
-	background-color: vars.$color-bg-dark;
 	border-radius: 4px;
 	border-bottom: 2px solid vars.$color-accent;
+
+	background: 
+	// From left
+		linear-gradient(
+			-90deg,
+			rgba(255, 255, 255, 0) 80%,
+			rgba(150, 200, 255, 0.1) 100%
+		),
+		// Aqua Shine from top
+		linear-gradient(
+				0deg,
+				rgba(255, 255, 255, 0) 80%,
+				rgba(0, 100, 255, 0.2) 100%
+			),
+		// Blue shadow
+		linear-gradient(0deg, rgba(0, 0, 255, 0.15) 0%, rgba(0, 0, 0, 0) 80%),
+		vars.$color-bg-dark;
 }
 
 .application_cover {
 	width: 116px;
+	max-width: 140px;
+	flex-grow: 1;
 	height: 100px;
 	display: flex;
 	flex-direction: column;
 	position: relative;
-	background-color: vars.$color-bg-dark;
 	box-sizing: border-box;
 	align-items: center;
 	border-radius: 4px;
 	border: 2px solid vars.$color-bg-medium;
 	font-weight: 600;
+	background:
+		// Aqua shadow
+		linear-gradient(170deg, rgba(0, 100, 255, 0.2) 0%, rgba(0, 0, 0, 0) 40%),
+		// Blue shadow
+		linear-gradient(45deg, rgba(0, 0, 255, 0.15) 0%, rgba(0, 0, 0, 0) 80%),
+		// White highlight
+		linear-gradient(
+				0deg,
+				rgba(255, 255, 255, 0) 90%,
+				rgba(255, 255, 255, 0.07) 100%
+			),
+		vars.$color-bg-dark;
 }
 
 .application_cover_big {
@@ -497,7 +535,6 @@ body {
 .tooltip_simple {
 	border-radius: 8px;
 	border: 2px solid rgba(255, 255, 255, 0.3);
-	background: vars.$color-tooltip;
 	z-index: 100;
 	display: flex;
 	justify-content: center;
@@ -505,9 +542,14 @@ body {
 	text-wrap: nowrap;
 	padding-left: 16px;
 	padding-right: 16px;
-	padding-top: 4px;
-	padding-bottom: 4px;
+	padding-top: 8px;
+	padding-bottom: 8px;
 	position: absolute;
+
+	-webkit-backdrop-filter: blur(16px);
+	backdrop-filter: blur(16px);
+
+	background-color: rgba(0.1, 0.1, 0.1, 0.4);
 
 	animation: tooltip_simple_showup 0.05s linear;
 	transform-origin: 50% 100%;
@@ -934,4 +976,39 @@ body {
 
 .battery_container:hover {
 	background-color: rgba(255, 255, 255, 0.25);
+}
+
+.text_input_bg {
+	padding: 4px;
+	padding-left: 8px;
+	padding-right: 8px;
+	border: 0;
+	background-color: vars.$color-bg-dark;
+	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	font-size: 0.75em;
+	border: 2px solid vars.$color-bg-medium;
+	width: 100%;
+}
+
+.text_input_bg:hover {
+	background-color: vars.$color-bg-medium;
+}
+
+.text_input {
+	appearance: none;
+	border: 0;
+	font-size: inherit;
+	color: white;
+	font-weight: 500;
+	outline: none;
+	font-size: 1.25em;
+	background-color: transparent;
+	width: 100%;
+}
+
+.text_input_bg:focus-within {
+	border: 2px solid vars.$color-accent;
+	background-color: vars.$color-bg-medium;
 }
