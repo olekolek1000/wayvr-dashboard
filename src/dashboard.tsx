@@ -16,6 +16,7 @@ import { WindowList } from "./views/window_list";
 import { PopupVolume } from "./views/popup_volume";
 import { BatteryLevels } from "./views/battery_levels";
 import { preferences } from "./preferences";
+import { PanelMonado } from "./panel/monado";
 
 function MenuButton({ icon, on_click }: { icon: string, on_click: () => void }) {
 	return <div onClick={on_click} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} className={scss.menu_button}>
@@ -188,6 +189,18 @@ export function Dashboard({ globals }: { globals: Globals }) {
 						}} />
 					</TooltipSide>
 
+					<TooltipSide title={"Monado panel"}>
+						<MenuButton icon="icons/monado.svg" on_click={async () => {
+							await unfocusAll(globals);
+							if (!await ipc.is_monado_present()) {
+								globals.toast_manager.pushMonadoNotPresent();
+							}
+							else {
+								setCurrentPanel(<PanelMonado globals={globals} />);
+							}
+						}} />
+					</TooltipSide>
+
 					<TooltipSide title={"Process manager"}>
 						<MenuButton icon="icons/window.svg" on_click={async () => {
 							await unfocusAll(globals);
@@ -224,8 +237,9 @@ export function Dashboard({ globals }: { globals: Globals }) {
 								<PanelButton square icon="icons/recenter.svg" on_click={async () => {
 									if (!await ipc.is_monado_present()) {
 										globals.toast_manager.pushMonadoNotPresent();
+									} else {
+										await ipc.monado_recenter();
 									}
-									await ipc.monado_recenter();
 								}} />
 							</TooltipSimple>
 						</div>

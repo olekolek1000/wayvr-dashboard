@@ -167,6 +167,16 @@ export namespace ipc {
 		charging: boolean;
 	}
 
+	export interface MonadoClient {
+		name: string,
+		is_primary: boolean,
+		is_active: boolean,
+		is_visible: boolean,
+		is_focused: boolean,
+		is_overlay: boolean,
+		is_io_active: boolean,
+	}
+
 	export async function is_monado_present(): Promise<boolean> {
 		return await invoke("is_monado_present");
 	}
@@ -181,6 +191,16 @@ export namespace ipc {
 
 	export async function monado_get_battery_levels(): Promise<MonadoBatteryLevel[]> {
 		return await invoke("monado_get_battery_levels");
+	}
+
+	export async function monado_client_list(): Promise<Array<MonadoClient>> {
+		return await invoke("monado_client_list");
+	}
+
+	export async function monado_client_focus(params: {
+		name: string
+	}): Promise<void> {
+		return await invoke("monado_client_focus", params);
 	}
 
 	// ================================================================================

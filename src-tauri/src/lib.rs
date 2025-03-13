@@ -1,5 +1,6 @@
 use app::AppState;
 use tauri::Manager;
+use tokio::sync::Mutex;
 
 pub mod app;
 pub mod frontend_ipc;
@@ -7,7 +8,7 @@ pub mod util;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() {
-	let app_state = AppState::new().await.unwrap();
+	let app_state = Mutex::new(AppState::new().await.unwrap());
 
 	tauri::Builder::default()
 		.plugin(tauri_plugin_http::init())
@@ -35,6 +36,8 @@ pub async fn run() {
 			frontend_ipc::monado_recenter,
 			frontend_ipc::monado_fix_floor,
 			frontend_ipc::monado_get_battery_levels,
+			frontend_ipc::monado_client_list,
+			frontend_ipc::monado_client_focus,
 			// # wlx IPC below
 			frontend_ipc::is_ipc_connected,
 			frontend_ipc::wvr_auth_info,

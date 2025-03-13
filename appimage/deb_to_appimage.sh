@@ -16,7 +16,7 @@ rm -rf AppDir
 mkdir -p AppDir
 cd AppDir
 
-cp "${REPO_DIR}/src-tauri/target/release/bundle/deb/wayvr_dashboard_0.2.7_amd64.deb" ./package.deb
+cp "${REPO_DIR}/src-tauri/target/release/bundle/deb/wayvr_dashboard_0.2.8_amd64.deb" ./package.deb
 ar vx ./package.deb
 
 tar -xvf data.tar.gz

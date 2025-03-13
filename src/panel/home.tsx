@@ -9,6 +9,7 @@ import { PanelGames } from "./games";
 import { PanelSettings } from "./settings";
 import { PanelRunningApps } from "./running_apps";
 import { preferences } from "@/preferences";
+import { PanelMonado } from "./monado";
 
 function Hello({ prefs }: { prefs: preferences.Preferences }) {
 	const [username, setUsername] = useState<string | undefined>(undefined);
@@ -74,6 +75,12 @@ export function PanelHome({ globals }: { globals: Globals }) {
 					}}>
 						<Icon path="icons/games.svg" width={32} height={32} />
 						Games
+					</Container>
+					<Container className={scss_home.category} on_click={() => {
+						globals.setCurrentPanel(<PanelMonado globals={globals} />)
+					}}>
+						<Icon path="icons/monado.svg" width={32} height={32} />
+						Monado
 					</Container>
 					<Container className={scss_home.category} on_click={() => {
 						globals.setCurrentPanel(<PanelRunningApps globals={globals} />)

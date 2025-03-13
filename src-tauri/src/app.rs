@@ -17,22 +17,24 @@ pub struct AppState {
 	pub monado: Option<Arc<Mutex<libmonado::Monado>>>,
 }
 
+fn init_monado() -> Option<Arc<Mutex<libmonado::Monado>>> {
+	match libmonado::Monado::auto_connect() {
+		Ok(monado) => {
+			log::info!("Connected to Monado IPC");
+			Some(Arc::new(Mutex::new(monado)))
+		}
+		Err(e) => {
+			log::warn!("Couldn't connect to Monado IPC: {}. You will not be able to reset playspace or alter your XR runtime.", e);
+			None
+		}
+	}
+}
+
 impl AppState {
 	pub async fn new() -> anyhow::Result<Self> {
 		let serial_generator = ipc::SerialGenerator::new();
 
 		let steam_bridge = SteamBridge::new()?;
-
-		let monado = match libmonado::Monado::auto_connect() {
-			Ok(monado) => {
-				log::info!("Connected to Monado IPC");
-				Some(Arc::new(Mutex::new(monado)))
-			}
-			Err(e) => {
-				log::warn!("Couldn't connect to Monado IPC: {}. You will not be able to reset playspace or alter your XR runtime.", e);
-				None
-			}
-		};
 
 		let wayvr_client = match WayVRClient::new("WayVR Dashboard").await {
 			Ok(c) => Some(c),
@@ -41,6 +43,8 @@ impl AppState {
 				None
 			}
 		};
+
+		let monado = init_monado();
 
 		log::info!("WayVR Dashboard v{} started.", env!("CARGO_PKG_VERSION"));
 
@@ -57,9 +61,13 @@ impl AppState {
 		Some(monado.lock_owned().await)
 	}
 
+	pub fn restart_monado_ipc_dirty_hack(&mut self) {
+		self.monado = init_monado();
+	}
+
 	pub async fn configure_signal_handler(handle: tauri::AppHandle) {
-		let app = handle.app_handle().state::<AppState>();
-		let Some(wayvr_client) = &app.wayvr_client else {
+		let app = handle.app_handle().state::<Mutex<AppState>>();
+		let Some(wayvr_client) = &app.lock().await.wayvr_client else {
 			return;
 		};
 

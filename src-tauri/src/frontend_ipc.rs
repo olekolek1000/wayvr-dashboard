@@ -3,15 +3,15 @@ use std::collections::HashMap;
 use libmonado::ReferenceSpaceType;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter};
+use tokio::sync::Mutex;
 use wayvr_ipc::{
 	client::{WayVRClient, WayVRClientMutex},
 	packet_client, packet_server,
 };
 
-use crate::{
-	app::AppState,
-	util::{self, pactl_wrapper, steam_bridge},
-};
+use crate::util::{self, pactl_wrapper, steam_bridge};
+
+type AppStateType = Mutex<crate::app::AppState>;
 
 #[derive(Debug, Serialize)]
 pub struct DesktopFile {
@@ -61,11 +61,13 @@ pub fn desktop_file_list() -> Result<Vec<DesktopFile>, String> {
 }
 
 #[tauri::command]
-pub async fn game_list(state: tauri::State<'_, AppState>) -> Result<Games, String> {
+pub async fn game_list(state: tauri::State<'_, AppStateType>) -> Result<Games, String> {
 	Ok(Games {
 		manifests: handle_result(
 			"list game entries",
 			state
+				.lock()
+				.await
 				.steam_bridge
 				.list_installed_games(steam_bridge::GameSortMethod::PlayDateDesc),
 		)?,
@@ -142,8 +144,8 @@ pub async fn audio_set_default_sink(sink_index: u32) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn is_ipc_connected(state: tauri::State<'_, AppState>) -> bool {
-	state.wayvr_client.is_some()
+pub async fn is_ipc_connected(state: tauri::State<'_, AppStateType>) -> Result<bool, String> {
+	Ok(state.lock().await.wayvr_client.is_some())
 }
 
 #[tauri::command]
@@ -168,8 +170,8 @@ fn get_err_monado() -> String {
 }
 
 #[tauri::command]
-pub fn is_monado_present(state: tauri::State<'_, AppState>) -> bool {
-	state.monado.is_some()
+pub async fn is_monado_present(state: tauri::State<'_, AppStateType>) -> Result<bool, String> {
+	Ok(state.lock().await.monado.is_some())
 }
 
 #[derive(Serialize)]
@@ -181,9 +183,9 @@ pub struct BatteryLevel {
 
 #[tauri::command]
 pub async fn monado_get_battery_levels(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 ) -> Result<Vec<BatteryLevel>, String> {
-	let Some(monado) = state.get_monado().await else {
+	let Some(monado) = state.lock().await.get_monado().await else {
 		return Err(get_err_monado());
 	};
 
@@ -208,17 +210,115 @@ pub async fn monado_get_battery_levels(
 	Ok(res)
 }
 
-#[tauri::command]
-pub async fn monado_recenter(state: tauri::State<'_, AppState>) -> Result<(), String> {
-	let client = get_client(&state)?;
+const CLIENT_NAME_BLACKLIST: [&str; 2] = ["wlx-overlay-s", "libmonado"];
 
-	let Some(monado) = state.get_monado().await else {
+fn list_clients_filtered(
+	monado: &mut libmonado::Monado,
+) -> anyhow::Result<Vec<libmonado::Client<'_>>> {
+	let mut clients: Vec<_> = monado.clients()?.into_iter().collect();
+
+	let clients: Vec<_> = clients
+		.iter_mut()
+		.filter_map(|client| {
+			let Ok(name) = client.name() else {
+				return None;
+			};
+
+			for cell in CLIENT_NAME_BLACKLIST {
+				if cell == name {
+					// blacklisted!
+					return None;
+				}
+			}
+
+			Some(client.clone())
+		})
+		.collect();
+
+	Ok(clients)
+}
+
+#[derive(Serialize)]
+pub struct MonadoClient {
+	pub name: String,
+	pub is_primary: bool,
+	pub is_active: bool,
+	pub is_visible: bool,
+	pub is_focused: bool,
+	pub is_overlay: bool,
+	pub is_io_active: bool,
+}
+
+#[tauri::command]
+pub async fn monado_client_list(
+	state: tauri::State<'_, AppStateType>,
+) -> Result<Vec<MonadoClient>, String> {
+	let Some(mut monado) = state.lock().await.get_monado().await else {
+		return Err(get_err_monado());
+	};
+
+	let clients = handle_err(list_clients_filtered(&mut monado))?;
+
+	let mut res = Vec::<MonadoClient>::new();
+
+	for mut client in clients {
+		let name = handle_err(client.name())?;
+		let state = handle_err(client.state())?;
+
+		res.push(MonadoClient {
+			name,
+			is_primary: state.contains(libmonado::ClientState::ClientPrimaryApp),
+			is_active: state.contains(libmonado::ClientState::ClientSessionActive),
+			is_visible: state.contains(libmonado::ClientState::ClientSessionVisible),
+			is_focused: state.contains(libmonado::ClientState::ClientSessionFocused),
+			is_overlay: state.contains(libmonado::ClientState::ClientSessionOverlay),
+			is_io_active: state.contains(libmonado::ClientState::ClientIoActive),
+		});
+	}
+
+	Ok(res)
+}
+
+#[tauri::command]
+pub async fn monado_client_focus(
+	state: tauri::State<'_, AppStateType>,
+	name: String,
+) -> Result<(), String> {
+	let mut state = state.lock().await;
+
+	let Some(mut monado) = state.get_monado().await else {
+		return Err(get_err_monado());
+	};
+
+	let clients = handle_err(list_clients_filtered(&mut monado))?;
+
+	for mut client in clients {
+		let client_name = handle_err(client.name())?;
+		if client_name != name {
+			continue;
+		}
+
+		log::info!("Focus set to {}", client_name);
+		handle_err(client.set_primary())?;
+		state.restart_monado_ipc_dirty_hack();
+		return Ok(());
+	}
+
+	Err(String::from("Client not found"))
+}
+
+#[tauri::command]
+pub async fn monado_recenter(state: tauri::State<'_, AppStateType>) -> Result<(), String> {
+	let client = get_client(&state).await?;
+
+	let Some(monado) = state.lock().await.get_monado().await else {
 		return Err(get_err_monado());
 	};
 
 	let input_state = handle_result(
 		"fetch input state",
-		WayVRClient::fn_wlx_input_state(client, state.serial_generator.increment_get()).await,
+		WayVRClient::fn_wlx_input_state(client, state.lock().await.serial_generator.increment_get())
+			.await,
 	)?;
 
 	let mut pose = handle_result(
@@ -242,8 +342,8 @@ pub async fn monado_recenter(state: tauri::State<'_, AppState>) -> Result<(), St
 }
 
 #[tauri::command]
-pub async fn monado_fix_floor(state: tauri::State<'_, AppState>) -> Result<(), String> {
-	let Some(_monado) = state.get_monado().await else {
+pub async fn monado_fix_floor(state: tauri::State<'_, AppStateType>) -> Result<(), String> {
+	let Some(_monado) = state.lock().await.get_monado().await else {
 		return Err(get_err_monado());
 	};
 
@@ -259,8 +359,9 @@ pub fn signal_state_changed(app: AppHandle, state: packet_server::WvrStateChange
 	app.emit("state_changed", state).unwrap();
 }
 
-fn get_client(state: &AppState) -> Result<WayVRClientMutex, String> {
-	match &state.wayvr_client {
+// TODO: refactor
+async fn get_client(state: &AppStateType) -> Result<WayVRClientMutex, String> {
+	match &state.lock().await.wayvr_client {
 		Some(client) => Ok(client.clone()),
 		None => Err(String::from("Couldn't connect to WayVR Server")),
 	}
@@ -268,20 +369,20 @@ fn get_client(state: &AppState) -> Result<WayVRClientMutex, String> {
 
 #[tauri::command]
 pub async fn wvr_auth_info(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 ) -> Result<Option<wayvr_ipc::client::AuthInfo>, String> {
-	if state.wayvr_client.is_none() {
+	if state.lock().await.wayvr_client.is_none() {
 		return Ok(None);
 	}
 
-	let c = get_client(&state)?;
+	let c = get_client(&state).await?;
 	let client = c.lock().await;
 	Ok(client.auth.clone())
 }
 
 #[tauri::command]
 pub async fn wvr_display_create(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	width: u16,
 	height: u16,
 	name: String,
@@ -291,8 +392,8 @@ pub async fn wvr_display_create(
 	let display = handle_result(
 		"create display",
 		WayVRClient::fn_wvr_display_create(
-			get_client(&state)?,
-			state.serial_generator.increment_get(),
+			get_client(&state).await?,
+			state.lock().await.serial_generator.increment_get(),
 			packet_client::WvrDisplayCreateParams {
 				width,
 				height,
@@ -309,25 +410,28 @@ pub async fn wvr_display_create(
 
 #[tauri::command]
 pub async fn wvr_display_list(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 ) -> Result<Vec<packet_server::WvrDisplay>, String> {
 	handle_result(
 		"fetch displays",
-		WayVRClient::fn_wvr_display_list(get_client(&state)?, state.serial_generator.increment_get())
-			.await,
+		WayVRClient::fn_wvr_display_list(
+			get_client(&state).await?,
+			state.lock().await.serial_generator.increment_get(),
+		)
+		.await,
 	)
 }
 
 #[tauri::command]
 pub async fn wvr_display_get(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	handle: packet_server::WvrDisplayHandle,
 ) -> Result<Option<packet_server::WvrDisplay>, String> {
 	let display = handle_result(
 		"fetch display",
 		WayVRClient::fn_wvr_display_get(
-			get_client(&state)?,
-			state.serial_generator.increment_get(),
+			get_client(&state).await?,
+			state.lock().await.serial_generator.increment_get(),
 			handle,
 		)
 		.await,
@@ -337,14 +441,14 @@ pub async fn wvr_display_get(
 
 #[tauri::command]
 pub async fn wvr_display_window_list(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	handle: packet_server::WvrDisplayHandle,
 ) -> Result<Option<Vec<packet_server::WvrWindow>>, String> {
 	handle_result(
 		"list window displays",
 		WayVRClient::fn_wvr_display_window_list(
-			get_client(&state)?,
-			state.serial_generator.increment_get(),
+			get_client(&state).await?,
+			state.lock().await.serial_generator.increment_get(),
 			handle,
 		)
 		.await,
@@ -353,14 +457,14 @@ pub async fn wvr_display_window_list(
 
 #[tauri::command]
 pub async fn wvr_display_remove(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	handle: packet_server::WvrDisplayHandle,
 ) -> Result<(), String> {
 	handle_result(
 		"remove display",
 		WayVRClient::fn_wvr_display_remove(
-			get_client(&state)?,
-			state.serial_generator.increment_get(),
+			get_client(&state).await?,
+			state.lock().await.serial_generator.increment_get(),
 			handle,
 		)
 		.await,
@@ -369,50 +473,50 @@ pub async fn wvr_display_remove(
 
 #[tauri::command]
 pub async fn wvr_display_set_visible(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	handle: packet_server::WvrDisplayHandle,
 	visible: bool,
 ) -> Result<(), String> {
 	handle_result(
 		"set display visibility",
-		WayVRClient::fn_wvr_display_set_visible(get_client(&state)?, handle, visible).await,
+		WayVRClient::fn_wvr_display_set_visible(get_client(&state).await?, handle, visible).await,
 	)
 }
 
 #[tauri::command]
 pub async fn wvr_display_set_layout(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	handle: packet_server::WvrDisplayHandle,
 	layout: packet_server::WvrDisplayWindowLayout,
 ) -> Result<(), String> {
 	handle_result(
 		"set display layout",
-		WayVRClient::fn_wvr_display_set_layout(get_client(&state)?, handle, layout).await,
+		WayVRClient::fn_wvr_display_set_layout(get_client(&state).await?, handle, layout).await,
 	)
 }
 
 #[tauri::command]
 pub async fn wvr_window_set_visible(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	handle: packet_server::WvrWindowHandle,
 	visible: bool,
 ) -> Result<(), String> {
 	handle_result(
 		"set window visibility",
-		WayVRClient::fn_wvr_window_set_visible(get_client(&state)?, handle, visible).await,
+		WayVRClient::fn_wvr_window_set_visible(get_client(&state).await?, handle, visible).await,
 	)
 }
 
 #[tauri::command]
 pub async fn wvr_process_get(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	handle: packet_server::WvrProcessHandle,
 ) -> Result<Option<packet_server::WvrProcess>, String> {
 	let process = handle_result(
 		"fetch process",
 		WayVRClient::fn_wvr_process_get(
-			get_client(&state)?,
-			state.serial_generator.increment_get(),
+			get_client(&state).await?,
+			state.lock().await.serial_generator.increment_get(),
 			handle,
 		)
 		.await,
@@ -423,29 +527,32 @@ pub async fn wvr_process_get(
 
 #[tauri::command]
 pub async fn wvr_process_list(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 ) -> Result<Vec<packet_server::WvrProcess>, String> {
 	handle_result(
 		"fetch processes",
-		WayVRClient::fn_wvr_process_list(get_client(&state)?, state.serial_generator.increment_get())
-			.await,
+		WayVRClient::fn_wvr_process_list(
+			get_client(&state).await?,
+			state.lock().await.serial_generator.increment_get(),
+		)
+		.await,
 	)
 }
 
 #[tauri::command]
 pub async fn wvr_process_terminate(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	handle: packet_server::WvrProcessHandle,
 ) -> Result<(), String> {
 	handle_result(
 		"terminate process",
-		WayVRClient::fn_wvr_process_terminate(get_client(&state)?, handle).await,
+		WayVRClient::fn_wvr_process_terminate(get_client(&state).await?, handle).await,
 	)
 }
 
 #[tauri::command]
 pub async fn wvr_process_launch(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	exec: String,
 	name: String,
 	env: Vec<String>,
@@ -456,8 +563,8 @@ pub async fn wvr_process_launch(
 	handle_result(
 		"launch process",
 		WayVRClient::fn_wvr_process_launch(
-			get_client(&state)?,
-			state.serial_generator.increment_get(),
+			get_client(&state).await?,
+			state.lock().await.serial_generator.increment_get(),
 			packet_client::WvrProcessLaunchParams {
 				env,
 				exec,
@@ -473,7 +580,7 @@ pub async fn wvr_process_launch(
 
 #[tauri::command]
 pub async fn wlx_haptics(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 	intensity: f32,
 	duration: f32,
 	frequency: f32,
@@ -481,7 +588,7 @@ pub async fn wlx_haptics(
 	handle_result(
 		"send haptics",
 		WayVRClient::fn_wlx_haptics(
-			get_client(&state)?,
+			get_client(&state).await?,
 			packet_client::WlxHapticsParams {
 				intensity,
 				duration,
@@ -494,11 +601,14 @@ pub async fn wlx_haptics(
 
 #[tauri::command]
 pub async fn wlx_input_state(
-	state: tauri::State<'_, AppState>,
+	state: tauri::State<'_, AppStateType>,
 ) -> Result<packet_server::WlxInputState, String> {
 	handle_result(
 		"request input state",
-		WayVRClient::fn_wlx_input_state(get_client(&state)?, state.serial_generator.increment_get())
-			.await,
+		WayVRClient::fn_wlx_input_state(
+			get_client(&state).await?,
+			state.lock().await.serial_generator.increment_get(),
+		)
+		.await,
 	)
 }
