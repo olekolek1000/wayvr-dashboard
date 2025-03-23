@@ -2,6 +2,9 @@ import { render } from "preact";
 import { Dashboard } from "./dashboard";
 import { Globals } from "./globals";
 import { run_listeners } from "./event";
+import { useEffect } from "preact/hooks";
+import { get_version } from "./utils";
+import { clearDesktopFilesCache } from "./panel/applications";
 
 if (!import.meta.env.DEV) {
 	document.oncontextmenu = (event) => {
@@ -17,6 +20,19 @@ function Main({ }: {}) {
 		globals = new Globals();
 		globals.global_scale = global_scale;
 	}
+
+	useEffect(() => {
+		(async () => {
+			const storage = window.localStorage;
+			const version = await get_version();
+			const last_version = storage.getItem("last_version");
+			// Clear various caches in case if the dashboard version changed
+			if (last_version !== version) {
+				storage.setItem("last_version", version);
+				clearDesktopFilesCache();
+			}
+		})();
+	}, []);
 
 	run_listeners(globals);
 

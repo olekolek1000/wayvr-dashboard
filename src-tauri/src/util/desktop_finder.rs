@@ -1,13 +1,8 @@
-use std::{collections::HashSet, path::Path};
-
-use ini::Ini;
-use walkdir::WalkDir;
-
-use crate::util::icon_finder::find_icons;
+use gio::prelude::{AppInfoExt, IconExt};
+use gtk::traits::IconThemeExt;
 
 #[derive(Debug)]
 pub struct DesktopEntry {
-	pub desktop_file_path: String,
 	pub exec_path: String,
 	pub exec_args: Vec<String>,
 	pub app_name: String,
@@ -16,7 +11,6 @@ pub struct DesktopEntry {
 }
 
 pub struct EntrySearchCell {
-	pub desktop_file_path: String,
 	pub exec_path: String,
 	pub exec_args: Vec<String>,
 	pub app_name: String,
@@ -24,81 +18,61 @@ pub struct EntrySearchCell {
 	pub categories: Vec<String>,
 }
 
-const DESKTOP_FILE_BLACKLIST: [&str; 1] = [
-	"in.lsp_plug.lsp_plugins", // LSP Plugins collection. They clutter the application list a lot
+const CMD_BLACKLIST: [&str; 1] = [
+	"lsp-plugins", // LSP Plugins collection. They clutter the application list a lot
 ];
 
-const CATEGORY_TYPE_BLACKLIST: [&str; 4] = ["GTK", "Qt", "GNOME", "KDE"];
+const CATEGORY_TYPE_BLACKLIST: [&str; 5] = ["GTK", "Qt", "X-XFCE", "X-Bluetooth", "ConsoleOnly"];
 
-fn search_internal(path: &str, icon_share_path: &str) -> anyhow::Result<Vec<DesktopEntry>> {
-	log::debug!("Searching in path {}", path);
+pub fn find_entries() -> anyhow::Result<Vec<DesktopEntry>> {
+	let Some(icon_theme) = gtk::IconTheme::default() else {
+		anyhow::bail!("Failed to get current icon theme information");
+	};
 
-	let mut search_cells = Vec::<EntrySearchCell>::new();
+	let mut res = Vec::<DesktopEntry>::new();
 
-	'outer: for entry in WalkDir::new(path)
-		.into_iter()
-		.filter_map(|e| e.ok())
-		.filter(|e| !e.file_type().is_dir())
-	{
-		let Some(extension) = Path::new(entry.file_name()).extension() else {
+	let info = gio::AppInfo::all();
+
+	log::debug!("app entry count {}", info.len());
+
+	'outer: for app_entry in info {
+		let Some(app_entry_id) = app_entry.id() else {
+			log::warn!(
+				"failed to get desktop entry ID for application named \"{}\"",
+				app_entry.name()
+			);
 			continue;
 		};
 
-		if extension != "desktop" {
-			continue; // ignore, go on
+		let Some(desktop_app) = gio::DesktopAppInfo::new(&app_entry_id) else {
+			log::warn!(
+				"failed to find desktop app file from application named \"{}\"",
+				app_entry.name()
+			);
+			continue;
+		};
+
+		if desktop_app.is_nodisplay() || desktop_app.is_hidden() {
+			continue;
 		}
 
-		let file_name = entry.file_name().to_string_lossy();
+		let Some(cmd) = desktop_app.commandline() else {
+			continue;
+		};
 
-		let file_path = format!("{}/{}", path, file_name);
+		let name = String::from(desktop_app.name());
 
-		for pat in DESKTOP_FILE_BLACKLIST {
-			if file_name.contains(pat) {
+		let exec = String::from(cmd.to_string_lossy());
+
+		for blacklisted in CMD_BLACKLIST {
+			if exec.contains(blacklisted) {
 				continue 'outer;
-			};
-		}
-
-		let ini = match Ini::load_from_file(&file_path) {
-			Ok(ini) => ini,
-			Err(e) => {
-				log::debug!(
-					"Failed to read INI for .desktop file {}: {:?}, skipping",
-					file_path,
-					e
-				);
-				continue;
-			}
-		};
-
-		let Some(section) = ini.section(Some("Desktop Entry")) else {
-			log::debug!(
-				"Failed to get [Desktop Entry] section for file {}, skipping",
-				file_path
-			);
-			continue;
-		};
-
-		if section.contains_key("OnlyShowIn") {
-			continue; // probably XFCE, KDE, GNOME or other DE-specific stuff
-		}
-
-		if let Some(term) = section.get("Terminal") {
-			if term == "true" {
-				continue;
 			}
 		}
-
-		let Some(exec) = section.get("Exec") else {
-			log::debug!(
-				"Failed to get desktop entry Exec for file {}, skipping",
-				file_path
-			);
-			continue;
-		};
 
 		let (exec_path, exec_args) = match exec.split_once(" ") {
 			Some((left, right)) => (
-				left,
+				String::from(left),
 				right
 					.split(" ")
 					.filter(|arg| !arg.starts_with('%')) // exclude arguments like "%f"
@@ -108,137 +82,50 @@ fn search_internal(path: &str, icon_share_path: &str) -> anyhow::Result<Vec<Desk
 			None => (exec, Vec::new()),
 		};
 
-		if let Some(no_display) = section.get("NoDisplay") {
-			if no_display.eq_ignore_ascii_case("true") {
-				continue; // This application is hidden
+		let icon_path = match desktop_app.icon() {
+			Some(icon) => {
+				if let Some(icon_str) = icon.to_string() {
+					if let Some(s_icon) =
+						icon_theme.lookup_icon(&icon_str, 128, gtk::IconLookupFlags::GENERIC_FALLBACK)
+					{
+						s_icon.filename().map(|p| String::from(p.to_string_lossy()))
+					} else {
+						None
+					}
+				} else {
+					None
+				}
 			}
-		}
-
-		let Some(app_name) = section.get("Name") else {
-			log::debug!(
-				"Failed to get desktop entry application name for file {}, skipping",
-				file_path
-			);
-			continue;
+			None => None,
 		};
 
-		let icon_name = section.get("Icon").map(String::from);
-
-		let categories: Vec<String> = if let Some(categories) = section.get("Categories") {
-			categories
+		let categories: Vec<String> = match desktop_app.categories() {
+			Some(categories) => categories
 				.split(";")
-				.filter(|category| {
-					if category.trim().is_empty() {
-						return false;
-					}
-
-					for cell in CATEGORY_TYPE_BLACKLIST {
-						if *category == cell {
+				.filter(|s| !s.is_empty())
+				.filter(|s| {
+					for b in CATEGORY_TYPE_BLACKLIST {
+						if *s == b {
 							return false;
 						}
 					}
-
 					true
 				})
 				.map(String::from)
-				.collect()
-		} else {
-			Vec::new()
+				.collect(),
+			None => Vec::new(),
 		};
 
-		search_cells.push(EntrySearchCell {
-			app_name: String::from(app_name),
-			exec_path: String::from(exec_path),
-			exec_args,
-			desktop_file_path: file_path,
-			icon_name,
+		let entry = DesktopEntry {
+			app_name: name,
 			categories,
-		});
-	}
-
-	// generate unique list of icon names
-	let unique_icons: HashSet<&str> = search_cells
-		.iter()
-		.filter_map(|cell| cell.icon_name.as_deref())
-		.collect();
-
-	let found_icons = find_icons(unique_icons, icon_share_path)?;
-
-	let mut entries = Vec::<DesktopEntry>::new();
-	for cell in search_cells {
-		let icon_path: Option<String> = if let Some(icon_name) = &cell.icon_name {
-			found_icons.get(icon_name).cloned()
-		} else {
-			log::debug!("Icon for {} not found", cell.desktop_file_path);
-			None
+			exec_path,
+			exec_args,
+			icon_path,
 		};
 
-		entries.push(DesktopEntry {
-			app_name: cell.app_name,
-			exec_path: cell.exec_path,
-			exec_args: cell.exec_args,
-			desktop_file_path: cell.desktop_file_path,
-			categories: cell.categories,
-			icon_path,
-		});
+		res.push(entry);
 	}
 
-	Ok(entries)
-}
-
-fn search(path: &str, icon_share_path: &str) -> Vec<DesktopEntry> {
-	match search_internal(path, icon_share_path) {
-		Ok(res) => res,
-		Err(e) => {
-			log::error!("search_internal failed for path {path}: {:?}", e);
-			Vec::new() /* return an empty list instead of erroring out */
-		}
-	}
-}
-
-pub fn find_entries() -> anyhow::Result<Vec<DesktopEntry>> {
-	let xdg = xdg::BaseDirectories::new()?;
-
-	#[allow(deprecated)] // we are not using windows
-	let path_local_share = xdg.get_data_home(); /* usually "~/.local/share"  */
-	//let path_home = std::env::home_dir().ok_or(anyhow::anyhow!("home missing"))?;
-	//let path_var = path_home.join(".var");
-
-	let mut entries: Vec<DesktopEntry> = Vec::new();
-
-	// Search for system-installed user entries
-	entries.append(&mut search("/usr/share/applications", "/usr/share/"));
-
-	// Search for user-installed desktop entries
-	entries.append(&mut search(
-		&path_local_share.join("applications").to_string_lossy(),
-		&path_local_share.to_string_lossy(),
-	));
-
-	/*
-	// Search for flatpak steam apps
-	entries.append(&mut search(
-			&path_var
-			.join("app/com.valvesoftware.Steam/.local/share/applications/")
-				.to_string_lossy(),
-				)?);
-	 */
-
-	// Search for system-installed flatpak apps
-	entries.append(&mut search(
-		"/var/lib/flatpak/exports/share/applications/",
-		"/var/lib/flatpak/exports/share/",
-	));
-
-	// Search for user-installed flatpak apps
-	entries.append(&mut search(
-		&path_local_share
-			.join("flatpak/exports/share/applications/")
-			.to_string_lossy(),
-		&path_local_share
-			.join("flatpak/exports/share/")
-			.to_string_lossy(),
-	));
-
-	Ok(entries)
+	Ok(res)
 }

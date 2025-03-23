@@ -114,7 +114,7 @@ export function PanelApplications({ globals, desktop_files }: { globals: Globals
 	</>
 }
 
-function clearDesktopFilesCache() {
+export function clearDesktopFilesCache() {
 	const storage = window.localStorage;
 	storage.removeItem("desktop_files");
 }

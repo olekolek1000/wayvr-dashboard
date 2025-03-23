@@ -1,6 +1,6 @@
 [package]
 name = "wayvr_dashboard"
-version = "0.2.8"
+version = "0.3.0"
 description = "A VR dashboard for WayVR"
 authors = ["oo8.dev"]
 edition = "2021"
@@ -55,3 +55,6 @@ wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "a725
 serde_json = "1.0.140"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing = "0.1.41"
+gio = "0.20.9"
+glib = "0.20.9"
+gtk = "0.18.2"
