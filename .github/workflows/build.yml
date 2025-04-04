@@ -26,4 +26,4 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: wayvr_dashboard-x86_64.AppImage
-        path: ./appimage/wayvr_dashboard.AppImage
+        path: ./appimage/wayvr_dashboard.AppImage*
