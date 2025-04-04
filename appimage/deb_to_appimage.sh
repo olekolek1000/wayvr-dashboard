@@ -8,6 +8,7 @@ REPO_DIR="${SCRIPT_DIR}/../"
 
 LIB4BIN="https://raw.githubusercontent.com/VHSgunzo/sharun/9a6124a82595a835b07ea7fad7301be736e5a39b/lib4bin"
 URUNTIME="https://github.com/VHSgunzo/uruntime/releases/latest/download/uruntime-appimage-dwarfs-${ARCH}"
+UPINFO="gh-releases-zsync|$(echo "$GITHUB_REPOSITORY" | tr '/' '|')|latest|*$ARCH.AppImage.zsync"
 
 cd "${SCRIPT_DIR}"
 
@@ -60,9 +61,16 @@ chmod +x ./uruntime
 # enable this if you want to keep the mount point and change block size to '-S26'
 #sed -i 's|URUNTIME_MOUNT=[0-9]|URUNTIME_MOUNT=0|' ./uruntime
 
+echo "Adding update information \"$UPINFO\" to runtime..."
+./uruntime --appimage-addupdinfo "$UPINFO"
+
+echo "Generating AppImage..."
 ./uruntime --appimage-mkdwarfs -f \
 	--set-owner 0 --set-group 0 \
 	--no-history --no-create-timestamp \
 	--compression zstd:level=22 -S23 -B32 \
 	--header uruntime \
 	-i ./AppDir -o ./wayvr_dashboard.AppImage
+
+echo "Generating zsync file..."
+zsyncmake *.AppImage -u *.AppImage
