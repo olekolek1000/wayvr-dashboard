@@ -2,12 +2,12 @@
 
 set -e
 
+ARCH="$(uname -m)"
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 REPO_DIR="${SCRIPT_DIR}/../"
 
-APPIMAGETOOL="https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
 LIB4BIN="https://raw.githubusercontent.com/VHSgunzo/sharun/9a6124a82595a835b07ea7fad7301be736e5a39b/lib4bin"
-SHARUNBIN="https://github.com/VHSgunzo/sharun/releases/download/v0.3.3/sharun-x86_64"
+URUNTIME="https://github.com/VHSgunzo/uruntime/releases/latest/download/uruntime-appimage-dwarfs-${ARCH}"
 
 cd "${SCRIPT_DIR}"
 
@@ -32,36 +32,37 @@ cp /tmp/lib4bin ./lib4bin
 
 chmod +x ./lib4bin
 ./lib4bin -p -v -s -k ./usr/bin/wayvr_dashboard \
-        /usr/lib/x86_64-linux-gnu/libGL* \
-        /usr/lib/x86_64-linux-gnu/libEGL* \
-        /usr/lib/x86_64-linux-gnu/libvulkan* \
-        /usr/lib/x86_64-linux-gnu/dri/* \
-        /usr/lib/x86_64-linux-gnu/libpulsecommon* \
-        /usr/lib/x86_64-linux-gnu/libnss_mdns* \
-        /usr/lib/x86_64-linux-gnu/libssl.so.3 \
-        /usr/lib/x86_64-linux-gnu/libcrypto.so.3 \
-				/usr/lib/x86_64-linux-gnu/libwebkit2gtk* \
-        /usr/lib/x86_64-linux-gnu/gio/modules/*
+	/usr/lib/"${ARCH}"-linux-gnu/libGL* \
+	/usr/lib/"${ARCH}"-linux-gnu/libEGL* \
+	/usr/lib/"${ARCH}"-linux-gnu/libvulkan* \
+	/usr/lib/"${ARCH}"-linux-gnu/dri/* \
+	/usr/lib/"${ARCH}"-linux-gnu/libpulsecommon* \
+	/usr/lib/"${ARCH}"-linux-gnu/libnss_mdns* \
+	/usr/lib/"${ARCH}"-linux-gnu/libssl.so.3 \
+	/usr/lib/"${ARCH}"-linux-gnu/libcrypto.so.3 \
+	/usr/lib/"${ARCH}"-linux-gnu/libwebkit2gtk* \
+	/usr/lib/"${ARCH}"-linux-gnu/gio/modules/*
         
 rm -rf ./usr
 
 #gstreamer is not used by us
 #/usr/lib/x86_64-linux-gnu/gstreamer-1.0/* \
 
-mkdir -p ./shared/bin
-mkdir -p ./shared/lib
-
-wget -nc --retry-connrefused --tries=5 "${SHARUNBIN}" -O /tmp/sharun || true
-cp /tmp/sharun ./sharun
-
 chmod +x ./sharun
 ln ./sharun ./AppRun
 ./sharun -g
 
 cd ..
-wget -nc --retry-connrefused --tries=5 "${APPIMAGETOOL}" -O /tmp/appimagetool || true
-cp /tmp/appimagetool ./appimagetool
-chmod +x ./appimagetool
-./appimagetool --comp zstd \
-        --mksquashfs-opt -Xcompression-level --mksquashfs-opt 14 \
-        -n "$PWD"/AppDir "$PWD"/wayvr_dashboard.AppImage
+wget -nc --retry-connrefused --tries=5 "${URUNTIME}" -O /tmp/uruntime || true
+cp /tmp/uruntime ./uruntime
+chmod +x ./uruntime
+
+# enable this if you want to keep the mount point and change block size to '-S26'
+#sed -i 's|URUNTIME_MOUNT=[0-9]|URUNTIME_MOUNT=0|' ./uruntime
+
+./uruntime --appimage-mkdwarfs -f \
+	--set-owner 0 --set-group 0 \
+	--no-history --no-create-timestamp \
+	--compression zstd:level=22 -S23 -B32 \
+	--header uruntime \
+	-i ./AppDir -o ./wayvr_dashboard.AppImage
