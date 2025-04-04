@@ -18,7 +18,7 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: 'latest'
-    - run: sudo apt update && sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev file binutils patchelf findutils grep sed coreutils strace
+    - run: sudo apt update && sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev file binutils patchelf findutils grep sed coreutils strace zsync
     - run: rustup update stable && rustup default stable
     - run: npm install
     - run: npm run tauri build
@@ -26,4 +26,4 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: wayvr_dashboard-x86_64.AppImage
-        path: ./appimage/wayvr_dashboard.AppImage
+        path: ./appimage/wayvr_dashboard.AppImage*
