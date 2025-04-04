@@ -26,7 +26,7 @@ rm -f *.tar* package.deb debian-binary
 mv ./usr/share ./
 cp ./share/applications/*.desktop ./
 cp ./share/icons/hicolor/128x128/apps/wayvr_dashboard.png ./
-ln -s ./app.png ./.DirIcon
+ln -s wayvr_dashboard.png ./.DirIcon
 
 wget -nc --retry-connrefused --tries=5  "${LIB4BIN}" -O /tmp/lib4bin || true
 cp /tmp/lib4bin ./lib4bin
