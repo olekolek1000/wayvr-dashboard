@@ -90,6 +90,11 @@ export namespace ipc {
 		ports: MapType<string, CardPort>, // key: "analog-output-lineout"
 	}
 
+	export interface SteamiumRunningGame {
+		app_id: number;
+		pid: number;
+	}
+
 	export async function desktop_file_list(): Promise<Array<DesktopFile>> {
 		return await invoke("desktop_file_list");
 	}
@@ -100,6 +105,14 @@ export namespace ipc {
 
 	export async function game_launch(app_id: number): Promise<void> {
 		return await invoke("game_launch", { appId: app_id })
+	}
+
+	export async function game_stop(app_id: number, force: boolean): Promise<void> {
+		return await invoke("game_stop", { appId: app_id, force: force });
+	}
+
+	export async function running_game_list(): Promise<Array<SteamiumRunningGame>> {
+		return await invoke("running_game_list");
 	}
 
 	export async function audio_list_cards(): Promise<Array<AudioCard>> {

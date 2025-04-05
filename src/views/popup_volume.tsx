@@ -154,6 +154,25 @@ interface ProfileDisplayName {
 	is_vr: boolean,
 }
 
+function doesStringMentionHMD(input: string) {
+	const name = input.toLowerCase();
+	return (
+		name.includes("hmd") // generic hmd name detected
+		|| name.includes("index") // Valve Index
+		|| name.includes("oculus")  // Oculus
+		|| name.includes("rift") // Also Oculus
+	);
+}
+
+function isCardMentioningHMD(card: ipc.AudioCard) {
+	const card_device_name = card.properties["device.description"];
+	if (card_device_name === undefined) {
+		return false;
+	}
+
+	return doesStringMentionHMD(card_device_name);
+}
+
 function getProfileDisplayName(profile_name: string, card: ipc.AudioCard): ProfileDisplayName {
 	const profile = ipc.mapGet(card.profiles, profile_name);
 	if (profile === undefined) {
@@ -187,6 +206,17 @@ function getProfileDisplayName(profile_name: string, card: ipc.AudioCard): Profi
 		out_icon_path = "icons/volume.svg"; // Default fallback
 	}
 
+	// All ports are tied to this VR headset, assign all of them to the VR icon
+	if (isCardMentioningHMD(card)) {
+		if (prof.includes("mic")) {
+			// Probably microphone
+			out_icon_path = "icons/microphone.svg";
+		}
+		else {
+			out_icon_path = "icons/vr.svg";
+		}
+	}
+
 	ipc.mapIter(card.ports, (_port_name, port) => {
 		// Find profile
 		for (const port_profile of port.profiles) {
@@ -200,12 +230,7 @@ function getProfileDisplayName(profile_name: string, card: ipc.AudioCard): Profi
 				if (product_name !== undefined) {
 					out_name = product_name;
 
-					const pname = product_name.toLowerCase();
-					if (
-						pname.includes("hmd") // generic hmd name detected
-						|| pname.includes("index") // Valve Index
-						|| pname.includes("rift") // Oculus Rift
-					) {
+					if (doesStringMentionHMD(product_name)) {
 						// VR icon
 						out_icon_path = "icons/vr.svg";
 						is_vr = true;
@@ -219,16 +244,8 @@ function getProfileDisplayName(profile_name: string, card: ipc.AudioCard): Profi
 		}
 	});
 
-	if (out_name.length != 0) {
-		return {
-			name: out_name,
-			icon_path: out_icon_path,
-			is_vr: is_vr,
-		};
-	}
-
 	return {
-		name: profile.description,
+		name: out_name.length != 0 ? out_name : profile.description,
 		icon_path: out_icon_path,
 		is_vr: is_vr,
 	};
@@ -312,12 +329,68 @@ enum Mode {
 	cards
 }
 
+async function switch_card(globals: Globals, card: ipc.AudioCard, profile_name: string, name: ProfileDisplayName, on_change: () => void) {
+	try {
+		await ipc.audio_set_card_profile({
+			cardIndex: card.index,
+			profile: profile_name
+		});
+
+		const sinks = await ipc.audio_list_sinks();
+		let sink_set = false;
+		// find sink by card name
+		for (const sink of sinks) {
+			const sink_dev_name = ipc.mapGet(sink.properties, "device.name");
+			if (sink_dev_name === card.name) {
+				await ipc.audio_set_default_sink({
+					sinkIndex: sink.index
+				})
+				sink_set = true;
+				break;
+			}
+		}
+
+		if (sink_set) {
+			globals.toast_manager.push("Switched to \"" + name.name + "\" successfully!");
+		}
+		else {
+			// shouldn't happen but inform the user
+			globals.toast_manager.push("\"" + name.name + "\" found and initialized! (not switched)");
+		}
+
+		on_change();
+	}
+	catch (e) {
+		globals.toast_manager.push("Failed to set card profile: " + JSON.stringify(e));
+	}
+};
 
 async function switchToVRAudio(globals: Globals, on_change: () => void) {
 	let switched = false;
 
 	const cards = await ipc.audio_list_cards();
 	for (const card of cards) {
+		if (isCardMentioningHMD(card)) {
+			// Get the profile with the largest priority value
+			let best_priority = 0;
+			let best_profile_name = "";
+			let best_profile = undefined;
+			ipc.mapIter(card.profiles, (profile_name, profile) => {
+				if (profile.priority > best_priority) {
+					best_priority = profile.priority;
+					best_profile = profile;
+					best_profile_name = profile_name;
+				}
+			});
+
+			if (best_profile) {
+				const name = getProfileDisplayName(best_profile_name, card);
+				switched = true;
+				switch_card(globals, card, best_profile_name, name, on_change);
+			}
+			return;
+		}
+
 		ipc.mapIter(card.profiles, (profile_name, _profile) => {
 			if (switched) {
 				return;
@@ -330,44 +403,7 @@ async function switchToVRAudio(globals: Globals, on_change: () => void) {
 
 			switched = true;
 
-			const sw = async () => {
-				// Found!
-				try {
-					await ipc.audio_set_card_profile({
-						cardIndex: card.index,
-						profile: profile_name
-					});
-
-					const sinks = await ipc.audio_list_sinks();
-					let sink_set = false;
-					// find sink by card name
-					for (const sink of sinks) {
-						const sink_dev_name = ipc.mapGet(sink.properties, "device.name");
-						if (sink_dev_name === card.name) {
-							await ipc.audio_set_default_sink({
-								sinkIndex: sink.index
-							})
-							sink_set = true;
-							break;
-						}
-					}
-
-					if (sink_set) {
-						globals.toast_manager.push("Switched to \"" + name.name + "\" successfully!");
-					}
-					else {
-						// shouldn't happen but inform the user
-						globals.toast_manager.push("\"" + name.name + "\" found and initialized! (not switched)");
-					}
-
-					on_change();
-				}
-				catch (e) {
-					globals.toast_manager.push("Failed to set card profile: " + JSON.stringify(e));
-				}
-			};
-
-			sw();
+			switch_card(globals, card, profile_name, name, on_change);
 		});
 
 		if (switched) {

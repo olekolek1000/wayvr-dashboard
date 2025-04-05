@@ -1,6 +1,6 @@
 [package]
 name = "wayvr_dashboard"
-version = "0.3.0"
+version = "0.3.1"
 description = "A VR dashboard for WayVR"
 authors = ["oo8.dev"]
 edition = "2021"
@@ -34,7 +34,9 @@ tauri = { version = "2.3.1", features = [
 	"unstable",
 ] }
 tauri-plugin-shell = "2.2.0"
+libsteamium = { path = "../libsteamium" }
 serde = { version = "1.0.218", features = ["derive"] }
+serde_json = "1.0.140"
 tauri-plugin-fs = "2.2.0"
 walkdir = "2.5.0"
 xdg = "2.5.2"
@@ -42,7 +44,6 @@ anyhow = "1.0.97"
 rust-ini = "0.21.1"
 libmonado = { git = "https://github.com/olekolek1000/libmonado-rs.git", rev = "edfbba6f47ee28181755c80531586e3eb91745c8" }
 log = "0.4.26"
-keyvalues-parser = { git = "https://github.com/CosmicHorrorDev/vdf-rs.git", rev = "2aff7147c5ba2bf2551566269dc167099fe7d527" }
 tauri-plugin-http = { version = "2.3.0", features = ["unsafe-headers"] }
 interprocess = { version = "2.2.3", features = ["tokio"] }
 bytes = "1.10.1"
@@ -52,7 +53,6 @@ smallvec = "1.14.0"
 wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "a72587d23f3bb8624d9aeb1f13c0a21e65350f51", features = [
 	"client",
 ] }
-serde_json = "1.0.140"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing = "0.1.41"
 gio = "0.20.9"

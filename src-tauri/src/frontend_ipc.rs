@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-
 use libmonado::ReferenceSpaceType;
 use serde::Serialize;
+use std::collections::HashMap;
 use tauri::{AppHandle, Emitter};
 use tokio::sync::Mutex;
 use wayvr_ipc::{
@@ -9,7 +8,7 @@ use wayvr_ipc::{
 	packet_client, packet_server,
 };
 
-use crate::util::{self, pactl_wrapper, steam_bridge};
+use crate::util::{self, pactl_wrapper};
 
 type AppStateType = Mutex<crate::app::AppState>;
 
@@ -24,7 +23,7 @@ pub struct DesktopFile {
 
 #[derive(Serialize)]
 pub struct Games {
-	manifests: Vec<steam_bridge::AppManifest>,
+	manifests: Vec<libsteamium::AppManifest>,
 }
 
 fn handle_result<T, E>(msg: &str, result: Result<T, E>) -> Result<T, String>
@@ -68,21 +67,25 @@ pub async fn game_list(state: tauri::State<'_, AppStateType>) -> Result<Games, S
 			state
 				.lock()
 				.await
-				.steam_bridge
-				.list_installed_games(steam_bridge::GameSortMethod::PlayDateDesc),
+				.steamium
+				.list_installed_games(libsteamium::GameSortMethod::PlayDateDesc),
 		)?,
 	})
 }
 
 #[tauri::command]
 pub fn game_launch(app_id: i32) -> Result<(), String> {
-	handle_result(
-		"execute xdg-open",
-		std::process::Command::new("xdg-open")
-			.arg(format!("steam://run/{}", app_id))
-			.spawn(),
-	)?;
-	Ok(())
+	handle_result("launch a game", libsteamium::launch(app_id as u64))
+}
+
+#[tauri::command]
+pub fn game_stop(app_id: i32, force: bool) -> Result<(), String> {
+	handle_result("stop a game", libsteamium::stop(app_id as u64, force))
+}
+
+#[tauri::command]
+pub fn running_game_list() -> Result<Vec<libsteamium::RunningGame>, String> {
+	handle_result("list running games", libsteamium::list_running_games())
 }
 
 #[tauri::command]

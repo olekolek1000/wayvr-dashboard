@@ -21,6 +21,8 @@ pub async fn run() {
 			frontend_ipc::desktop_file_list,
 			frontend_ipc::game_list,
 			frontend_ipc::game_launch,
+			frontend_ipc::game_stop,
+			frontend_ipc::running_game_list,
 			frontend_ipc::audio_list_sinks,
 			frontend_ipc::audio_set_sink_volume,
 			frontend_ipc::audio_set_sink_mute,

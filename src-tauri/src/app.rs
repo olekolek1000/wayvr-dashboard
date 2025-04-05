@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use libsteamium::Steamium;
 use tauri::{Emitter, Manager};
 use tokio::sync::Mutex;
 use wayvr_ipc::{
@@ -8,10 +9,8 @@ use wayvr_ipc::{
 	packet_server::PacketServer,
 };
 
-use crate::util::steam_bridge::SteamBridge;
-
 pub struct AppState {
-	pub steam_bridge: SteamBridge,
+	pub steamium: Steamium,
 	pub wayvr_client: Option<WayVRClientMutex>,
 	pub serial_generator: ipc::SerialGenerator,
 	pub monado: Option<Arc<Mutex<libmonado::Monado>>>,
@@ -34,7 +33,7 @@ impl AppState {
 	pub async fn new() -> anyhow::Result<Self> {
 		let serial_generator = ipc::SerialGenerator::new();
 
-		let steam_bridge = SteamBridge::new()?;
+		let steamium = Steamium::new()?;
 
 		let wayvr_client = match WayVRClient::new("WayVR Dashboard").await {
 			Ok(c) => Some(c),
@@ -49,7 +48,7 @@ impl AppState {
 		log::info!("WayVR Dashboard v{} started.", env!("CARGO_PKG_VERSION"));
 
 		Ok(Self {
-			steam_bridge,
+			steamium,
 			wayvr_client,
 			serial_generator,
 			monado,
