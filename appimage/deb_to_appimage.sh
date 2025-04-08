@@ -51,7 +51,7 @@ mkdir -p ./tmp
 wget "https://archlinux.org/packages/core/"${ARCH}"/glibc/download/" -O ./tmp/glibc.tar.zst
 tar xvf ./tmp/glibc.tar.zst -C ./tmp
 mv -v ./tmp/usr/lib/libc*.so* ./shared/lib
-mv -v ./tmp/usr/lib/libpthreat*.so* ./shared/lib
+mv -v ./tmp/usr/lib/libpthread*.so* ./shared/lib
 mv -v ./tmp/usr/lib/ld-linux*.so* ./shared/lib
 rm -rf ./tmp
 
