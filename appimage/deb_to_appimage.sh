@@ -46,6 +46,15 @@ chmod +x ./lib4bin
         
 rm -rf ./usr
 
+# get latest glibc
+mkdir -p ./tmp
+wget "https://archlinux.org/packages/core/"${ARCH}"/glibc/download/" -O ./tmp/glibc.tar.zst
+tar xvf ./tmp/glibc.tar.zst -C ./tmp
+mv -v ./tmp/usr/lib/libc*.so* ./shared/lib
+mv -v ./tmp/usr/lib/libpthreat*.so* ./shared/lib
+mv -v ./tmp/usr/lib/ld-linux*.so* ./shared/lib
+rm -rf ./tmp
+
 #gstreamer is not used by us
 #/usr/lib/x86_64-linux-gnu/gstreamer-1.0/* \
 
