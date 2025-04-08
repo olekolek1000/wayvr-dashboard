@@ -12,11 +12,7 @@ WayVR Dashboard is a work-in-progress overlay application (WayVR/wlx-overlay-s p
 
 ## Method 1: Via [Envision](https://gitlab.com/gabmus/envision):
 
-Open "Plugins" and install the newest WayVR Dashboard release:
-
-![Envision plugins window](contrib/envision_installation.png)
-
-That's it. No further configuration is required.
+# Temporarily unavailable.
 
 ## Method 2: Via [Releases](https://github.com/olekolek1000/wayvr-dashboard/releases) page:
 
