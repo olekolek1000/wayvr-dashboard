@@ -1,0 +1,25 @@
+name: Check Full
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+
+jobs:
+  package:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: mozilla-actions/sccache-action@v0.0.3
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 'latest'
+    - run: ./.github/workflows/package.sh
+    - uses: actions/upload-artifact@v4
+      with:
+        name: wayvr_dashboard.x86_64
+        path: ./wayvr_dashboard.x86_64
