@@ -35,7 +35,7 @@ npm install
 npm run tauri build
 ```
 
-Built executable will be available at `./src-tauri/target/release/wayvr_dashboard`.
+Built executable will be available at `./src-tauri/target/release/wayvr-dashboard`.
 
 #### 2. Configure _[wlx-overlay-s](https://github.com/galister/wlx-overlay-s)_
 
@@ -51,7 +51,7 @@ cargo build
 
 ```yaml
 dashboard:
-  exec: "/home/YOUR_USER/PATH_TO_REPO/wayvr-dashboard/src-tauri/target/release/wayvr_dashboard"
+  exec: "/home/YOUR_USER/PATH_TO_REPO/wayvr-dashboard/src-tauri/target/release/wayvr-dashboard"
   args: ""
   env: ["GDK_BACKEND=wayland"]
 ```

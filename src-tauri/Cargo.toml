@@ -1,6 +1,6 @@
 [package]
-name = "wayvr_dashboard"
-version = "0.3.1"
+name = "wayvr-dashboard"
+version = "0.3.2"
 description = "A VR dashboard for WayVR"
 authors = ["oo8.dev"]
 edition = "2021"

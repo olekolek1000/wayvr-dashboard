@@ -8,7 +8,7 @@ set -e
 
 SCRIPT_DIR=$(dirname "$0")
 
-# Run "configure_env.sh" only once by creating an enpty ".installed" file.
+# Run "configure_env.sh" only once by creating an empty ".installed" file.
 # This will always run on a github worker
 if ! test -f ${SCRIPT_DIR}/.installed; then
 	${SCRIPT_DIR}/configure_env.sh
@@ -24,4 +24,4 @@ fi
 npm run tauri build
 
 # Copy our freshly-baked executable
-cp ./src-tauri/target/release/wayvr_dashboard ./wayvr_dashboard.x86_64
+cp ./src-tauri/target/release/wayvr-dashboard ./wayvr-dashboard.x86_64

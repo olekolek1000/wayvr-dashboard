@@ -21,5 +21,5 @@ jobs:
     - run: ./.github/workflows/package.sh
     - uses: actions/upload-artifact@v4
       with:
-        name: wayvr_dashboard.x86_64
-        path: ./wayvr_dashboard.x86_64
+        name: wayvr-dashboard.x86_64
+        path: ./wayvr-dashboard.x86_64

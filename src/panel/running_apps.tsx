@@ -14,7 +14,7 @@ export function PanelRunningApps({ globals }: { globals: Globals }) {
 	const refresh = async () => {
 		setDisplays(await listDisplays());
 
-		setProcesses((await ipc.process_list()).filter((process) => { return process.name.toLowerCase().indexOf("wayvr_dashboard") == -1 }));
+		setProcesses((await ipc.process_list()).filter((process) => { return process.name.toLowerCase().indexOf("wayvr-dashboard") == -1 }));
 	}
 
 	const load = () => {
