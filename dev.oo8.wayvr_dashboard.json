@@ -2,16 +2,16 @@
 	"appid": "dev.oo8.wayvr_dashboard",
 	"author": "Aleksander (oo8dev)",
 	"name": "WayVR Dashboard",
-	"version": "0.3.0",
+	"version": "0.3.2",
 	"hompage_url": "https://oo8.dev/wayvr_dashboard",
-	"icon_url": "https://raw.githubusercontent.com/olekolek1000/wayvr-dashboard/refs/heads/master/public/wayvr_dashboard.svg",
+	"icon_url": "https://raw.githubusercontent.com/olekolek1000/wayvr-dashboard/refs/heads/master/wayvr-dashboard.svg",
 	"screenshots": [
 		"https://github.com/olekolek1000/wayvr-dashboard/blob/master/contrib/front.jpg?raw=true"
 	],
-	"description": "WayVR Dashboard is a work-in-progress overlay application (wlx-overlay-s plugin) for launching various applications and games directly into a VR desktop environment.",
-	"short_description": "Game and application launcher in VR",
+	"description": "Launch your favorite desktop applications and games seamlessly within your VR environment (wlx-overlay-s addon)",
+	"short_description": "Game and application launcher for VR",
 	"env_vars": { "GDK_BACKEND": "wayland" },
 	"plugin_type": "WayVrDashboard",
 	"dependencies": ["com.github.galister.wlx-overlay-s"],
-	"exec_url": "https://github.com/olekolek1000/wayvr-dashboard/releases/download/0.3.0/wayvr_dashboard.AppImage"
+	"exec_url": "https://github.com/olekolek1000/wayvr-dashboard/releases/download/0.3.2/wayvr-dashboard.AppImage"
 }
