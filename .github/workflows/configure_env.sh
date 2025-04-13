@@ -2,6 +2,11 @@
 
 set -e
 
+if [[ ! -v LINUXDEPLOY ]]; then
+  echo "LINUXDEPLOY is not set"
+	exit -1
+fi
+
 echo "Installing packages"
 
 sudo apt update
@@ -31,3 +36,10 @@ echo "Installing rust"
 
 rustup update stable
 rustup default stable
+
+echo "Downloading linuxdeploy"
+
+test -f ${LINUXDEPLOY} || wget  -O ${LINUXDEPLOY} https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20250213-2/linuxdeploy-x86_64.AppImage
+
+chmod +x ${LINUXDEPLOY}
+

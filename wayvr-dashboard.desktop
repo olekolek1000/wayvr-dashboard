@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=WayVR Dashboard
+Exec=wayvr-dashboard
+Icon=wayvr-dashboard
+Keywords=X-VR;
+Categories=Utility;X-VR;
+Comment=A desktop environment and launcher for VR (wlx-overlay-s addon)

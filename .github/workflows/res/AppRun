@@ -1,0 +1,4 @@
+#!/bin/bash
+cd ${APPDIR}
+cd usr
+./bin/wayvr-dashboard
