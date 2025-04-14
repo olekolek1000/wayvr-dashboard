@@ -1,4 +1,4 @@
-use app::AppState;
+use app::{AppParams, AppState};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -7,8 +7,8 @@ pub mod frontend_ipc;
 pub mod util;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub async fn run() {
-	let app_state = Mutex::new(AppState::new().await.unwrap());
+pub async fn run(params: AppParams) {
+	let app_state = Mutex::new(AppState::new(params).await.unwrap());
 
 	tauri::Builder::default()
 		.plugin(tauri_plugin_http::init())
@@ -18,6 +18,7 @@ pub async fn run() {
 			Ok(())
 		})
 		.invoke_handler(tauri::generate_handler![
+			frontend_ipc::is_nvidia,
 			frontend_ipc::desktop_file_list,
 			frontend_ipc::game_list,
 			frontend_ipc::game_launch,

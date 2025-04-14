@@ -1,5 +1,6 @@
 import { ipc } from "../ipc";
 import { Globals } from "../globals";
+import scss from "@/app.module.scss"
 import { BoxRight, Button, Checkbox, Container, failed_covers_clear, Icon, Separator, Title } from "../gui/gui";
 import { useEffect, useState } from "preact/hooks";
 import { get_version } from "@/utils";
@@ -32,6 +33,33 @@ export function PanelSettings({ globals }: { globals: Globals }) {
 		globals.setPrefs(preferences.loadPreferences());
 	}
 
+	let warn_nvidia = undefined;
+	let checkbox_opaque;
+	const cb_op = <Checkbox pair={[pref_opaque_background, setPrefOpaqueBackground]} title="Opaque background" disabled={globals.is_nvidia} onChange={(n) => {
+		prefs.opaque_background = n;
+		refreshPrefs();
+	}} />;
+
+	if (globals.is_nvidia) {
+		checkbox_opaque = <BoxRight>
+			{cb_op}
+			<span className={scss.text_red}>Nvidia detected</span>
+		</BoxRight>;
+
+		warn_nvidia = <Container>
+			<span className={scss.text_red} style={{ fontSize: "0.9em" }}>
+				Various graphical effects (fade-in, semi-translucency, blur) and features are
+				force-disabled because NVIDIA GPU has been detected on your system,
+				which has problems with hardware-accelerated rendering in Webkit using AppImages.
+				Expect minor graphical glitches. Set WAYVR_DASH_DISABLE_MITIGATIONS=1
+				to disable this behavior. You can also try installing WayVR Dashboard via your package manager.
+			</span>
+		</Container>;
+	}
+	else {
+		checkbox_opaque = cb_op;
+	}
+
 	return <>
 		<BoxRight>
 			<Icon path="icons/settings.svg" />
@@ -48,6 +76,8 @@ export function PanelSettings({ globals }: { globals: Globals }) {
 			</BoxRight>
 		</Container>
 
+		{warn_nvidia}
+
 		<Container>
 			<Checkbox pair={[pref_hide_username, setPrefHideUsername]} title="Hide username in the Home screen" onChange={(n) => {
 				prefs.hide_username = n;
@@ -57,10 +87,7 @@ export function PanelSettings({ globals }: { globals: Globals }) {
 				prefs.twelve_hour_clock = n;
 				refreshPrefs();
 			}} />
-			<Checkbox pair={[pref_opaque_background, setPrefOpaqueBackground]} title="Opaque background" onChange={(n) => {
-				prefs.opaque_background = n;
-				refreshPrefs();
-			}} />
+			{checkbox_opaque}
 		</Container>
 
 		<Container>

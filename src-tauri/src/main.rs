@@ -3,6 +3,7 @@
 
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use wayvr_dashboard_lib::{app::AppParams, util::nvidia_detect};
 
 fn init_logging() {
 	tracing_subscriber::registry()
@@ -20,11 +21,28 @@ fn init_logging() {
 		.init();
 }
 
+fn set_wayland() {
+	log::debug!("Setting GDK_BACKEND to wayland");
+	std::env::set_var("GDK_BACKEND", "wayland");
+}
+
 #[tokio::main]
 async fn main() {
 	init_logging();
 
+	// Enable Wayland GTK if supported
+	if std::env::var("WAYVR_DISPLAY_AUTH").is_ok() {
+		// Running in WayVR Server
+		set_wayland();
+	} else if let Ok(t) = std::env::var("XDG_SESSION_TYPE") {
+		if t == "wayland" {
+			set_wayland();
+		}
+	}
+
 	log::info!("Starting WayVR Dashboard v{}", env!("CARGO_PKG_VERSION"));
 
-	wayvr_dashboard_lib::run().await;
+	let is_nvidia = nvidia_detect::check_nvidia();
+
+	wayvr_dashboard_lib::run(AppParams { is_nvidia }).await;
 }

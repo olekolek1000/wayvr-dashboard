@@ -194,6 +194,10 @@ export namespace ipc {
 		return await invoke("is_monado_present");
 	}
 
+	export async function is_nvidia(): Promise<boolean> {
+		return await invoke("is_nvidia");
+	}
+
 	export async function monado_recenter(): Promise<void> {
 		return await invoke("monado_recenter");
 	}

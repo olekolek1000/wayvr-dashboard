@@ -2,9 +2,10 @@ import { render } from "preact";
 import { Dashboard } from "./dashboard";
 import { Globals } from "./globals";
 import { run_listeners } from "./event";
-import { useEffect } from "preact/hooks";
 import { get_version } from "./utils";
 import { clearDesktopFilesCache } from "./panel/applications";
+import { preferences } from "./preferences";
+import { ipc } from "./ipc";
 
 if (!import.meta.env.DEV) {
 	document.oncontextmenu = (event) => {
@@ -15,28 +16,10 @@ export var globals: Globals | null = null;
 
 export var global_scale: number;
 
-function Main({ }: {}) {
-	if (!globals) {
-		globals = new Globals();
-		globals.global_scale = global_scale;
-	}
-
-	useEffect(() => {
-		(async () => {
-			const storage = window.localStorage;
-			const version = await get_version();
-			const last_version = storage.getItem("last_version");
-			// Clear various caches in case if the dashboard version changed
-			if (last_version !== version) {
-				storage.setItem("last_version", version);
-				clearDesktopFilesCache();
-			}
-		})();
-	}, []);
-
+function Main({ globals, initial_preferences }: { globals: Globals, initial_preferences: preferences.Preferences }) {
 	run_listeners(globals);
 
-	return <Dashboard globals={globals} />
+	return <Dashboard globals={globals} initial_preferences={initial_preferences} />
 }
 
 var el_root = document.getElementById("root")!;
@@ -83,5 +66,32 @@ function on_resize() {
 
 on_resize();
 
-render(<Main />, el_root);
+async function prepare() {
+	globals = new Globals();
+	globals.global_scale = global_scale;
+	globals.is_nvidia = await ipc.is_nvidia();
+
+	let pref = preferences.loadPreferences();
+	if (globals.is_nvidia) {
+		pref.opaque_background = true;
+		// Disable window transparency completely
+		document.getElementById("body")!.style.backgroundColor = "black";
+	}
+
+	const storage = window.localStorage;
+	const version = await get_version();
+	const last_version = storage.getItem("last_version");
+
+	// Clear various caches in case if the dashboard version changed
+	if (last_version !== version) {
+		storage.setItem("last_version", version);
+		clearDesktopFilesCache();
+	}
+
+	render(<Main globals={globals} initial_preferences={pref} />, el_root);
+}
+
+
+prepare()
+
 

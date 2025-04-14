@@ -169,7 +169,8 @@ body {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-	background: radial-gradient(
+	background:
+		radial-gradient(
 			circle,
 			vars.$color-background1 50%,
 			vars.$color-background2 150%
@@ -495,7 +496,8 @@ body {
 
 .game_cover_shine {
 	border-radius: 8px;
-	background: linear-gradient(
+	background:
+		linear-gradient(
 			0deg,
 			rgba(255, 255, 255, 0) 50%,
 			rgba(255, 255, 255, 0.4) 100%
@@ -510,7 +512,7 @@ body {
 }
 
 .game_cover:hover {
-	transform: perspective(400px) scale(1.075) rotateX(5deg);
+	transform: perspective(500px) scale(1.075) rotateX(5deg);
 	z-index: 1;
 	border: 2px solid white;
 	box-shadow: 0px 5px 20px white;

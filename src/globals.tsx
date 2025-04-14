@@ -24,6 +24,8 @@ export class Globals {
 
 	setCurrentPanel!: Dispatch<StateUpdater<JSX.Element>>;
 
+	is_nvidia!: boolean;
+
 	constructor() {
 
 	}

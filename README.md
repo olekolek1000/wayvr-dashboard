@@ -67,7 +67,7 @@ cargo build
 dashboard:
   exec: "/home/YOUR_DIR/wayvr-dashboard.AppImage"
   args: ""
-  env: ["GDK_BACKEND=wayland"]
+  env: []
 ```
 
 ⚠️ Modify `exec` path accordingly to your executable path!

@@ -9,11 +9,16 @@ use wayvr_ipc::{
 	packet_server::PacketServer,
 };
 
+pub struct AppParams {
+	pub is_nvidia: bool,
+}
+
 pub struct AppState {
 	pub steamium: Steamium,
 	pub wayvr_client: Option<WayVRClientMutex>,
 	pub serial_generator: ipc::SerialGenerator,
 	pub monado: Option<Arc<Mutex<libmonado::Monado>>>,
+	pub params: AppParams,
 }
 
 fn init_monado() -> Option<Arc<Mutex<libmonado::Monado>>> {
@@ -30,7 +35,7 @@ fn init_monado() -> Option<Arc<Mutex<libmonado::Monado>>> {
 }
 
 impl AppState {
-	pub async fn new() -> anyhow::Result<Self> {
+	pub async fn new(params: AppParams) -> anyhow::Result<Self> {
 		let serial_generator = ipc::SerialGenerator::new();
 
 		let steamium = Steamium::new()?;
@@ -52,6 +57,7 @@ impl AppState {
 			wayvr_client,
 			serial_generator,
 			monado,
+			params,
 		})
 	}
 

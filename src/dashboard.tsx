@@ -92,7 +92,7 @@ const color_bg_opaque = `radial-gradient(
 )
 `;
 
-export function Dashboard({ globals }: { globals: Globals }) {
+export function Dashboard({ globals, initial_preferences }: { globals: Globals, initial_preferences: preferences.Preferences }) {
 	const [current_panel, setCurrentPanel] = useState(<PanelHome globals={globals} />);
 	const [popup_volume, setPopupVolume] = useState<JSX.Element | null>(null);
 	const ref_volume = useRef<HTMLDivElement>(null);
@@ -100,7 +100,7 @@ export function Dashboard({ globals }: { globals: Globals }) {
 	const [generation_state, setGenerationState] = useState(0);
 	const [showing_process, setShowingProcess] = useState<ipc.Process | undefined>(undefined);
 
-	const [prefs, setPrefs] = useState<preferences.Preferences>(preferences.loadPreferences());
+	const [prefs, setPrefs] = useState<preferences.Preferences>(initial_preferences);
 
 	// The dashboard is visible by default after startup
 	const [visible, setVisible] = useState(true);
@@ -166,7 +166,7 @@ export function Dashboard({ globals }: { globals: Globals }) {
 	return (
 		<>
 			{popup_volume}
-			<div className={`${scss.separator_menu_rest} ${visible ? scss.dashboard_showup : ""}`} style={{
+			<div className={`${scss.separator_menu_rest} ${(visible && !globals.is_nvidia) ? scss.dashboard_showup : ""}`} style={{
 				opacity: visible ? 1.0 : 0.0,
 			}}>
 				<div className={scss.menu} >

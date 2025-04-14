@@ -367,17 +367,29 @@ export function BoxDown({ children, center }: { children?: any, center?: boolean
 }
 
 
-export function Checkbox({ pair, title, onChange }: { pair: [checked: boolean, setChecked?: (checked: boolean) => void], title?: string, onChange?: (n: boolean) => void }) {
+export function Checkbox({
+	pair,
+	title,
+	onChange,
+	disabled }: {
+		pair: [checked: boolean, setChecked?: (checked: boolean) => void],
+		title?: string, onChange?: (n: boolean) => void,
+		disabled?: boolean
+	}) {
 	const checked = pair ? pair[0] : undefined;
 	const setChecked = pair ? pair[1] : undefined;
-	return <div className={scss.checkbox_body} onMouseDown={vibrate_down} onMouseUp={vibrate_up} onMouseEnter={vibrate_hover} onClick={() => {
-		if (setChecked) {
-			setChecked(!checked);
-		}
-		if (onChange) {
-			onChange(!checked);
-		}
-	}}>
+	return <div
+		style={{
+			opacity: disabled ? 0.5 : undefined
+		}}
+		className={scss.checkbox_body} onMouseDown={!disabled ? vibrate_down : undefined} onMouseUp={!disabled ? vibrate_up : undefined} onMouseEnter={!disabled ? vibrate_hover : undefined} onClick={!disabled ? () => {
+			if (setChecked) {
+				setChecked(!checked);
+			}
+			if (onChange) {
+				onChange(!checked);
+			}
+		} : undefined} >
 		<div className={`${scss.checkbox_checkmark} ${checked ? scss.checkbox_checkmark_checked : ""}`} >
 			{checked && "✔️"}
 		</div>
@@ -490,12 +502,13 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 			}} />
 			<Separator />
 			<BoxRight>
-				<BigButton icon="icons/play.svg" title="Launch embedded" type={BigButtonColor.green} on_click={async () => {
+				<BigButton icon="icons/play.svg" title="Launch embedded" disabled={globals.is_nvidia} type={BigButtonColor.green} on_click={async () => {
 					const display = await getDashboardDisplay();
 					if (display !== null) {
 						await launch(globals, display, application, force_wayland, xwayland_mode);
 					}
 				}} />
+				{globals.is_nvidia ? <span className={scss.text_red}>Not supported on your GPU</span> : undefined}
 			</BoxRight>
 			<Separator />
 			<Container>
@@ -634,7 +647,14 @@ export function Button({ children, size, icon, style, on_click, className, highl
 	</div>
 }
 
-export function BigButton({ type, title, icon, extend, on_click }: { type: BigButtonColor, title: string, icon?: string, extend?: boolean, on_click: () => void }) {
+export function BigButton({ type, title, icon, extend, disabled, on_click }: {
+	type: BigButtonColor,
+	title: string,
+	icon?: string,
+	extend?: boolean,
+	disabled?: boolean,
+	on_click: () => void
+}) {
 	let bg = "";
 	switch (type) {
 		case BigButtonColor.blue: {
@@ -652,14 +672,15 @@ export function BigButton({ type, title, icon, extend, on_click }: { type: BigBu
 	}
 
 	return <div
-		onMouseDown={vibrate_down}
-		onMouseUp={vibrate_up}
-		onMouseEnter={vibrate_hover}
-		onClick={on_click}
+		onMouseDown={disabled ? undefined : vibrate_down}
+		onMouseUp={disabled ? undefined : vibrate_up}
+		onMouseEnter={disabled ? undefined : vibrate_hover}
+		onClick={disabled ? undefined : on_click}
 		className={scss.big_button}
 		style={{
 			background: bg,
-			width: extend ? "100%" : undefined
+			width: extend ? "100%" : undefined,
+			opacity: disabled ? "0.5" : undefined,
 		}}>
 		{icon ? <Icon path={icon} /> : undefined}
 		{title}

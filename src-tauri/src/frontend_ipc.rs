@@ -152,6 +152,11 @@ pub async fn is_ipc_connected(state: tauri::State<'_, AppStateType>) -> Result<b
 }
 
 #[tauri::command]
+pub async fn is_nvidia(state: tauri::State<'_, AppStateType>) -> Result<bool, String> {
+	Ok(state.lock().await.params.is_nvidia)
+}
+
+#[tauri::command]
 pub fn open_devtools(window: tauri::WebviewWindow) {
 	if window.is_devtools_open() {
 		window.close_devtools();
