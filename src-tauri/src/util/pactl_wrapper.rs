@@ -26,12 +26,35 @@ pub struct Volume {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Sink {
 	pub index: u32,          // 123
-	pub state: String,       // "RUNNING"
+	pub state: String,       // "RUNNING" / "SUSPENDED"
 	pub name: String,        // alsa_output.pci-0000_0c_00.4.analog-stereo
 	pub description: String, // Starship/Matisse HD Audio Controller Analog Stereo
 	pub mute: bool,          // false
 	pub volume: Volume,
 	pub properties: HashMap<String, String>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct SourceProperties {
+	#[serde(rename = "device.class")]
+	pub device_class: Option<String>, // "monitor", "sound"
+	#[serde(rename = "alsa.card_name")]
+	pub card_name: Option<String>, // "Valve VR Radio & HMD Mic"
+	#[serde(rename = "alsa.components")]
+	pub components: Option<String>, // USB28de:2102
+	#[serde(rename = "device.vendor_name")]
+	pub vendor_name: Option<String>, // Valve Software
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct Source {
+	pub index: u32,          // 123
+	pub state: String,       // "RUNNING" / "SUSPENDED"
+	pub name: String,        // alsa_input.pci-0000_0c_00.4.analog-stereo
+	pub description: String, // Valve VR Radio & HMD Mic Mono
+	pub mute: bool,          // false
+	pub volume: Volume,
+	pub properties: SourceProperties,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -161,6 +184,103 @@ pub fn set_sink_mute(sink_index: u32, mute: bool) -> anyhow::Result<()> {
 	std::process::Command::new("pactl")
 		.arg("set-sink-mute")
 		.arg(format!("{}", sink_index))
+		.arg(format!("{}", mute as i32))
+		.output()?;
+
+	Ok(())
+}
+
+// ########################################
+//               ~ sources ~
+// ########################################
+
+pub fn list_sources() -> anyhow::Result<Vec<Source>> {
+	let output = std::process::Command::new("pactl")
+		.arg("--format=json")
+		.arg("list")
+		.arg("sources")
+		.output()?;
+
+	if !output.status.success() {
+		anyhow::bail!("pactl exit status {}", output.status);
+	}
+
+	let json_str = std::str::from_utf8(&output.stdout)?;
+	let mut sources: Vec<Source> = serde_json::from_str(json_str)?;
+
+	// exclude all monitor sources
+	sources.retain(|source| match &source.properties.device_class {
+		Some(c) => c != "monitor",
+		None => false,
+	});
+
+	Ok(sources)
+}
+
+pub fn get_default_source(sources: &[Source]) -> anyhow::Result<Option<Source>> {
+	let output = std::process::Command::new("pactl")
+		.arg("get-default-source")
+		.output()?;
+
+	let utf8_name = std::str::from_utf8(&output.stdout)?.trim();
+
+	for source in sources {
+		if source.name == utf8_name {
+			return Ok(Some(source.clone()));
+		}
+	}
+
+	Ok(None)
+}
+
+pub fn set_default_source(source_index: u32) -> anyhow::Result<()> {
+	std::process::Command::new("pactl")
+		.arg("set-default-source")
+		.arg(format!("{}", source_index))
+		.output()?;
+
+	Ok(())
+}
+
+pub fn get_source_from_index(sources: &[Source], index: u32) -> Option<&Source> {
+	sources.iter().find(|&source| source.index == index)
+}
+
+pub fn get_source_volume(source: &Source) -> anyhow::Result<f32> {
+	let volume_channel = {
+		if let Some(front_left) = &source.volume.front_left {
+			front_left
+		} else if let Some(aux0) = &source.volume.aux0 {
+			aux0
+		} else {
+			return Ok(0.0); // fail silently
+		}
+	};
+
+	let Some(pair) = volume_channel.value_percent.split_once("%") else {
+		anyhow::bail!("volume percentage invalid"); // shouldn't happen
+	};
+
+	let percent_num: f32 = pair.0.parse().unwrap_or(0.0);
+	Ok(percent_num / 100.0)
+}
+
+pub fn set_source_volume(source_index: u32, volume: f32) -> anyhow::Result<()> {
+	let target_vol = (volume * 100.0).clamp(0.0, 150.0); // limit to 150%
+
+	std::process::Command::new("pactl")
+		.arg("set-source-volume")
+		.arg(format!("{}", source_index))
+		.arg(format!("{}%", target_vol))
+		.output()?;
+
+	Ok(())
+}
+
+pub fn set_source_mute(source_index: u32, mute: bool) -> anyhow::Result<()> {
+	std::process::Command::new("pactl")
+		.arg("set-source-mute")
+		.arg(format!("{}", source_index))
 		.arg(format!("{}", mute as i32))
 		.output()?;
 

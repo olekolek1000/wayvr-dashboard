@@ -101,6 +101,8 @@ pub async fn audio_set_card_profile(card_index: u32, profile: String) -> Result<
 	)
 }
 
+// ######## sinks ########
+
 #[tauri::command]
 pub async fn audio_list_sinks() -> Result<Vec<pactl_wrapper::Sink>, String> {
 	handle_result("list audio sinks", pactl_wrapper::list_sinks())
@@ -145,6 +147,61 @@ pub async fn audio_set_default_sink(sink_index: u32) -> Result<(), String> {
 		pactl_wrapper::set_default_sink(sink_index),
 	)
 }
+
+// ######## sources ########
+
+#[tauri::command]
+pub async fn audio_list_sources() -> Result<Vec<pactl_wrapper::Source>, String> {
+	handle_result("list audio sources", pactl_wrapper::list_sources())
+}
+
+// Volume: from 0.0 to 1.0 (100%), can exceed up to 150%
+#[tauri::command]
+pub async fn audio_set_source_volume(source_index: u32, volume: f32) -> Result<(), String> {
+	handle_result(
+		"set source volume",
+		pactl_wrapper::set_source_volume(source_index, volume),
+	)?;
+	Ok(())
+}
+
+#[tauri::command]
+pub async fn audio_set_source_mute(source_index: u32, mute: bool) -> Result<(), String> {
+	handle_result(
+		"set source mute",
+		pactl_wrapper::set_source_mute(source_index, mute),
+	)?;
+	Ok(())
+}
+
+// Volume: from 0.0 to 1.0
+#[tauri::command]
+pub async fn audio_get_source_volume(source: pactl_wrapper::Source) -> Result<f32, String> {
+	handle_result(
+		"get source volume",
+		pactl_wrapper::get_source_volume(&source),
+	)
+}
+
+#[tauri::command]
+pub async fn audio_get_default_source(
+	sources: Vec<pactl_wrapper::Source>,
+) -> Result<Option<pactl_wrapper::Source>, String> {
+	handle_result(
+		"get default source",
+		pactl_wrapper::get_default_source(&sources),
+	)
+}
+
+#[tauri::command]
+pub async fn audio_set_default_source(source_index: u32) -> Result<(), String> {
+	handle_result(
+		"set default source",
+		pactl_wrapper::set_default_source(source_index),
+	)
+}
+
+// ######## ########
 
 #[tauri::command]
 pub async fn is_ipc_connected(state: tauri::State<'_, AppStateType>) -> Result<bool, String> {

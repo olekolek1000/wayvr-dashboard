@@ -24,14 +24,24 @@ pub async fn run(params: AppParams) {
 			frontend_ipc::game_launch,
 			frontend_ipc::game_stop,
 			frontend_ipc::running_game_list,
+			// sinks
 			frontend_ipc::audio_list_sinks,
 			frontend_ipc::audio_set_sink_volume,
 			frontend_ipc::audio_set_sink_mute,
 			frontend_ipc::audio_get_sink_volume,
 			frontend_ipc::audio_set_default_sink,
 			frontend_ipc::audio_get_default_sink,
+			// sources
+			frontend_ipc::audio_list_sources,
+			frontend_ipc::audio_set_source_volume,
+			frontend_ipc::audio_set_source_mute,
+			frontend_ipc::audio_get_source_volume,
+			frontend_ipc::audio_set_default_source,
+			frontend_ipc::audio_get_default_source,
+			// cards
 			frontend_ipc::audio_list_cards,
 			frontend_ipc::audio_set_card_profile,
+			// other
 			frontend_ipc::get_username,
 			frontend_ipc::open_devtools,
 			// # monado IPC below

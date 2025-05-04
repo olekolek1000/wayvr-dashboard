@@ -56,6 +56,23 @@ export namespace ipc {
 		volume: AudioVolume;
 	}
 
+	export interface AudioSourceProperties {
+		"device.class"?: string; // "monitor", "sound"
+		"alsa.card_name"?: string; // "Valve VR Radio & HMD Mic"
+		"alsa.components"?: string; // USB28de:2102
+		"device.vendor_name"?: string; // Valve Software
+	}
+
+	export interface AudioSource {
+		index: number;
+		state: string;
+		name: string;
+		description: string;
+		mute: boolean;
+		properties: AudioSourceProperties;
+		volume: AudioVolume;
+	}
+
 	export interface CardProperties {
 		"device.description": string; // Starship/Matisse HD Audio Controller
 		"device.name": string; // alsa_card.pci-0000_0c_00.4
@@ -126,6 +143,8 @@ export namespace ipc {
 		return await invoke("audio_set_card_profile", params);
 	}
 
+	// ######## Sinks ########
+
 	export async function audio_list_sinks(): Promise<Array<AudioSink>> {
 		return await invoke("audio_list_sinks");
 	}
@@ -161,6 +180,46 @@ export namespace ipc {
 	}): Promise<number> {
 		return await invoke("audio_set_default_sink", params);
 	}
+
+	// ######## Sources ########
+
+	export async function audio_list_sources(): Promise<Array<AudioSource>> {
+		return await invoke("audio_list_sources");
+	}
+
+	export async function audio_set_source_volume(params: {
+		sourceIndex: number,
+		volume: number
+	}): Promise<void> {
+		return await invoke("audio_set_source_volume", params);
+	}
+
+	export async function audio_set_source_mute(params: {
+		sourceIndex: number,
+		mute: boolean
+	}): Promise<void> {
+		return await invoke("audio_set_source_mute", params);
+	}
+
+	export async function audio_get_source_volume(params: {
+		source: AudioSource,
+	}): Promise<number> {
+		return await invoke("audio_get_source_volume", params);
+	}
+
+	export async function audio_get_default_source(params: {
+		sources: Array<AudioSource>,
+	}): Promise<AudioSource | undefined> {
+		return await invoke("audio_get_default_source", params);
+	}
+
+	export async function audio_set_default_source(params: {
+		sourceIndex: number,
+	}): Promise<number> {
+		return await invoke("audio_set_default_source", params);
+	}
+
+	// ######## Other ########
 
 	export async function get_username(): Promise<string> {
 		return await invoke("get_username");
