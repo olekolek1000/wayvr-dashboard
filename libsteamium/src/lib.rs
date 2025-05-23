@@ -7,11 +7,21 @@ pub struct Steamium {
 }
 
 fn get_steam_root() -> anyhow::Result<PathBuf> {
-	let mut steam_path = PathBuf::from(std::env::var("HOME")?);
-	steam_path.push(".steam/steam");
-	if !steam_path.exists() {
-		anyhow::bail!("Steam path {:?} doesn't exist", steam_path);
-	}
+	let home = PathBuf::from(std::env::var("HOME")?);
+
+	let steam_paths: [&str; 3] = [
+		".steam/steam",
+		".steam/debian-installation",
+		".var/app/com.valvesoftware.Steam/data/Steam",
+	];
+	let Some(steam_path) = steam_paths
+		.iter()
+		.map(|path| home.join(path))
+		.filter(|p| p.exists())
+		.next() else {
+			anyhow::bail!("Couldn't find Steam installation in search paths");
+		};
+
 	Ok(steam_path)
 }
 
