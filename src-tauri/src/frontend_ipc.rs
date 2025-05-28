@@ -9,7 +9,8 @@ use wayvr_ipc::{
 };
 
 use crate::util::{self, pactl_wrapper};
-
+use std::env;
+use std::path::PathBuf;
 type AppStateType = Mutex<crate::app::AppState>;
 
 #[derive(Debug, Serialize)]
@@ -73,14 +74,38 @@ pub async fn game_list(state: tauri::State<'_, AppStateType>) -> Result<Games, S
 	})
 }
 
+
 #[tauri::command]
-pub fn game_launch(app_id: i32) -> Result<(), String> {
-	handle_result("launch a game", libsteamium::launch(app_id as u64))
+pub fn copy_png_to_frontend_public(app_id_str: String) -> Result<(), String> {
+    // Parse the app ID string to u32
+    let app_id = app_id_str
+        .parse::<u32>()
+        .map_err(|e| format!("Invalid app ID: {}", e))?;
+
+
+    // Create the relative path to "public/covers"
+    let relative = PathBuf::from("public").join("covers");
+
+    // Resolve absolute path from current directory
+    let current_dir = env::current_dir()
+        .map_err(|e| format!("Failed to get current directory: {}", e))?;
+
+    let absolute = current_dir.join("../../../").join(&relative).join(format!("{}.png",app_id_str));
+    
+	let _ = libsteamium::Steamium::copy_cover_to_front(&app_id,&absolute);
+    Ok(())
+}
+
+
+#[tauri::command]
+pub fn game_launch(app_id: String) -> Result<(), String> {
+	println!("app id received {}", app_id);
+	handle_result("launch a game", libsteamium::launch(app_id))
 }
 
 #[tauri::command]
-pub fn game_stop(app_id: i32, force: bool) -> Result<(), String> {
-	handle_result("stop a game", libsteamium::stop(app_id as u64, force))
+pub fn game_stop(app_id: String, force: bool) -> Result<(), String> {
+	handle_result("stop a game", libsteamium::stop(app_id, force))
 }
 
 #[tauri::command]

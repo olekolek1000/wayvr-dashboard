@@ -1,12 +1,12 @@
 import { BoxDown, BoxRight, Button, Container, createWindowManifest, GameCover, Icon, Separator, Title, TooltipSimple } from "../gui/gui"
 import style from "../app.module.scss"
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { ipc } from "../ipc";
 import { Globals } from "../globals";
 import { get_external_url } from "@/utils";
 
 interface GameIcon {
-	app_id: number;
+	app_id: string;
 	icon_path?: string;
 }
 
@@ -27,9 +27,10 @@ async function game_icon_list(): Promise<GameIcon[]> {
 		}
 
 		out.push({
-			app_id: parseInt(appid_str),
+			app_id: appid_str,
 			icon_path: cell.icon
 		});
+		
 	}
 
 	return out;
@@ -144,20 +145,25 @@ export function PanelGames({ globals }: { globals: Globals }) {
 	const [games, setGames] = useState<ipc.Games | undefined>(undefined);
 
 
-	useMemo(async () => {
-		const games = await ipc.game_list();
-		setGames(games);
+	useEffect(() => {
+		const fetchGames = async () => {
+			const games = await ipc.game_list();
+			console.log("Fetched games:", games); // 👈 Print all data
+			setGames(games);
 
-		const arr = games.manifests.map((manifest) => {
-			return <GameCover key={manifest.app_id} on_click={() => {
-				createWindowManifest(globals, manifest);
-			}} manifest={manifest} />
-		});
+			const arr = games.manifests.map((manifest) => (
+				<GameCover
+					key={manifest.app_id}
+					on_click={() => createWindowManifest(globals, manifest)}
+					manifest={manifest}
+				/>
+			));
 
-		setList(<>
-			{arr}
-		</>);
-	}, [])
+			setList(<>{arr}</>);
+		};
+
+		fetchGames();
+	}, []);
 
 	return <>
 		{games ? <RunningGamesList globals={globals} games={games} /> : undefined}

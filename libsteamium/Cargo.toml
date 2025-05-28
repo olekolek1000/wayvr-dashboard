@@ -9,3 +9,6 @@ keyvalues-parser = { git = "https://github.com/CosmicHorrorDev/vdf-rs.git", rev 
 log = "0.4.27"
 serde = { version = "1.0.218", features = ["derive"] }
 serde_json = "1.0.140"
+steam_shortcuts_util = "1.1.7"
+base64 = "0.22.1"
+env = "1.0.1"

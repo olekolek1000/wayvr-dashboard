@@ -257,7 +257,7 @@ export function TooltipSimple({ children, title, extend }: { children: any, titl
 }
 
 class FailedCovers {
-	covers = new Array<number>;
+	covers = new Array<string>;
 }
 
 export function failed_covers_clear() {
@@ -277,41 +277,75 @@ function failed_covers_set(covers: FailedCovers) {
 	localStorage.setItem("failed_covers", JSON.stringify(covers));
 }
 
-function get_alt_cover(manifest: ipc.AppManifest) {
-	return <>
-		<img className={scss.game_cover_image} src="/no_cover.webp" />
-		<span className={scss.game_cover_title}>{manifest.name}</span>
-	</>;
+async function get_alt_cover(manifest: ipc.AppManifest) {
+
+	if(manifest.cover!= ""){
+		await ipc.copy_png_to_frontend_public(manifest.app_id);
+		return <>
+			<img className={scss.game_cover_image} src={manifest.cover}/>
+		</>;
+	}
+	else{
+		return <>
+			<img className={scss.game_cover_image} src="/no_cover.webp" />
+			<span className={scss.game_cover_title}>{manifest.name}</span>
+		</>;
+	}
+
 }
 
 export function GameCover({ manifest, big, on_click }: { manifest: ipc.AppManifest, big?: boolean, on_click?: () => void }) {
 	const [content, setContent] = useState(<></>);
 
 	useEffect(() => {
-		const failed_covers = failed_covers_get();
+		const run = async () => {
+			try {
+				const failed_covers = failed_covers_get();
+				const already_failed = failed_covers.covers.includes(manifest.app_id);
 
-		const ret = failed_covers.covers.find((val) => { return val == manifest.app_id });
-		if (ret === undefined) {
-			const url = "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/" + manifest.app_id + "/library_600x900.jpg";
-			setContent(<img className={scss.game_cover_image} src={url} onError={() => {
-				console.log("Alt cover " + manifest.app_id + " failed to load, remembering it to prevent unnecessary requests to Steam API ");
-				const covers = failed_covers_get();
-				covers.covers.push(manifest.app_id);
-				failed_covers_set(covers);
-				setContent(get_alt_cover(manifest));
-			}} />);
-		}
-		else {
-			console.log("using previously failed cover");
-			setContent(get_alt_cover(manifest));
-		}
-	}, []);
+				if (!already_failed) {
+					const url = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${manifest.app_id}/library_600x900.jpg`;
+					setContent(
+						<img
+							className={scss.game_cover_image}
+							src={url}
+							onError={async () => {
+								try {
+									console.log("Alt cover " + manifest.app_id + " failed to load, remembering it to prevent unnecessary requests to Steam API ");
+									const updated_covers = failed_covers_get();
+									updated_covers.covers.push(manifest.app_id);
+									failed_covers_set(updated_covers);
+									setContent(await get_alt_cover(manifest));
+								} catch (err) {
+									console.error("Failed to load alt cover:", err);
+								}
+							}}
+						/>
+					);
+				} else {
+					console.log("using previously failed cover");
+					setContent(await get_alt_cover(manifest));
+				}
+			} catch (err) {
+				console.error("Unhandled error in GameCover useEffect:", err);
+			}
+		};
 
-	return <div onClick={on_click} onMouseEnter={vibrate_hover} onMouseDown={vibrate_down} onMouseUp={vibrate_up} className={big ? scss.game_cover_big : scss.game_cover} style={{
-	}}>
-		{content}
-		<div className={scss.game_cover_shine} />
-	</div>
+		run();
+	}, [manifest]);
+
+	return (
+		<div
+			onClick={on_click}
+			onMouseEnter={vibrate_hover}
+			onMouseDown={vibrate_down}
+			onMouseUp={vibrate_up}
+			className={big ? scss.game_cover_big : scss.game_cover}
+		>
+			{content}
+			<div className={scss.game_cover_shine} />
+		</div>
+	);
 }
 
 export function ApplicationCover({ big, application, on_click }: { big?: boolean, application: ipc.DesktopFile, on_click?: () => void }) {
@@ -565,7 +599,7 @@ function ManifestView({ globals, manifest }: { globals: Globals, manifest: ipc.A
 			<div className={scss.previewer_title}>{manifest.name}</div>
 			{details}
 			<BigButton title="Launch" type={BigButtonColor.green} on_click={() => {
-				ipc.game_launch(manifest.app_id);
+				ipc.game_launch(manifest.run_game_id);
 				globals.toast_manager.push("Game launched. This might take a while");
 			}} />
 			<BoxRight>

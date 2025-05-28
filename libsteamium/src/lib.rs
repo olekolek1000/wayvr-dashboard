@@ -1,6 +1,10 @@
 use keyvalues_parser::{Obj, Vdf};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use steam_shortcuts_util::parse_shortcuts;
+use std::path::Path;
+use std::env;
+use std::fs;
 
 pub struct Steamium {
 	steam_root: PathBuf,
@@ -25,12 +29,14 @@ fn get_steam_root() -> anyhow::Result<PathBuf> {
 	Ok(steam_path)
 }
 
-pub type AppID = u64;
+pub type AppID = String;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppManifest {
 	app_id: AppID,
+	run_game_id: AppID,
 	name: String,
+	cover : String,
 	raw_state_flags: u64, // documentation: https://github.com/lutris/lutris/blob/master/docs/steam.rst
 	last_played: Option<u64>, // unix timestamp
 }
@@ -81,7 +87,7 @@ fn vdf_parse_libraryfolders<'a>(vdf_root: &'a Vdf<'a>) -> Option<Vec<AppEntry>> 
 				.iter()
 				.filter_map(|item| item.0.parse::<u64>().ok())
 				.map(|app_id| AppEntry {
-					app_id,
+					app_id : app_id.to_string(),
 					root_path: String::from(path),
 				}),
 		);
@@ -110,7 +116,9 @@ fn vdf_parse_appstate<'a>(app_id: AppID, vdf_root: &'a Vdf<'a>) -> Option<AppMan
 	};
 
 	Some(AppManifest {
-		app_id,
+		app_id : app_id.clone(),
+		run_game_id : app_id,
+		cover : String::from(""),
 		name: String::from(name),
 		raw_state_flags,
 		last_played,
@@ -142,15 +150,25 @@ pub fn stop(app_id: AppID, force_kill: bool) -> anyhow::Result<()> {
 
 pub fn launch(app_id: AppID) -> anyhow::Result<()> {
 	log::info!("Launching Steam game with AppID {}", app_id);
-	call_steam(&format!("steam://run/{}", app_id))?;
+	call_steam(&format!("steam://rungameid/{}", app_id))?;
 	Ok(())
 }
 
 #[derive(Serialize)]
 pub struct RunningGame {
 	pub app_id: AppID,
-	pub pid: i32,
+	pub pid: u64,
 }
+
+#[derive(Serialize)]
+struct Shortcut {
+    name: String,
+    exe: String,
+	run_game_id: u64,
+	app_id : u64,
+	cover : String
+}
+
 
 pub fn list_running_games() -> anyhow::Result<Vec<RunningGame>> {
 	let mut res = Vec::<RunningGame>::new();
@@ -167,7 +185,7 @@ pub fn list_running_games() -> anyhow::Result<Vec<RunningGame>> {
 			continue;
 		};
 
-		let Ok(pid) = pid.parse::<i32>() else {
+		let Ok(pid) = pid.parse::<u64>() else {
 			continue;
 		};
 
@@ -212,8 +230,8 @@ pub fn list_running_games() -> anyhow::Result<Vec<RunningGame>> {
 
 			// AppID found. Add it to the list
 			res.push(RunningGame {
-				app_id: app_id_num as AppID,
-				pid,
+				app_id: app_id_num.to_string(),
+				pid : pid as u64
 			});
 
 			break;
@@ -224,6 +242,7 @@ pub fn list_running_games() -> anyhow::Result<Vec<RunningGame>> {
 }
 
 fn call_steam(arg: &str) -> anyhow::Result<()> {
+	println!("{}", arg);
 	match std::process::Command::new("xdg-open").arg(arg).spawn() {
 		Ok(_) => Ok(()),
 		Err(_) => {
@@ -233,7 +252,100 @@ fn call_steam(arg: &str) -> anyhow::Result<()> {
 	}
 }
 
+fn shortcut_to_fake_manifest(shortcut: &Shortcut) -> AppManifest {
+    
+	AppManifest {
+        app_id : shortcut.app_id.to_string(),
+		run_game_id: shortcut.run_game_id.to_string(),
+        name: shortcut.name.clone(),
+		cover : shortcut.cover.clone(),
+        raw_state_flags: 0,         // Pas applicable, 0 par défaut
+        last_played: None,          // Steam ne stocke pas ça pour les shortcuts
+    }
+}
+
+fn compute_rungameid(app_id: u32) -> u64 {
+    (app_id as u64) << 32 | 0x02000000
+}
+
+
 impl Steamium {
+
+	pub fn get_cover_file_path(app_id: &u32) -> String {
+	
+		let filename = format!("{}.png", app_id);
+		let relative = PathBuf::from("../../ressources").join("covers").join(filename);
+		
+		if let Ok(current_dir) = env::current_dir() {
+			let absolute = current_dir.join(relative);
+			absolute.to_string_lossy().into_owned()
+		} else {
+			String::new()
+		}
+	}
+
+	fn copy_cover_to_ressources(app_id: &u32, original_path: &Path) -> std::io::Result<String> {
+		let filename = format!("{}.png", app_id);
+		let relative_path = format!("/covers/{}", filename); // This is what frontend will use
+		let dest_path = Path::new("../../ressources").join("covers").join(filename);
+		fs::create_dir_all(dest_path.parent().unwrap())?;
+		fs::copy(original_path, dest_path.clone())?;
+		println!("{}/{}",std::env::current_dir()?.display(), dest_path.display());
+		Ok(relative_path)
+	}
+
+	pub fn copy_cover_to_front(app_id:&u32, destination :&Path ) -> std::io::Result<()>{
+		let original_path = Steamium::get_cover_file_path(&app_id);
+		fs::create_dir_all(destination.parent().unwrap())?;
+		fs::copy(original_path, destination)?;
+		Ok(())
+	}
+
+
+	fn list_shortcuts(&self) -> Result<Vec<Shortcut>, Box<dyn std::error::Error>> {
+		let userdata_dir = self.steam_root.join("userdata");
+		let user_dirs = fs::read_dir(userdata_dir)?;
+
+		let mut shortcuts: Vec<Shortcut> = Vec::new();
+
+		for user in user_dirs.flatten() {
+			let path = user.path().join("config").join("shortcuts.vdf");
+
+			if !path.exists() {
+				continue;
+			}
+			
+			let content = std::fs::read(&path)?;
+     		let shortcuts_data =parse_shortcuts(content.as_slice())?;
+
+			for s in shortcuts_data {
+				let run_game_id = compute_rungameid(s.app_id);
+				let cover_path = user.path().join("config").join("grid").join(format!("{}p.png", s.app_id));
+				let local_cover_path = match Steamium::copy_cover_to_ressources(&s.app_id, &cover_path){
+					Ok(path) => path, // If successful, use the new path
+					Err(e) => {
+						eprintln!("Error copying cover for app {}: {}", s.app_id, e);
+						String::from("") // Return an empty string if there was an error
+					}
+				};
+
+				println!("Local Cover Path : {}",local_cover_path);
+				
+
+				shortcuts.push(Shortcut {
+					name: s.app_name.to_string(),
+					exe: s.exe.to_string(),
+					run_game_id: run_game_id,
+					app_id : s.app_id as u64,
+					cover : local_cover_path
+				});
+			}
+		}
+
+		
+		Ok(shortcuts)
+	}
+
 	fn get_dir_steamapps(&self) -> PathBuf {
 		self.steam_root.join("steamapps")
 	}
@@ -251,7 +363,7 @@ impl Steamium {
 		let vdf_data = std::fs::read_to_string(manifest_path)?;
 		let vdf_root = keyvalues_parser::Vdf::parse(&vdf_data)?;
 
-		let Some(manifest) = vdf_parse_appstate(app_entry.app_id, &vdf_root) else {
+		let Some(manifest) = vdf_parse_appstate(app_entry.app_id.clone(), &vdf_root) else {
 			anyhow::bail!("Failed to parse AppState");
 		};
 
@@ -287,7 +399,18 @@ impl Steamium {
 				};
 				Some(manifest)
 			})
-			.collect();
+		.collect();
+
+		if let Ok(shortcuts) = self.list_shortcuts() {
+			let mut fake_manifests = shortcuts
+				.iter()
+				.map(shortcut_to_fake_manifest)
+				.collect::<Vec<AppManifest>>();
+			games.append(&mut fake_manifests);
+		} else {
+			println!("Failed to read non-Steam shortcuts");
+		}
+		
 
 		match sort_method {
 			GameSortMethod::NameAsc => {
@@ -301,6 +424,11 @@ impl Steamium {
 			}
 		}
 
+
+		
+
 		Ok(games)
 	}
+
+
 }

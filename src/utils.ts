@@ -23,7 +23,7 @@ class AppDetailItem {
 	data!: AppDetails;
 }
 
-export async function get_app_details_json(app_id: number) {
+export async function get_app_details_json(app_id: string) {
 	const key = "app_details_" + app_id;
 
 	const storage = window.localStorage;

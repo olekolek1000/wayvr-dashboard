@@ -24,10 +24,12 @@ export namespace ipc {
 	}
 
 	export interface AppManifest {
-		app_id: number;
+		app_id: string;
+		run_game_id : string;
 		name: string;
 		raw_state_flags: number;
-		last_played?: number
+		last_played?: number;
+		cover : string
 	}
 
 	export interface Games {
@@ -108,23 +110,27 @@ export namespace ipc {
 	}
 
 	export interface SteamiumRunningGame {
-		app_id: number;
-		pid: number;
+		app_id: string;
+		pid: string;
 	}
 
 	export async function desktop_file_list(): Promise<Array<DesktopFile>> {
 		return await invoke("desktop_file_list");
 	}
 
+	export async function copy_png_to_frontend_public(app_id: string) : Promise<void> {
+		return await invoke("copy_png_to_frontend_public",{appIdStr : app_id});
+	}
+
 	export async function game_list(): Promise<Games> {
 		return await invoke("game_list");
 	}
 
-	export async function game_launch(app_id: number): Promise<void> {
+	export async function game_launch(app_id: string): Promise<void> {
 		return await invoke("game_launch", { appId: app_id })
 	}
 
-	export async function game_stop(app_id: number, force: boolean): Promise<void> {
+	export async function game_stop(app_id: string, force: boolean): Promise<void> {
 		return await invoke("game_stop", { appId: app_id, force: force });
 	}
 
@@ -323,7 +329,7 @@ export namespace ipc {
 	}
 
 	export interface ProcessHandle {
-		idx: number;
+		idx: bigint;
 		generation: number;
 	}
 
