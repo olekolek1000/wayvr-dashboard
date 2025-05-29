@@ -9,8 +9,6 @@ use wayvr_ipc::{
 };
 
 use crate::util::{self, pactl_wrapper};
-use std::env;
-use std::path::PathBuf;
 type AppStateType = Mutex<crate::app::AppState>;
 
 #[derive(Debug, Serialize)]
@@ -72,28 +70,6 @@ pub async fn game_list(state: tauri::State<'_, AppStateType>) -> Result<Games, S
 				.list_installed_games(libsteamium::GameSortMethod::PlayDateDesc),
 		)?,
 	})
-}
-
-
-#[tauri::command]
-pub fn copy_png_to_frontend_public(app_id_str: String) -> Result<(), String> {
-    // Parse the app ID string to u32
-    let app_id = app_id_str
-        .parse::<u32>()
-        .map_err(|e| format!("Invalid app ID: {}", e))?;
-
-
-    // Create the relative path to "public/covers"
-    let relative = PathBuf::from("public").join("covers");
-
-    // Resolve absolute path from current directory
-    let current_dir = env::current_dir()
-        .map_err(|e| format!("Failed to get current directory: {}", e))?;
-
-    let absolute = current_dir.join("../../../").join(&relative).join(format!("{}.png",app_id_str));
-    
-	let _ = libsteamium::Steamium::copy_cover_to_front(&app_id,&absolute);
-    Ok(())
 }
 
 

@@ -118,9 +118,6 @@ export namespace ipc {
 		return await invoke("desktop_file_list");
 	}
 
-	export async function copy_png_to_frontend_public(app_id: string) : Promise<void> {
-		return await invoke("copy_png_to_frontend_public",{appIdStr : app_id});
-	}
 
 	export async function game_list(): Promise<Games> {
 		return await invoke("game_list");

@@ -19,7 +19,6 @@ pub async fn run(params: AppParams) {
 		})
 		.invoke_handler(tauri::generate_handler![
 			frontend_ipc::is_nvidia,
-			frontend_ipc::copy_png_to_frontend_public,
 			frontend_ipc::desktop_file_list,
 			frontend_ipc::game_list,
 			frontend_ipc::game_launch,

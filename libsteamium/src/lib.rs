@@ -5,6 +5,8 @@ use steam_shortcuts_util::parse_shortcuts;
 use std::path::Path;
 use std::env;
 use std::fs;
+use std::io::Read;
+use base64::{engine::general_purpose, Engine as _};
 
 pub struct Steamium {
 	steam_root: PathBuf,
@@ -284,23 +286,23 @@ impl Steamium {
 		}
 	}
 
-	fn copy_cover_to_ressources(app_id: &u32, original_path: &Path) -> std::io::Result<String> {
-		let filename = format!("{}.png", app_id);
-		let relative_path = format!("/covers/{}", filename); // This is what frontend will use
-		let dest_path = Path::new("../../ressources").join("covers").join(filename);
-		fs::create_dir_all(dest_path.parent().unwrap())?;
-		fs::copy(original_path, dest_path.clone())?;
-		println!("{}/{}",std::env::current_dir()?.display(), dest_path.display());
-		Ok(relative_path)
-	}
+	fn convert_cover_to_base64(app_id: &u32, original_path: &Path) -> std::io::Result<String> {
 
-	pub fn copy_cover_to_front(app_id:&u32, destination :&Path ) -> std::io::Result<()>{
-		let original_path = Steamium::get_cover_file_path(&app_id);
-		fs::create_dir_all(destination.parent().unwrap())?;
-		fs::copy(original_path, destination)?;
-		Ok(())
-	}
+		let filepath = original_path.join("grid").join(format!("{}p.png", app_id));
+		println!("steam cover art location {}",filepath.display());
+		// Read the image file as bytes
+		let mut file = fs::File::open(filepath)?;
+		let mut buffer = Vec::new();
+		file.read_to_end(&mut buffer)?;
 
+		// Convert bytes to Base64 string
+		let base64_string = general_purpose::STANDARD.encode(&buffer);
+
+		// Add data URI prefix so it can be used directly in <img src=...>
+		let data_uri = format!("data:image/png;base64,{}", base64_string);
+
+		Ok(data_uri)
+	}
 
 	fn list_shortcuts(&self) -> Result<Vec<Shortcut>, Box<dyn std::error::Error>> {
 		let userdata_dir = self.steam_root.join("userdata");
@@ -309,19 +311,19 @@ impl Steamium {
 		let mut shortcuts: Vec<Shortcut> = Vec::new();
 
 		for user in user_dirs.flatten() {
-			let path = user.path().join("config").join("shortcuts.vdf");
+			let config_path = user.path().join("config");
+			let shortcut_path = config_path.join("shortcuts.vdf");
 
-			if !path.exists() {
+			if !shortcut_path.exists() {
 				continue;
 			}
 			
-			let content = std::fs::read(&path)?;
+			let content = std::fs::read(&shortcut_path)?;
      		let shortcuts_data =parse_shortcuts(content.as_slice())?;
 
 			for s in shortcuts_data {
 				let run_game_id = compute_rungameid(s.app_id);
-				let cover_path = user.path().join("config").join("grid").join(format!("{}p.png", s.app_id));
-				let local_cover_path = match Steamium::copy_cover_to_ressources(&s.app_id, &cover_path){
+				let cover_base64 = match Steamium::convert_cover_to_base64(&s.app_id, &config_path){
 					Ok(path) => path, // If successful, use the new path
 					Err(e) => {
 						eprintln!("Error copying cover for app {}: {}", s.app_id, e);
@@ -329,7 +331,7 @@ impl Steamium {
 					}
 				};
 
-				println!("Local Cover Path : {}",local_cover_path);
+				println!("Local Cover Path : {}",cover_base64);
 				
 
 				shortcuts.push(Shortcut {
@@ -337,7 +339,7 @@ impl Steamium {
 					exe: s.exe.to_string(),
 					run_game_id: run_game_id,
 					app_id : s.app_id as u64,
-					cover : local_cover_path
+					cover : cover_base64
 				});
 			}
 		}
