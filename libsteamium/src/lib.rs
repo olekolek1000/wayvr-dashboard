@@ -244,7 +244,6 @@ pub fn list_running_games() -> anyhow::Result<Vec<RunningGame>> {
 }
 
 fn call_steam(arg: &str) -> anyhow::Result<()> {
-	println!("{}", arg);
 	match std::process::Command::new("xdg-open").arg(arg).spawn() {
 		Ok(_) => Ok(()),
 		Err(_) => {
@@ -286,23 +285,40 @@ impl Steamium {
 		}
 	}
 
+
 	fn convert_cover_to_base64(app_id: &u32, original_path: &Path) -> std::io::Result<String> {
+    
+    // List of supported extensions with their MIME types
+    let extensions = [
+		("png", "image/png"),
+		("jpg", "image/jpeg"),
+		("jpeg", "image/jpeg"),
+		("webp", "image/webp"),
+		("bmp", "image/bmp"),
+		("gif", "image/gif"),
+    ];
 
-		let filepath = original_path.join("grid").join(format!("{}p.png", app_id));
-		println!("steam cover art location {}",filepath.display());
-		// Read the image file as bytes
-		let mut file = fs::File::open(filepath)?;
-		let mut buffer = Vec::new();
-		file.read_to_end(&mut buffer)?;
+    for (ext, mime) in extensions.iter() {
+        let filepath = original_path
+            .join("grid")
+            .join(format!("{}p.{}", app_id, ext));
+        if filepath.exists() {
+            let mut file = fs::File::open(&filepath)?;
+            let mut buffer = Vec::new();
+            file.read_to_end(&mut buffer)?;
 
-		// Convert bytes to Base64 string
-		let base64_string = general_purpose::STANDARD.encode(&buffer);
+            let base64_string = general_purpose::STANDARD.encode(&buffer);
+            let data_uri = format!("data:{};base64,{}", mime, base64_string);
+            return Ok(data_uri);
+        }
+    }
 
-		// Add data URI prefix so it can be used directly in <img src=...>
-		let data_uri = format!("data:image/png;base64,{}", base64_string);
-
-		Ok(data_uri)
+    	Err(std::io::Error::new(
+        	std::io::ErrorKind::NotFound,
+        	"",
+    	))
 	}
+
 
 	fn list_shortcuts(&self) -> Result<Vec<Shortcut>, Box<dyn std::error::Error>> {
 		let userdata_dir = self.steam_root.join("userdata");
@@ -326,13 +342,11 @@ impl Steamium {
 				let cover_base64 = match Steamium::convert_cover_to_base64(&s.app_id, &config_path){
 					Ok(path) => path, // If successful, use the new path
 					Err(e) => {
-						eprintln!("Error copying cover for app {}: {}", s.app_id, e);
+						eprintln!("Error converting cover for app {}: {}", s.app_id, e);
 						String::from("") // Return an empty string if there was an error
 					}
 				};
-
-				println!("Local Cover Path : {}",cover_base64);
-				
+			
 
 				shortcuts.push(Shortcut {
 					name: s.app_name.to_string(),
