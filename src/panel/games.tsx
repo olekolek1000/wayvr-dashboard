@@ -148,7 +148,6 @@ export function PanelGames({ globals }: { globals: Globals }) {
 	useEffect(() => {
 		const fetchGames = async () => {
 			const games = await ipc.game_list();
-			console.log("Fetched games:", games); // 👈 Print all data
 			setGames(games);
 
 			const arr = games.manifests.map((manifest) => (

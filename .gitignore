@@ -25,6 +25,4 @@ dist-ssr
 
 libsteamium/target
 libsteamium/cli/target
-src-tauri/ressources/
 temp
-public/covers/

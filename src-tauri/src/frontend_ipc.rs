@@ -72,10 +72,8 @@ pub async fn game_list(state: tauri::State<'_, AppStateType>) -> Result<Games, S
 	})
 }
 
-
 #[tauri::command]
 pub fn game_launch(app_id: String) -> Result<(), String> {
-	println!("app id received {}", app_id);
 	handle_result("launch a game", libsteamium::launch(app_id))
 }
 

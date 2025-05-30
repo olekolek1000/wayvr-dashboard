@@ -29,7 +29,7 @@ export namespace ipc {
 		name: string;
 		raw_state_flags: number;
 		last_played?: number;
-		cover : string
+		cover_b64? : string
 	}
 
 	export interface Games {

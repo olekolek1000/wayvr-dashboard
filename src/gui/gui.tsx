@@ -278,11 +278,11 @@ function failed_covers_set(covers: FailedCovers) {
 }
 
 async function get_alt_cover(manifest: ipc.AppManifest) {
-
-	if(manifest.cover!= ""){
+	console.log(manifest.cover_b64);
+	if(manifest.cover_b64!= undefined){
 		console.log("Runnning copy png to frontend")
 		return <>
-			<img className={scss.game_cover_image} src={manifest.cover}/>
+			<img className={scss.game_cover_image} src={manifest.cover_b64}/>
 		</>;
 	}
 	else{

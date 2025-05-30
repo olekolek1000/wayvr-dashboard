@@ -1,12 +1,11 @@
+use base64::{engine::general_purpose, Engine as _};
 use keyvalues_parser::{Obj, Vdf};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
-use steam_shortcuts_util::parse_shortcuts;
-use std::path::Path;
-use std::env;
 use std::fs;
 use std::io::Read;
-use base64::{engine::general_purpose, Engine as _};
+use std::path::Path;
+use std::path::PathBuf;
+use steam_shortcuts_util::parse_shortcuts;
 
 pub struct Steamium {
 	steam_root: PathBuf,
@@ -24,9 +23,10 @@ fn get_steam_root() -> anyhow::Result<PathBuf> {
 		.iter()
 		.map(|path| home.join(path))
 		.filter(|p| p.exists())
-		.next() else {
-			anyhow::bail!("Couldn't find Steam installation in search paths");
-		};
+		.next()
+	else {
+		anyhow::bail!("Couldn't find Steam installation in search paths");
+	};
 
 	Ok(steam_path)
 }
@@ -38,7 +38,7 @@ pub struct AppManifest {
 	app_id: AppID,
 	run_game_id: AppID,
 	name: String,
-	cover : String,
+	cover_b64: Option<String>,
 	raw_state_flags: u64, // documentation: https://github.com/lutris/lutris/blob/master/docs/steam.rst
 	last_played: Option<u64>, // unix timestamp
 }
@@ -89,7 +89,7 @@ fn vdf_parse_libraryfolders<'a>(vdf_root: &'a Vdf<'a>) -> Option<Vec<AppEntry>> 
 				.iter()
 				.filter_map(|item| item.0.parse::<u64>().ok())
 				.map(|app_id| AppEntry {
-					app_id : app_id.to_string(),
+					app_id: app_id.to_string(),
 					root_path: String::from(path),
 				}),
 		);
@@ -118,9 +118,9 @@ fn vdf_parse_appstate<'a>(app_id: AppID, vdf_root: &'a Vdf<'a>) -> Option<AppMan
 	};
 
 	Some(AppManifest {
-		app_id : app_id.clone(),
-		run_game_id : app_id,
-		cover : String::from(""),
+		app_id: app_id.clone(),
+		run_game_id: app_id,
+		cover_b64: None,
 		name: String::from(name),
 		raw_state_flags,
 		last_played,
@@ -159,18 +159,17 @@ pub fn launch(app_id: AppID) -> anyhow::Result<()> {
 #[derive(Serialize)]
 pub struct RunningGame {
 	pub app_id: AppID,
-	pub pid: u64,
+	pub pid: i32,
 }
 
 #[derive(Serialize)]
 struct Shortcut {
-    name: String,
-    exe: String,
+	name: String,
+	exe: String,
 	run_game_id: u64,
-	app_id : u64,
-	cover : String
+	app_id: u64,
+	cover_b64: Option<String>,
 }
-
 
 pub fn list_running_games() -> anyhow::Result<Vec<RunningGame>> {
 	let mut res = Vec::<RunningGame>::new();
@@ -187,7 +186,7 @@ pub fn list_running_games() -> anyhow::Result<Vec<RunningGame>> {
 			continue;
 		};
 
-		let Ok(pid) = pid.parse::<u64>() else {
+		let Ok(pid) = pid.parse::<i32>() else {
 			continue;
 		};
 
@@ -233,7 +232,7 @@ pub fn list_running_games() -> anyhow::Result<Vec<RunningGame>> {
 			// AppID found. Add it to the list
 			res.push(RunningGame {
 				app_id: app_id_num.to_string(),
-				pid : pid as u64
+				pid: pid,
 			});
 
 			break;
@@ -254,71 +253,49 @@ fn call_steam(arg: &str) -> anyhow::Result<()> {
 }
 
 fn shortcut_to_fake_manifest(shortcut: &Shortcut) -> AppManifest {
-    
 	AppManifest {
-        app_id : shortcut.app_id.to_string(),
+		app_id: shortcut.app_id.to_string(),
 		run_game_id: shortcut.run_game_id.to_string(),
-        name: shortcut.name.clone(),
-		cover : shortcut.cover.clone(),
-        raw_state_flags: 0,         // Pas applicable, 0 par défaut
-        last_played: None,          // Steam ne stocke pas ça pour les shortcuts
-    }
+		name: shortcut.name.clone(),
+		cover_b64: shortcut.cover_b64.clone(),
+		raw_state_flags: 0, // Not applicable for shortcuts, 0 by default
+		last_played: None,  // Steam does not use this for shortcuts
+	}
 }
 
 fn compute_rungameid(app_id: u32) -> u64 {
-    (app_id as u64) << 32 | 0x02000000
+	(app_id as u64) << 32 | 0x02000000
 }
 
-
 impl Steamium {
+	fn convert_cover_to_base64(app_id: &u32,original_path: &Path,) -> std::io::Result<Option<String>> {
+		// List of supported extensions with their MIME types
+		let extensions = [
+			("png", "image/png"),
+			("jpg", "image/jpeg"),
+			("jpeg", "image/jpeg"),
+			("webp", "image/webp"),
+			("bmp", "image/bmp"),
+			("gif", "image/gif"),
+		];
 
-	pub fn get_cover_file_path(app_id: &u32) -> String {
-	
-		let filename = format!("{}.png", app_id);
-		let relative = PathBuf::from("../../ressources").join("covers").join(filename);
-		
-		if let Ok(current_dir) = env::current_dir() {
-			let absolute = current_dir.join(relative);
-			absolute.to_string_lossy().into_owned()
-		} else {
-			String::new()
+		for (ext, mime) in extensions.iter() {
+			let filepath = original_path
+				.join("grid")
+				.join(format!("{}p.{}", app_id, ext));
+			if filepath.exists() {
+				let mut file = fs::File::open(&filepath)?;
+				let mut buffer = Vec::new();
+				file.read_to_end(&mut buffer)?;
+
+				let base64_string = general_purpose::STANDARD.encode(&buffer);
+				let data_uri = format!("data:{};base64,{}", mime, base64_string);
+				return Ok(Some(data_uri));
+			}
 		}
+
+		Ok(None)
 	}
-
-
-	fn convert_cover_to_base64(app_id: &u32, original_path: &Path) -> std::io::Result<String> {
-    
-    // List of supported extensions with their MIME types
-    let extensions = [
-		("png", "image/png"),
-		("jpg", "image/jpeg"),
-		("jpeg", "image/jpeg"),
-		("webp", "image/webp"),
-		("bmp", "image/bmp"),
-		("gif", "image/gif"),
-    ];
-
-    for (ext, mime) in extensions.iter() {
-        let filepath = original_path
-            .join("grid")
-            .join(format!("{}p.{}", app_id, ext));
-        if filepath.exists() {
-            let mut file = fs::File::open(&filepath)?;
-            let mut buffer = Vec::new();
-            file.read_to_end(&mut buffer)?;
-
-            let base64_string = general_purpose::STANDARD.encode(&buffer);
-            let data_uri = format!("data:{};base64,{}", mime, base64_string);
-            return Ok(data_uri);
-        }
-    }
-
-    	Err(std::io::Error::new(
-        	std::io::ErrorKind::NotFound,
-        	"",
-    	))
-	}
-
 
 	fn list_shortcuts(&self) -> Result<Vec<Shortcut>, Box<dyn std::error::Error>> {
 		let userdata_dir = self.steam_root.join("userdata");
@@ -333,32 +310,29 @@ impl Steamium {
 			if !shortcut_path.exists() {
 				continue;
 			}
-			
+
 			let content = std::fs::read(&shortcut_path)?;
-     		let shortcuts_data =parse_shortcuts(content.as_slice())?;
+			let shortcuts_data = parse_shortcuts(content.as_slice())?;
 
 			for s in shortcuts_data {
 				let run_game_id = compute_rungameid(s.app_id);
-				let cover_base64 = match Steamium::convert_cover_to_base64(&s.app_id, &config_path){
+				let cover_base64 = match Steamium::convert_cover_to_base64(&s.app_id, &config_path) {
 					Ok(path) => path, // If successful, use the new path
 					Err(e) => {
-						eprintln!("Error converting cover for app {}: {}", s.app_id, e);
-						String::from("") // Return an empty string if there was an error
+						log::error!("Error converting cover for app {}: {}", s.app_id, e);
+						None
 					}
 				};
-			
-
 				shortcuts.push(Shortcut {
 					name: s.app_name.to_string(),
 					exe: s.exe.to_string(),
 					run_game_id: run_game_id,
-					app_id : s.app_id as u64,
-					cover : cover_base64
+					app_id: s.app_id as u64,
+					cover_b64: cover_base64,
 				});
 			}
 		}
 
-		
 		Ok(shortcuts)
 	}
 
@@ -415,7 +389,7 @@ impl Steamium {
 				};
 				Some(manifest)
 			})
-		.collect();
+			.collect();
 
 		if let Ok(shortcuts) = self.list_shortcuts() {
 			let mut fake_manifests = shortcuts
@@ -424,9 +398,8 @@ impl Steamium {
 				.collect::<Vec<AppManifest>>();
 			games.append(&mut fake_manifests);
 		} else {
-			println!("Failed to read non-Steam shortcuts");
+			log::error!("Failed to read non-Steam shortcuts");
 		}
-		
 
 		match sort_method {
 			GameSortMethod::NameAsc => {
@@ -440,11 +413,6 @@ impl Steamium {
 			}
 		}
 
-
-		
-
 		Ok(games)
 	}
-
-
 }
