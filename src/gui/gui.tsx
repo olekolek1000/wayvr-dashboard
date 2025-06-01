@@ -303,29 +303,36 @@ export function GameCover({ manifest, big, on_click }: { manifest: ipc.AppManife
 				const failed_covers = failed_covers_get();
 				const already_failed = failed_covers.covers.includes(manifest.app_id);
 
-				if (!already_failed) {
-					const url = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${manifest.app_id}/library_600x900.jpg`;
-					setContent(
-						<img
-							className={scss.game_cover_image}
-							src={url}
-							onError={async () => {
-								try {
-									console.log("Alt cover " + manifest.app_id + " failed to load, remembering it to prevent unnecessary requests to Steam API ");
-									const updated_covers = failed_covers_get();
-									updated_covers.covers.push(manifest.app_id);
-									failed_covers_set(updated_covers);
-									setContent(await get_alt_cover(manifest));
-								} catch (err) {
-									console.error("Failed to load alt cover:", err);
-								}
-							}}
-						/>
-					);
-				} else {
-					console.log("using previously failed cover");
-					setContent(await get_alt_cover(manifest));
+				if(manifest.run_game_id.length<10){
+						if (!already_failed) {
+						const url = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${manifest.app_id}/library_600x900.jpg`;
+						setContent(
+							<img
+								className={scss.game_cover_image}
+								src={url}
+								onError={async () => {
+									try {
+										console.log("Alt cover " + manifest.app_id + " failed to load, remembering it to prevent unnecessary requests to Steam API ");
+										const updated_covers = failed_covers_get();
+										updated_covers.covers.push(manifest.app_id);
+										failed_covers_set(updated_covers);
+										setContent(await get_alt_cover(manifest));
+									} catch (err) {
+										console.error("Failed to load alt cover:", err);
+									}
+								}}
+							/>
+						);
+					} else {
+						console.log("using previously failed cover");
+						setContent(await get_alt_cover(manifest));
+					}
 				}
+				else{
+						console.log("handling non Steam Game");
+						setContent(await get_alt_cover(manifest));
+
+				}				
 			} catch (err) {
 				console.error("Unhandled error in GameCover useEffect:", err);
 			}
