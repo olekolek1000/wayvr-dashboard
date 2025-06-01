@@ -9,7 +9,6 @@ use wayvr_ipc::{
 };
 
 use crate::util::{self, pactl_wrapper};
-
 type AppStateType = Mutex<crate::app::AppState>;
 
 #[derive(Debug, Serialize)]
@@ -74,13 +73,13 @@ pub async fn game_list(state: tauri::State<'_, AppStateType>) -> Result<Games, S
 }
 
 #[tauri::command]
-pub fn game_launch(app_id: i32) -> Result<(), String> {
-	handle_result("launch a game", libsteamium::launch(app_id as u64))
+pub fn game_launch(app_id: String) -> Result<(), String> {
+	handle_result("launch a game", libsteamium::launch(app_id))
 }
 
 #[tauri::command]
-pub fn game_stop(app_id: i32, force: bool) -> Result<(), String> {
-	handle_result("stop a game", libsteamium::stop(app_id as u64, force))
+pub fn game_stop(app_id: String, force: bool) -> Result<(), String> {
+	handle_result("stop a game", libsteamium::stop(app_id, force))
 }
 
 #[tauri::command]
