@@ -279,13 +279,13 @@ function failed_covers_set(covers: FailedCovers) {
 
 async function get_alt_cover(manifest: ipc.AppManifest) {
 	console.log(manifest.cover_b64);
-	if(manifest.cover_b64!= undefined){
+	if (manifest.cover_b64 != undefined) {
 		console.log("Runnning copy png to frontend")
 		return <>
-			<img className={scss.game_cover_image} src={manifest.cover_b64}/>
+			<img className={scss.game_cover_image} src={manifest.cover_b64} />
 		</>;
 	}
-	else{
+	else {
 		return <>
 			<img className={scss.game_cover_image} src="/no_cover.webp" />
 			<span className={scss.game_cover_title}>{manifest.name}</span>
@@ -303,8 +303,8 @@ export function GameCover({ manifest, big, on_click }: { manifest: ipc.AppManife
 				const failed_covers = failed_covers_get();
 				const already_failed = failed_covers.covers.includes(manifest.app_id);
 
-				if(manifest.run_game_id.length<10){
-						if (!already_failed) {
+				if (manifest.run_game_id.length < 10) {
+					if (!already_failed) {
 						const url = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${manifest.app_id}/library_600x900.jpg`;
 						setContent(
 							<img
@@ -328,11 +328,11 @@ export function GameCover({ manifest, big, on_click }: { manifest: ipc.AppManife
 						setContent(await get_alt_cover(manifest));
 					}
 				}
-				else{
-						console.log("handling non Steam Game");
-						setContent(await get_alt_cover(manifest));
+				else {
+					console.log("handling non Steam Game");
+					setContent(await get_alt_cover(manifest));
 
-				}				
+				}
 			} catch (err) {
 				console.error("Unhandled error in GameCover useEffect:", err);
 			}
@@ -508,8 +508,8 @@ async function launch(
 
 function ApplicationView({ globals, application, }: { globals: Globals, application: ipc.DesktopFile }) {
 	const [details, setDetails] = useState(<></>);
-	const [xwayland_mode, setXWaylandMode] = useState(false);
-	const [force_wayland, setForceWayland] = useState(true);
+	const [xwayland_mode, setXWaylandMode] = useState(globals.prefs.cage_mode ? true : false);
+	const [force_wayland, setForceWayland] = useState(globals.prefs.cage_mode ? false : true);
 	const [displays, setDisplays] = useState<ipc.Display[] | null>(null);
 
 	const refreshDisplays = async () => {
@@ -531,12 +531,12 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 			<div className={scss.previewer_title}>{application.name}</div>
 			{details}
 			<Separator />
-			<Checkbox title="Run in X11 mode via XWayland (cage)" pair={[xwayland_mode, setXWaylandMode]} onChange={(n) => {
+			<Checkbox title="Run in X11 mode (cage)" pair={[xwayland_mode, setXWaylandMode]} onChange={(n) => {
 				if (n) {
 					setForceWayland(false);
 				}
 			}} />
-			<Checkbox title="Force-enable Wayland for various backends - Qt/GTK/SDL (...)" pair={[force_wayland, setForceWayland]} onChange={(n) => {
+			<Checkbox title="Run in Wayland mode" pair={[force_wayland, setForceWayland]} onChange={(n) => {
 				if (n) {
 					setXWaylandMode(false);
 				}

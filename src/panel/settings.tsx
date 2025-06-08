@@ -15,6 +15,7 @@ export function PanelSettings({ globals }: { globals: Globals }) {
 	const [pref_twelve, setPrefTwelve] = useState(globals.prefs.twelve_hour_clock ?? false);
 	const [pref_hide_username, setPrefHideUsername] = useState(globals.prefs.hide_username ?? false);
 	const [pref_opaque_background, setPrefOpaqueBackground] = useState(globals.prefs.opaque_background ?? false);
+	const [pref_cage_mode, setPrefCageMode] = useState(globals.prefs.cage_mode ?? false);
 
 	useEffect(() => {
 		const run = async () => {
@@ -37,6 +38,21 @@ export function PanelSettings({ globals }: { globals: Globals }) {
 	let checkbox_opaque;
 	const cb_op = <Checkbox pair={[pref_opaque_background, setPrefOpaqueBackground]} title="Opaque background" disabled={globals.is_nvidia} onChange={(n) => {
 		prefs.opaque_background = n;
+		refreshPrefs();
+	}} />;
+
+	const checkbox_cage_mode = <Checkbox pair={[pref_cage_mode, setPrefCageMode]} title="Run in XWayland mode (cage) by default" onChange={(n) => {
+		prefs.cage_mode = n;
+		refreshPrefs();
+	}} />;
+
+	const checkbox_12hourclock = <Checkbox pair={[pref_twelve, setPrefTwelve]} title="12-hour clock" onChange={(n) => {
+		prefs.twelve_hour_clock = n;
+		refreshPrefs();
+	}} />;
+
+	const checkbox_hideusername = <Checkbox pair={[pref_hide_username, setPrefHideUsername]} title="Hide username in the Home screen" onChange={(n) => {
+		prefs.hide_username = n;
 		refreshPrefs();
 	}} />;
 
@@ -79,15 +95,10 @@ export function PanelSettings({ globals }: { globals: Globals }) {
 		{warn_nvidia}
 
 		<Container>
-			<Checkbox pair={[pref_hide_username, setPrefHideUsername]} title="Hide username in the Home screen" onChange={(n) => {
-				prefs.hide_username = n;
-				refreshPrefs();
-			}} />
-			<Checkbox pair={[pref_twelve, setPrefTwelve]} title="12-hour clock" onChange={(n) => {
-				prefs.twelve_hour_clock = n;
-				refreshPrefs();
-			}} />
+			{checkbox_hideusername}
+			{checkbox_12hourclock}
 			{checkbox_opaque}
+			{checkbox_cage_mode}
 		</Container>
 
 		<Container>

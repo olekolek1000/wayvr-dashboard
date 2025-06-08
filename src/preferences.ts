@@ -3,6 +3,7 @@ export namespace preferences {
 		twelve_hour_clock?: boolean; // 24-hour clock
 		hide_username?: boolean;
 		opaque_background?: boolean;
+		cage_mode?: boolean;
 	}
 
 	export function savePreferences(preferences: Preferences) {
