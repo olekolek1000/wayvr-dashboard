@@ -26,6 +26,13 @@ Package name: `aur/wayvr-dashboard-git`
 
 [https://aur.archlinux.org/packages/wayvr-dashboard-git](https://aur.archlinux.org/packages/wayvr-dashboard-git)
 
+### Homebrew:
+
+```bash
+brew tap shiloh/atomicxr https://codeberg.org/shiloh/homebrew-atomicxr.git
+brew install wayvr-dashboard
+```
+
 ## Method 3: Via [Releases](https://github.com/olekolek1000/wayvr-dashboard/releases) page:
 
 Unzip the newest WayVR Dashboard, and link the AppImage file in the [wayvr.yaml config file](#assigning-wayvr-dashboard-to-the-wayvr-config-in-wlx-overlay-s)
