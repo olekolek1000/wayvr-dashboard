@@ -25,37 +25,37 @@ opt-level = 0
 incremental = true
 
 [build-dependencies]
-tauri-build = { version = "2.0.6", features = [] }
+tauri-build = { version = "2.3.1", features = [] }
 
 [dependencies]
-tauri = { version = "2.3.1", features = [
+tauri = { version = "2.7.0", features = [
 	"protocol-asset",
 	"devtools",
 	"unstable",
 ] }
-tauri-plugin-shell = "2.2.0"
+tauri-plugin-shell = "2.3.0"
 libsteamium = { path = "../libsteamium" }
-serde = { version = "1.0.218", features = ["derive"] }
-serde_json = "1.0.140"
-tauri-plugin-fs = "2.2.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.142"
+tauri-plugin-fs = "2.4.1"
 walkdir = "2.5.0"
 xdg = "2.5.2"
-anyhow = "1.0.97"
-rust-ini = "0.21.1"
+anyhow = "1.0.98"
+rust-ini = "0.21.2"
 libmonado = { git = "https://github.com/olekolek1000/libmonado-rs.git", rev = "edfbba6f47ee28181755c80531586e3eb91745c8" }
-log = "0.4.26"
-tauri-plugin-http = { version = "2.3.0", features = ["unsafe-headers"] }
+log = "0.4.27"
+tauri-plugin-http = { version = "2.5.1", features = ["unsafe-headers"] }
 interprocess = { version = "2.2.3", features = ["tokio"] }
 bytes = "1.10.1"
-tokio = "1.44.0"
-tokio-util = "0.7.13"
-smallvec = "1.14.0"
+tokio = "1.47.1"
+tokio-util = "0.7.15"
+smallvec = "1.15.1"
 wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "a72587d23f3bb8624d9aeb1f13c0a21e65350f51", features = [
 	"client",
 ] }
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing = "0.1.41"
-gio = "0.20.9"
-glib = "0.20.9"
+gio = "0.20.12"
+glib = "0.20.12"
 gtk = "0.18.2"
 env = "1.0.1"
