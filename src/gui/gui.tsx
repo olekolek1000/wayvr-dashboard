@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import scss from "../app.module.scss"
 import { ipc } from "../ipc";
-import { get_app_details_json, getDashboardDisplay, getDesktopFileURL, listDisplays, openURL, vibrate_down, vibrate_hover, vibrate_up } from "../utils";
+import { get_app_details_json, getDashboardDisplay, getDesktopFileURL, listDisplays, openURL, playAudio, vibrate_down, vibrate_hover, vibrate_up } from "../utils";
 import { WindowManager, WindowParams } from "./window_manager";
 import { Globals } from "@/globals";
 import { CSSProperties, JSX, Ref } from "preact/compat";
@@ -305,7 +305,7 @@ export function GameCover({ manifest, big, on_click }: { manifest: ipc.AppManife
 
 				if (manifest.run_game_id.length < 10) {
 					if (!already_failed) {
-						const url = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${manifest.app_id}/library_600x900.jpg`;
+						const url = `https://shared.steamstatic.com/store_item_assets/steam/apps/${manifest.app_id}/library_600x900.jpg`;
 						setContent(
 							<img
 								className={scss.game_cover_image}
@@ -464,6 +464,8 @@ async function launch(
 	force_wayland: boolean,
 	xwayland_mode: boolean,
 ) {
+	playAudio("sounds/app_start.opus", 1.0);
+
 	let env: Array<string> = [];
 
 	if (force_wayland) {
@@ -497,6 +499,7 @@ async function launch(
 	};
 
 	ipc.display_set_visible({ handle: params.targetDisplay, visible: true }).catch(() => { });
+
 
 	ipc.process_launch(params).then(() => {
 		globals.toast_manager.push("Application launched on \"" + selected_display.name + "\"");
@@ -606,6 +609,7 @@ function ManifestView({ globals, manifest }: { globals: Globals, manifest: ipc.A
 			<div className={scss.previewer_title}>{manifest.name}</div>
 			{details}
 			<BigButton title="Launch" type={BigButtonColor.green} on_click={() => {
+				playAudio("sounds/app_start.opus", 1.0);
 				ipc.game_launch(manifest.run_game_id);
 				globals.toast_manager.push("Game launched. This might take a while");
 			}} />

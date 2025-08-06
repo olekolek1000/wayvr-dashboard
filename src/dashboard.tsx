@@ -11,7 +11,7 @@ import { ipc } from "./ipc";
 import { Globals } from "./globals";
 import { PanelSettings } from "./panel/settings";
 import { JSX } from "preact/jsx-runtime";
-import { getDashboardDisplay, unfocusAll, vibrate_down, vibrate_hover, vibrate_up } from "./utils";
+import { getDashboardDisplay, playAudio, unfocusAll, vibrate_down, vibrate_hover, vibrate_up } from "./utils";
 import { WindowList } from "./views/window_list";
 import { PopupVolume } from "./views/popup_volume";
 import { BatteryLevels } from "./views/battery_levels";
@@ -91,6 +91,10 @@ const color_bg_opaque = `radial-gradient(
 	rgb(0,0,40) 150%
 )
 `;
+
+function playAudioPanelChange() {
+	playAudio("sounds/panel_change.opus", 0.4);
+}
 
 export function Dashboard({ globals, initial_preferences }: { globals: Globals, initial_preferences: preferences.Preferences }) {
 	const [current_panel, setCurrentPanel] = useState(<PanelHome globals={globals} />);
@@ -174,18 +178,21 @@ export function Dashboard({ globals, initial_preferences }: { globals: Globals, 
 						<MenuButton icon="wayvr_dashboard_transparent.webp" on_click={async () => {
 							await unfocusAll(globals);
 							setCurrentPanel(<PanelHome globals={globals} />);
+							playAudioPanelChange();
 						}} />
 					</TooltipSide>
 					<TooltipSide title={"Applications"}>
 						<MenuButton icon="icons/apps.svg" on_click={async () => {
 							await unfocusAll(globals);
 							await enterPanelApplications(globals);
+							playAudioPanelChange();
 						}} />
 					</TooltipSide>
 					<TooltipSide title={"Games"}>
 						<MenuButton icon="icons/games.svg" on_click={async () => {
 							await unfocusAll(globals);
 							setCurrentPanel(<PanelGames globals={globals} />);
+							playAudioPanelChange();
 						}} />
 					</TooltipSide>
 
@@ -197,6 +204,7 @@ export function Dashboard({ globals, initial_preferences }: { globals: Globals, 
 							}
 							else {
 								setCurrentPanel(<PanelMonado globals={globals} />);
+								playAudioPanelChange();
 							}
 						}} />
 					</TooltipSide>
@@ -205,6 +213,7 @@ export function Dashboard({ globals, initial_preferences }: { globals: Globals, 
 						<MenuButton icon="icons/window.svg" on_click={async () => {
 							await unfocusAll(globals);
 							setCurrentPanel(<PanelRunningApps globals={globals} />);
+							playAudioPanelChange();
 						}} />
 					</TooltipSide>
 
@@ -214,6 +223,7 @@ export function Dashboard({ globals, initial_preferences }: { globals: Globals, 
 						<MenuButton icon="icons/settings.svg" on_click={async () => {
 							await unfocusAll(globals);
 							setCurrentPanel(<PanelSettings globals={globals} />);
+							playAudioPanelChange();
 						}} />
 					</TooltipSide>
 				</div>

@@ -2,6 +2,7 @@ import { fetch as tauri_fetch } from '@tauri-apps/plugin-http';
 import { getVersion } from '@tauri-apps/api/app';
 import { ipc } from './ipc';
 import { Globals } from './globals';
+import { Howl, Howler } from 'howler';
 import { createWindowMessage } from './gui/gui';
 
 export function get_external_url(absolute_path: string): string {
@@ -136,7 +137,11 @@ async function openURLInternal(disp: ipc.DisplayHandle, url: string) {
 
 	await ipc.display_set_visible({ handle: disp, visible: true });
 	await ipc.process_launch(params);
+
+	playAudio("sounds/app_start.opus", 1.0);
 }
+
+
 
 export async function openURL(url: string, globals: Globals) {
 	const target_disp = await getDefaultDisplay();
@@ -151,7 +156,43 @@ export function getDesktopFileURL(desktop_file: ipc.DesktopFile) {
 	return (desktop_file.icon ? get_external_url(desktop_file.icon) : "icons/terminal.svg");
 }
 
+interface AudioCacheCell {
+	sound: Howl;
+}
+
+let audio_cache = new Map<string, AudioCacheCell>();
+
+function playAudioInternal(cell: AudioCacheCell, volume: number) {
+	const id = cell.sound.play();
+	cell.sound.volume(volume, id);
+	cell.sound.mute(false, id);
+}
+
+export function playAudio(path: string, volume: number) {
+	Howler.autoUnlock = false;
+	Howler.autoSuspend = false;
+
+	let cell = audio_cache.get(path);
+	if (cell === undefined) {
+		const sound = new Howl({
+			src: [path],
+		});
+
+		const new_cell: AudioCacheCell = {
+			sound: sound
+		};
+
+		audio_cache.set(path, new_cell);
+		playAudioInternal(new_cell, volume);
+	}
+	else {
+		playAudioInternal(cell, volume);
+	}
+}
+
 export async function vibrate_hover() {
+	playAudio("sounds/hover.opus", 0.4);
+
 	if (!await ipc.is_ipc_connected()) {
 		return;
 	}
@@ -165,6 +206,8 @@ export async function vibrate_hover() {
 }
 
 export async function vibrate_down() {
+	playAudio("sounds/press_in.opus", 0.2);
+
 	if (!await ipc.is_ipc_connected()) {
 		return;
 	}
@@ -178,6 +221,8 @@ export async function vibrate_down() {
 }
 
 export async function vibrate_up() {
+	playAudio("sounds/press_out.opus", 0.2);
+
 	if (!await ipc.is_ipc_connected()) {
 		return;
 	}

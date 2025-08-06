@@ -101,13 +101,6 @@ export function PanelApplications({ globals, desktop_files }: { globals: Globals
 			<Icon path="icons/search.svg" />
 
 			<TextField placeholder="Search" valfunc={[filter, setFilter]} />
-
-			<TooltipSimple title={"Refresh entries from the disk"}>
-				<Button size={24} icon="icons/refresh.svg" on_click={async () => {
-					clearDesktopFilesCache();
-					enterPanelApplications(globals);
-				}} />
-			</TooltipSimple>
 		</div>
 
 		{list}

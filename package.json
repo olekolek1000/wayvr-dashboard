@@ -1,7 +1,7 @@
 {
 	"name": "wayvr-dashboard",
 	"private": true,
-	"version": "0.3.5",
+	"version": "0.3.6",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
@@ -15,6 +15,7 @@
 		"@tauri-apps/plugin-http": "^2.2.0",
 		"@tauri-apps/plugin-shell": "^2",
 		"@types/node": "^22.9.0",
+		"howler": "^2.2.4",
 		"preact": "^10.16.0",
 		"sass": "^1.81.0",
 		"vite-plugin-sass": "^0.1.0",
@@ -27,6 +28,7 @@
 	"devDependencies": {
 		"@preact/preset-vite": "^2.5.0",
 		"@tauri-apps/cli": "^2",
+		"@types/howler": "^2.2.12",
 		"typescript": "^5.2.2",
 		"vite": "^6.2.6"
 	}

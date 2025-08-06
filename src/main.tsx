@@ -2,7 +2,7 @@ import { render } from "preact";
 import { Dashboard } from "./dashboard";
 import { Globals } from "./globals";
 import { run_listeners } from "./event";
-import { get_version } from "./utils";
+import { get_version, playAudio } from "./utils";
 import { clearDesktopFilesCache } from "./panel/applications";
 import { preferences } from "./preferences";
 import { ipc } from "./ipc";
@@ -18,6 +18,8 @@ export var global_scale: number;
 
 function Main({ globals, initial_preferences }: { globals: Globals, initial_preferences: preferences.Preferences }) {
 	run_listeners(globals);
+
+	playAudio("sounds/startup.opus", 1.0);
 
 	return <Dashboard globals={globals} initial_preferences={initial_preferences} />
 }
@@ -85,8 +87,10 @@ async function prepare() {
 	// Clear various caches in case if the dashboard version changed
 	if (last_version !== version) {
 		storage.setItem("last_version", version);
-		clearDesktopFilesCache();
+		// nothing for now
 	}
+
+	clearDesktopFilesCache();
 
 	render(<Main globals={globals} initial_preferences={pref} />, el_root);
 }
