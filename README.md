@@ -29,7 +29,7 @@ Package name: `aur/wayvr-dashboard-git`
 ### Homebrew:
 
 ```bash
-brew tap shiloh/atomicxr https://codeberg.org/shiloh/homebrew-atomicxr.git
+brew tap matrixfurry.com/atomicxr https://tangled.sh/@matrixfurry.com/homebrew-atomicxr
 brew install wayvr-dashboard
 ```
 
