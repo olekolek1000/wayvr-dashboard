@@ -132,6 +132,9 @@ struct AppEntry {
 	pub app_id: AppID,
 }
 
+// If the game is run through Flatpak Steam, not all child processes are listed for the parent process when executing 'pgrep', so
+// we need to run the command with the first PID and then the output PIDs. Additionally, 'pkill' does not terminate all child
+// processes, so we must reverse the order so that the last process terminates first; otherwise, new untracked processes may start.
 pub fn stop(app_id: AppID, force_kill: bool) -> anyhow::Result<()> {
 	log::info!("Stopping Steam game with AppID {}", app_id);
 
@@ -141,12 +144,54 @@ pub fn stop(app_id: AppID, force_kill: bool) -> anyhow::Result<()> {
 		}
 
 		log::info!("Killing process with PID {} and its children", game.pid);
-		let _ = std::process::Command::new("pkill")
-			.arg(if force_kill { "-9" } else { "-11" })
-			.arg("-P")
-			.arg(format!("{}", game.pid))
-			.spawn()?;
+
+		let mut pids = vec![game.pid.to_string()];
+
+		if game.is_flatpak {
+			let output = std::process::Command::new("pgrep")
+				.arg("-P")
+				.arg(format!("{}", game.pid))
+				.output()?;
+
+			if output.status.success() {
+				let child_pids = String::from_utf8_lossy(&output.stdout);
+
+				for child_pid in child_pids.lines() {
+					let child_pid = child_pid.trim();
+
+					if !child_pid.is_empty() {
+						pids.push(child_pid.to_string());
+
+						let grandchild_output = std::process::Command::new("pgrep")
+							.arg("-P")
+							.arg(child_pid)
+							.output()?;
+
+						if grandchild_output.status.success() {
+							let grandchild_pids = String::from_utf8_lossy(&grandchild_output.stdout);
+
+							for grandchild_pid in grandchild_pids.lines() {
+								let grandchild_pid = grandchild_pid.trim();
+
+								if !grandchild_pid.is_empty() {
+									pids.push(grandchild_pid.to_string());
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		for pid in pids.iter().rev() {
+			let _ = std::process::Command::new("pkill")
+				.arg(if force_kill { "-9" } else { "-15" })
+				.arg("-P")
+				.arg(pid)
+				.spawn()?;
+		}
 	}
+
 	Ok(())
 }
 
@@ -160,6 +205,7 @@ pub fn launch(app_id: AppID) -> anyhow::Result<()> {
 pub struct RunningGame {
 	pub app_id: AppID,
 	pub pid: i32,
+	pub is_flatpak: bool,
 }
 
 #[derive(Serialize)]
@@ -229,10 +275,21 @@ pub fn list_running_games() -> anyhow::Result<Vec<RunningGame>> {
 				continue;
 			};
 
+			let is_flatpak = args.get(0).map_or(false, |first_arg| {
+				first_arg.contains(".var/app/com.valvesoftware.Steam")
+			});
+
+			let game_pid = if is_flatpak {
+				find_flatpak_pid(pid, &args)?
+			} else {
+				pid
+			};
+
 			// AppID found. Add it to the list
 			res.push(RunningGame {
 				app_id: app_id_num.to_string(),
-				pid: pid,
+				pid: game_pid,
+				is_flatpak: is_flatpak,
 			});
 
 			break;
@@ -240,6 +297,63 @@ pub fn list_running_games() -> anyhow::Result<Vec<RunningGame>> {
 	}
 
 	Ok(res)
+}
+
+fn find_flatpak_pid(original_pid: i32, args: &[&str]) -> anyhow::Result<i32> {
+	if let Some(waitforexitandrun_index) = args.iter().position(|&arg| arg == "waitforexitandrun") {
+		let args_after_waitforexitandrun = &args[waitforexitandrun_index + 1..];
+
+		let entries = std::fs::read_dir("/proc")?;
+
+		for entry in entries.into_iter().flatten() {
+			let path_cmdline = entry.path().join("cmdline");
+			let Ok(cmdline) = std::fs::read(path_cmdline) else {
+				continue;
+			};
+
+			let proc_file_name = entry.file_name();
+			let Some(pid) = proc_file_name.to_str() else {
+				continue;
+			};
+
+			let Ok(pid) = pid.parse::<i32>() else {
+				continue;
+			};
+
+			if pid == original_pid {
+				continue;
+			}
+
+			let args: Vec<&str> = cmdline
+				.split(|byte| *byte == 0x00)
+				.filter_map(|arg| match std::str::from_utf8(arg) {
+					Ok(arg) => Some(arg),
+					Err(_) => None,
+				})
+				.collect();
+
+			if let Some(first_arg) = args.get(0) {
+				if *first_arg == "bwrap" {
+					if let Some(waitforexitandrun_index1) =
+						args.iter().position(|&arg| arg == "waitforexitandrun")
+					{
+						let args_after_waitforexitandrun1 = &args[waitforexitandrun_index1 + 1..];
+
+						if args_after_waitforexitandrun1.len() == args_after_waitforexitandrun.len()
+							&& args_after_waitforexitandrun1
+								.iter()
+								.zip(args_after_waitforexitandrun.iter())
+								.all(|(a, b)| a == b)
+						{
+							return Ok(pid);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	Ok(original_pid)
 }
 
 fn call_steam(arg: &str) -> anyhow::Result<()> {
@@ -268,7 +382,10 @@ fn compute_rungameid(app_id: u32) -> u64 {
 }
 
 impl Steamium {
-	fn convert_cover_to_base64(app_id: &u32,original_path: &Path,) -> std::io::Result<Option<String>> {
+	fn convert_cover_to_base64(
+		app_id: &u32,
+		original_path: &Path,
+	) -> std::io::Result<Option<String>> {
 		// List of supported extensions with their MIME types
 		let extensions = [
 			("png", "image/png"),
