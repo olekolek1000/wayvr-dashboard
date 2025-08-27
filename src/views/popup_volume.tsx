@@ -283,6 +283,7 @@ function doesStringMentionHMDSink(input: string) {
 		|| name.includes("index") // Valve Index
 		|| name.includes("oculus")  // Oculus
 		|| name.includes("rift") // Also Oculus
+		|| name.includes("beyond") // Bigscreen Beyond
 	);
 }
 
@@ -292,6 +293,7 @@ function doesStringMentionHMDSource(input: string) {
 		name.includes("hmd") // generic hmd name detected
 		|| name.includes("valve") // Valve Index
 		|| name.includes("oculus") // Oculus
+		|| name.includes("beyond") // Beyond
 	);
 }
 
@@ -478,6 +480,11 @@ enum Mode {
 	cards
 }
 
+enum SearchType {
+	sink,
+	source,
+}
+
 async function switch_source(globals: Globals, source: ipc.AudioSource) {
 	try {
 		await ipc.audio_set_default_source({
@@ -493,7 +500,7 @@ async function switch_source(globals: Globals, source: ipc.AudioSource) {
 	}
 }
 
-async function switch_card(globals: Globals, card: ipc.AudioCard, profile_name: string, name: ProfileDisplayName) {
+async function switch_sink_card(globals: Globals, card: ipc.AudioCard, profile_name: string, name: ProfileDisplayName) {
 	try {
 		await ipc.audio_set_card_profile({
 			cardIndex: card.index,
@@ -502,6 +509,7 @@ async function switch_card(globals: Globals, card: ipc.AudioCard, profile_name: 
 
 		const sinks = await ipc.audio_list_sinks();
 		let sink_set = false;
+
 		// find sink by card name
 		for (const sink of sinks) {
 			const sink_dev_name = ipc.mapGet(sink.properties, "device.name");
@@ -545,32 +553,94 @@ async function switchToVRMicrophone(globals: Globals) {
 	}
 }
 
+
+interface CardPriorityResult {
+	priority: number;
+	name: string;
+	profile: ipc.CardProfile;
+	card: ipc.AudioCard,
+}
+
+function getCardBestProfile(card: ipc.AudioCard, search_type: SearchType): CardPriorityResult | undefined {
+	// Get the profile with the largest priority value
+	let best_priority = 0;
+	let best_profile_name = "";
+	let best_profile: ipc.CardProfile | undefined = undefined;
+
+	ipc.mapIter(card.profiles, (profile_name, profile) => {
+		if (search_type == SearchType.sink && profile.sinks == 0) {
+			return; // skip
+		}
+
+		if (search_type == SearchType.source && profile.sources == 0) {
+			return; // skip
+		}
+
+		if (profile.priority > best_priority) {
+			best_priority = profile.priority;
+			best_profile = profile;
+			best_profile_name = profile_name;
+		}
+	});
+
+	if (best_profile == undefined) {
+		return undefined;
+	}
+
+	return {
+		priority: best_priority,
+		profile: best_profile,
+		name: best_profile_name,
+		card
+	};
+}
+
+function getBestProfileFromArray(arr: Array<CardPriorityResult>): CardPriorityResult | undefined {
+	let res: CardPriorityResult | undefined = undefined;
+
+	let best_priority = 0;
+
+	for (const cell of arr) {
+		if (cell.priority > best_priority) {
+			best_priority = cell.priority;
+			res = cell;
+		}
+	}
+
+	return res;
+}
+
 async function switchToVRSpeakers(globals: Globals) {
 	let switched = false;
 
 	const cards = await ipc.audio_list_cards();
-	for (const card of cards) {
-		if (isCardMentioningHMD(card)) {
-			// Get the profile with the largest priority value
-			let best_priority = 0;
-			let best_profile_name = "";
-			let best_profile = undefined;
-			ipc.mapIter(card.profiles, (profile_name, profile) => {
-				if (profile.priority > best_priority) {
-					best_priority = profile.priority;
-					best_profile = profile;
-					best_profile_name = profile_name;
-				}
-			});
 
-			if (best_profile) {
-				const name = getProfileDisplayName(best_profile_name, card);
-				switched = true;
-				switch_card(globals, card, best_profile_name, name);
-			}
-			return;
+	// list of cards with matching VR profiles
+	let best_profiles = new Array<CardPriorityResult>();
+
+	for (const card of cards) {
+		if (!isCardMentioningHMD(card)) {
+			continue;
 		}
 
+		const best_profile = getCardBestProfile(card, SearchType.sink);
+		if (best_profile == undefined) {
+			continue;
+		}
+
+		best_profiles.push(best_profile);
+	}
+
+	if (best_profiles.length > 0) {
+		const best_profile = getBestProfileFromArray(best_profiles)!;
+		const name = getProfileDisplayName(best_profile.name, best_profile.card);
+		switched = true;
+		switch_sink_card(globals, best_profile.card, best_profile.name, name);
+		return;
+	}
+
+	// There aren't any cards which mention VR explicitly. Time for plan B.
+	for (const card of cards) {
 		ipc.mapIter(card.profiles, (profile_name, _profile) => {
 			if (switched) {
 				return;
@@ -581,9 +651,8 @@ async function switchToVRSpeakers(globals: Globals) {
 				return;
 			}
 
+			switch_sink_card(globals, card, profile_name, name);
 			switched = true;
-
-			switch_card(globals, card, profile_name, name);
 		});
 
 		if (switched) {
