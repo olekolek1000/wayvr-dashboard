@@ -35,7 +35,7 @@ pub fn find_icons(
 	icon_list: HashSet<&str>,
 	share_path: &str,
 ) -> anyhow::Result<HashMap<String /* icon name */, String /* icon path */>> {
-	let xdg = xdg::BaseDirectories::new()?;
+	let xdg = xdg::BaseDirectories::new();
 
 	let mut res: HashMap<String, String> = HashMap::new();
 
@@ -92,7 +92,9 @@ pub fn find_icons(
 	let share_path = PathBuf::from(share_path);
 
 	// Get currently set user icon theme
-	let config_path = xdg.get_config_home();
+	let config_path = xdg
+		.get_config_home()
+		.ok_or_else(|| anyhow::anyhow!("xdg get_config_home failed"))?;
 	let theme_settings_path = config_path.join("gtk-4.0/settings.ini");
 	if let Ok(settings_ini) = Ini::load_from_file(theme_settings_path) {
 		if let Some(section_settings) = settings_ini.section(Some("Settings")) {

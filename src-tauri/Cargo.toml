@@ -1,6 +1,6 @@
 [package]
 name = "wayvr-dashboard"
-version = "0.3.7"
+version = "0.3.8"
 description = "A VR dashboard for WayVR"
 authors = ["oo8.dev"]
 edition = "2021"
@@ -25,37 +25,37 @@ opt-level = 0
 incremental = true
 
 [build-dependencies]
-tauri-build = { version = "2.3.1", features = [] }
+tauri-build = { version = "2.4.1", features = [] }
 
 [dependencies]
-tauri = { version = "2.7.0", features = [
+tauri = { version = "2.8.5", features = [
 	"protocol-asset",
 	"devtools",
 	"unstable",
 ] }
-tauri-plugin-shell = "2.3.0"
+tauri-plugin-shell = "2.3.1"
 libsteamium = { path = "../libsteamium" }
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.142"
-tauri-plugin-fs = "2.4.1"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+tauri-plugin-fs = "2.4.2"
 walkdir = "2.5.0"
-xdg = "2.5.2"
-anyhow = "1.0.98"
-rust-ini = "0.21.2"
+xdg = "3.0.0"
+anyhow = "1.0.100"
+rust-ini = "0.21.3"
 libmonado = { git = "https://github.com/olekolek1000/libmonado-rs.git", rev = "edfbba6f47ee28181755c80531586e3eb91745c8" }
-log = "0.4.27"
-tauri-plugin-http = { version = "2.5.1", features = ["unsafe-headers"] }
+log = "0.4.28"
+tauri-plugin-http = { version = "2.5.2", features = ["unsafe-headers"] }
 interprocess = { version = "2.2.3", features = ["tokio"] }
 bytes = "1.10.1"
-tokio = "1.47.1"
-tokio-util = "0.7.15"
+tokio = "1.48.0"
+tokio-util = "0.7.16"
 smallvec = "1.15.1"
 wayvr_ipc = { git = "https://github.com/olekolek1000/wayvr-ipc.git", rev = "a72587d23f3bb8624d9aeb1f13c0a21e65350f51", features = [
 	"client",
 ] }
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 tracing = "0.1.41"
-gio = "0.20.12"
-glib = "0.20.12"
+gio = "0.21.2"
+glib = "0.21.3"
 gtk = "0.18.2"
 env = "1.0.1"

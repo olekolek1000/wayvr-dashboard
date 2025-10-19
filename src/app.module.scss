@@ -839,10 +839,6 @@ body {
 	background-color: rgba(255, 255, 255, 0.5);
 }
 
-.checkbox_checkmark_checked {
-	background-color: vars.$color-accent;
-}
-
 .checkbox_checkmark_checked:hover {
 	background-color: vars.$color-highlight;
 }

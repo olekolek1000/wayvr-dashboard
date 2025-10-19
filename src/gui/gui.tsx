@@ -432,7 +432,7 @@ export function Checkbox({
 			}
 		} : undefined} >
 		<div className={`${scss.checkbox_checkmark} ${checked ? scss.checkbox_checkmark_checked : ""}`} >
-			{checked && "✔️"}
+			{checked && <Icon path={"icons/check.svg"} />}
 		</div>
 		{title ? <div>
 			{title}
@@ -534,7 +534,7 @@ function ApplicationView({ globals, application, }: { globals: Globals, applicat
 			<div className={scss.previewer_title}>{application.name}</div>
 			{details}
 			<Separator />
-			<Checkbox title="Run in X11 mode (cage)" pair={[xwayland_mode, setXWaylandMode]} onChange={(n) => {
+			<Checkbox title="Run in X11 mode (requires 'cage' installed from your repository)" pair={[xwayland_mode, setXWaylandMode]} onChange={(n) => {
 				if (n) {
 					setForceWayland(false);
 				}
