@@ -1,6 +1,8 @@
-[![LVRA Discord](https://img.shields.io/discord/1065291958328758352?style=for-the-badge&logo=discord)](https://discord.gg/EHAYe3tTYa) [![LVRA Matrix](https://img.shields.io/matrix/linux-vr-adventures:matrix.org?logo=matrix&style=for-the-badge)](https://matrix.to/#/#linux-vr-adventures:matrix.org)
+[![Repository moved](./contrib/wayvr_merged.webp)](https://github.com/wlx-team/wayvr)
 
-</p>
+# This repostitory has been archived. WayVR Dashboard is now directly integrated with WayVR (formerly known as WlxOverlay-S).
+
+# [WayVR Repository](https://github.com/wlx-team/wayvr)
 
 <p align="center">
 	<img alt="WayVR Dashboard logo" src="./contrib/front.webp" width="auto"/>
